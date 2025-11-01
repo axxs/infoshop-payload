@@ -9,17 +9,91 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateISBN } from '@/lib/isbnUtils'
 import { lookupBookByISBN } from '@/lib/openLibrary'
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  try {
-    // Extract ISBN from query parameter
-    const searchParams = request.nextUrl.searchParams
-    const isbn = searchParams.get('isbn')
+/**
+ * Simple in-memory rate limiter
+ * Tracks requests per IP with sliding window (30 requests per minute)
+ */
+class RateLimiter {
+  private requests: Map<string, number[]> = new Map()
+  private readonly limit = 30
+  private readonly windowMs = 60 * 1000 // 1 minute
 
-    if (!isbn) {
+  check(ip: string): boolean {
+    const now = Date.now()
+    const timestamps = this.requests.get(ip) || []
+
+    // Remove timestamps outside the window
+    const validTimestamps = timestamps.filter((time) => now - time < this.windowMs)
+
+    if (validTimestamps.length >= this.limit) {
+      return false
+    }
+
+    // Add current request
+    validTimestamps.push(now)
+    this.requests.set(ip, validTimestamps)
+
+    // Cleanup old entries periodically
+    if (this.requests.size > 1000) {
+      this.cleanup()
+    }
+
+    return true
+  }
+
+  private cleanup(): void {
+    const now = Date.now()
+    for (const [ip, timestamps] of this.requests.entries()) {
+      const valid = timestamps.filter((time) => now - time < this.windowMs)
+      if (valid.length === 0) {
+        this.requests.delete(ip)
+      } else {
+        this.requests.set(ip, valid)
+      }
+    }
+  }
+}
+
+const rateLimiter = new RateLimiter()
+
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  // Rate limiting: 30 requests per minute per IP
+  const ip =
+    request.headers.get('x-forwarded-for')?.split(',')[0] ||
+    request.headers.get('x-real-ip') ||
+    'unknown'
+
+  if (!rateLimiter.check(ip)) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Too many requests. Please try again later.',
+      },
+      { status: 429 },
+    )
+  }
+  try {
+    // Extract and sanitize ISBN from query parameter
+    const searchParams = request.nextUrl.searchParams
+    const rawIsbn = searchParams.get('isbn')
+
+    if (!rawIsbn) {
       return NextResponse.json(
         {
           success: false,
           error: 'ISBN parameter is required',
+        },
+        { status: 400 },
+      )
+    }
+
+    // Sanitize input: trim whitespace and enforce reasonable length limit
+    const isbn = rawIsbn.trim()
+    if (isbn.length > 20) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'ISBN parameter too long (max 20 characters)',
         },
         { status: 400 },
       )
@@ -70,12 +144,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       { status: 200 },
     )
   } catch (error) {
-    // Error details are included in the response for debugging
+    // Only include error details in development mode for security
+    const isDevelopment = process.env.NODE_ENV === 'development'
+
     return NextResponse.json(
       {
         success: false,
         error: 'Internal server error while looking up ISBN',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        ...(isDevelopment && {
+          details: error instanceof Error ? error.message : 'Unknown error',
+        }),
       },
       { status: 500 },
     )
