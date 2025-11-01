@@ -55,13 +55,22 @@ export interface BookLookupResult {
 }
 
 /**
- * Simple in-memory cache with TTL
+ * In-memory cache with TTL and LRU eviction
  */
 class ISBNCache {
   private cache: Map<string, { data: BookLookupResult; timestamp: number }> = new Map()
   private ttl: number = 1000 * 60 * 60 * 24 // 24 hours
+  private maxSize: number = 1000 // Maximum cache entries
 
   set(isbn: string, data: BookLookupResult): void {
+    // If at max size, remove oldest entry (LRU)
+    if (this.cache.size >= this.maxSize) {
+      const firstKey = this.cache.keys().next().value
+      if (firstKey) {
+        this.cache.delete(firstKey)
+      }
+    }
+
     this.cache.set(isbn, {
       data,
       timestamp: Date.now(),
@@ -77,6 +86,10 @@ class ISBNCache {
       this.cache.delete(isbn)
       return null
     }
+
+    // Move to end (mark as recently used)
+    this.cache.delete(isbn)
+    this.cache.set(isbn, cached)
 
     return cached.data
   }
@@ -103,12 +116,19 @@ async function fetchFromOpenLibrary(isbn: string): Promise<OpenLibraryBook | nul
   // Use the Books API with jscmd=data format
   const url = `https://openlibrary.org/api/books?bibkeys=ISBN:${isbn13}&format=json&jscmd=data`
 
+  // Set up request timeout (10 seconds)
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 10000)
+
   try {
     const response = await fetch(url, {
       headers: {
         'User-Agent': 'Infoshop-Payload/1.0 (Bookstore Inventory System)',
       },
+      signal: controller.signal,
     })
+
+    clearTimeout(timeout)
 
     if (!response.ok) {
       throw new Error(`Open Library API error: ${response.status} ${response.statusText}`)
@@ -123,6 +143,7 @@ async function fetchFromOpenLibrary(isbn: string): Promise<OpenLibraryBook | nul
 
     return data[bookKey] as OpenLibraryBook
   } catch (error) {
+    clearTimeout(timeout)
     throw new Error(
       `Failed to fetch from Open Library: ${error instanceof Error ? error.message : 'Unknown error'}`,
     )

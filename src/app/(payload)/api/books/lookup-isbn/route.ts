@@ -70,8 +70,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       { status: 200 },
     )
   } catch (error) {
-    console.error('Error in ISBN lookup endpoint:', error)
-
+    // Error details are included in the response for debugging
     return NextResponse.json(
       {
         success: false,
