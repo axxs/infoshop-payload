@@ -1,0 +1,18 @@
+{
+  "exportDate": "2025-11-01T10:50:39.898Z",
+  "counts": {
+    "users": 0,
+    "books": 0,
+    "categories": 0,
+    "subjects": 0,
+    "suppliers": 0,
+    "events": 0,
+    "media": 0,
+    "bookSubjects": 0
+  },
+  "orphanedRecords": {
+    "booksWithoutCategory": 0,
+    "booksWithoutSupplier": 0,
+    "categoriesWithoutParent": 0
+  }
+}

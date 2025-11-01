@@ -1,0 +1,464 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User management
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String?  // Null for social login users
+  name          String
+  isVolunteer   Boolean  @default(false)
+  joinedAt      DateTime @default(now())
+  lastLoginAt   DateTime?
+  
+  // Social login providers
+  googleId      String?  @unique
+  facebookId    String?  @unique
+  
+  // Relations
+  sales         Sale[]
+  shifts        VolunteerShift[]
+  eventsCreated Event[]  @relation("EventCreator")
+  eventAttendances EventAttendance[]
+  decisions     CollectiveDecision[] @relation("DecisionProposer")
+  
+  // CMS Relations
+  pagesAuthored Page[]   @relation("PageAuthor")
+  mediaUploaded Media[]  @relation("MediaUploader")
+  themesInstalled Theme[] @relation("ThemeInstaller")
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([email])
+}
+
+// Inventory management
+model Book {
+  id            String   @id @default(uuid())
+  isbn          String?
+  oclcNumber    String?
+  title         String
+  author        String?
+  publisher     String?
+  description   String?
+
+  // Pricing
+  costPrice     Decimal  @db.Decimal(10, 2)
+  sellPrice     Decimal  @db.Decimal(10, 2)
+  memberPrice   Decimal  @db.Decimal(10, 2)
+  currency      Currency @default(USD)
+
+  // Stock management
+  stockQuantity Int      @default(0)
+  reorderLevel  Int      @default(5)
+
+  // Digital download support
+  isDigital     Boolean  @default(false)
+  downloadUrl   String?
+  fileSize      Int?     // In bytes
+
+  // Cover image support (dual approach)
+  coverImageUrl String?  // External URLs (Open Library, etc.)
+  coverImageId  String?  // FK to Media for uploaded covers
+  coverImage    Media?   @relation("BookCoverImage", fields: [coverImageId], references: [id], onDelete: SetNull)
+
+  // Relations
+  categoryId    String?  // Made optional for migration
+  category      Category? @relation(fields: [categoryId], references: [id])
+  supplierId    String?
+  supplier      Supplier? @relation(fields: [supplierId], references: [id])
+  saleItems     SaleItem[]
+  subjects      BookSubject[]
+
+  // Square sync
+  squareItemId      String?
+  squareVariationId String?
+  lastSyncedAt      DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([title])
+  @@index([isbn])
+  @@index([oclcNumber])
+  @@index([categoryId])
+  @@index([coverImageId])
+  @@index([squareItemId])
+  @@index([currency])
+}
+
+model Category {
+  id            String   @id @default(uuid())
+  name          String   @unique
+  slug          String   @unique
+  parentId      String?
+  parent        Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children      Category[] @relation("CategoryHierarchy")
+  books         Book[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([slug])
+}
+
+model Subject {
+  id            String   @id @default(uuid())
+  name          String   @unique
+  slug          String   @unique
+  description   String?
+  books         BookSubject[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([slug])
+  @@index([name])
+}
+
+model BookSubject {
+  id            String   @id @default(uuid())
+  bookId        String
+  book          Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  subjectId     String
+  subject       Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+
+  @@unique([bookId, subjectId])
+  @@index([bookId])
+  @@index([subjectId])
+}
+
+model Supplier {
+  id            String   @id @default(uuid())
+  name          String
+  contactEmail  String?
+  contactPhone  String?
+  website       String?
+  notes         String?
+  books         Book[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// Sales management
+model Sale {
+  id            String   @id @default(uuid())
+  saleDate      DateTime @default(now())
+  totalAmount   Decimal  @db.Decimal(10, 2)
+  paymentMethod PaymentMethod
+  
+  // Square integration
+  squareTransactionId String?
+  squareReceiptUrl    String?
+  
+  // Relations
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id])
+  items         SaleItem[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([saleDate])
+  @@index([userId])
+}
+
+model SaleItem {
+  id            String   @id @default(uuid())
+  quantity      Int
+  unitPrice     Decimal  @db.Decimal(10, 2)
+  discount      Decimal  @db.Decimal(10, 2) @default(0)
+  
+  // Relations
+  saleId        String
+  sale          Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  bookId        String
+  book          Book     @relation(fields: [bookId], references: [id])
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([saleId])
+  @@index([bookId])
+}
+
+// Community management
+model Event {
+  id            String   @id @default(uuid())
+  title         String
+  description   String?
+  eventType     EventType @default(OTHER)
+  startTime     DateTime
+  endTime       DateTime
+  location      String?
+  maxAttendees  Int?
+  price         Decimal? @db.Decimal(10, 2)
+  status        EventStatus @default(UPCOMING)
+  
+  // Relations
+  createdById   String
+  createdBy     User     @relation("EventCreator", fields: [createdById], references: [id])
+  attendances   EventAttendance[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([startTime])
+  @@index([status])
+  @@index([eventType])
+}
+
+model EventAttendance {
+  id            String   @id @default(uuid())
+  
+  // Relations
+  eventId       String
+  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  
+  registeredAt  DateTime @default(now())
+  
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+}
+
+model VolunteerShift {
+  id            String   @id @default(uuid())
+  startTime     DateTime
+  endTime       DateTime
+  notes         String?
+  
+  // Relations
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([startTime])
+}
+
+model CollectiveDecision {
+  id            String   @id @default(uuid())
+  title         String
+  description   String
+  status        DecisionStatus @default(PROPOSED)
+  outcome       String?
+  
+  // Relations
+  proposedById  String
+  proposedBy    User     @relation("DecisionProposer", fields: [proposedById], references: [id])
+  
+  proposedAt    DateTime @default(now())
+  decidedAt     DateTime?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([status])
+}
+
+// Configuration management
+model Configuration {
+  id            String   @id @default(uuid())
+  key           String   @unique
+  value         Json
+  description   String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([key])
+}
+
+// CMS Content Management
+model Page {
+  id            String   @id @default(uuid())
+  title         String
+  slug          String   @unique  // URL-friendly identifier (e.g., "about-us")
+  content       Json     // Rich content with blocks, text, images, etc.
+  status        PageStatus @default(DRAFT)
+  isHomePage    Boolean  @default(false)
+  
+  // SEO fields
+  metaTitle     String?
+  metaDescription String?
+  metaKeywords  String?
+  
+  // Template configuration
+  templateName  String   @default("default")  // Which template to use for rendering
+  templateConfig Json?   // Template-specific configuration options
+  
+  // Publishing control
+  publishedAt   DateTime?
+  publishAt     DateTime? // Scheduled publishing
+  
+  // Relations
+  authorId      String?
+  author        User?    @relation("PageAuthor", fields: [authorId], references: [id])
+  contentBlocks ContentBlock[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([slug])
+  @@index([status])
+  @@index([isHomePage])
+  @@index([publishedAt])
+}
+
+model ContentBlock {
+  id            String   @id @default(uuid())
+  blockType     ContentBlockType
+  content       Json     // Block-specific content structure
+  order         Int      // Display order within the page
+  isVisible     Boolean  @default(true)
+  
+  // Block configuration
+  cssClasses    String?  // Custom CSS classes for styling
+  blockConfig   Json?    // Block-specific configuration options
+  
+  // Relations
+  pageId        String
+  page          Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([pageId, order])
+  @@index([blockType])
+}
+
+model Media {
+  id            String   @id @default(uuid())
+  filename      String   // Original filename
+  path          String   // Relative path from media root (e.g., "uploads/2024/01/image.jpg")
+  mimeType      String   // MIME type (image/jpeg, application/pdf, etc.)
+  fileSize      Int      // File size in bytes
+  
+  // Image-specific metadata
+  width         Int?     // Image width in pixels
+  height        Int?     // Image height in pixels
+  altText       String?  // Alt text for accessibility
+  
+  // Organization
+  tags          String[] // Tags for categorization and search
+  title         String?  // Display title
+  description   String?  // Description or caption
+  
+  // Upload metadata
+  uploadedById  String?
+  uploadedBy    User?    @relation("MediaUploader", fields: [uploadedById], references: [id])
+
+  // Reverse relation for book covers
+  bookCovers    Book[]   @relation("BookCoverImage")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([mimeType])
+  @@index([tags])
+  @@index([uploadedById])
+  @@index([createdAt])
+}
+
+model Theme {
+  id            String   @id @default(uuid())
+  name          String   @unique  // Theme identifier (e.g., "default", "bookstore-classic")
+  displayName   String   // Human-readable name
+  description   String?
+  version       String   @default("1.0.0")
+  
+  // Theme configuration
+  config        Json     // Complete theme configuration (colors, fonts, layout, etc.)
+  isActive      Boolean  @default(false)
+  isDefault     Boolean  @default(false)
+  
+  // Theme metadata
+  authorName    String?
+  authorUrl     String?
+  previewImage  String?  // Path to theme preview image
+  
+  // Installation metadata
+  installedById String?
+  installedBy   User?    @relation("ThemeInstaller", fields: [installedById], references: [id])
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([name])
+  @@index([isActive])
+  @@index([isDefault])
+}
+
+// Enums
+enum Currency {
+  USD
+  EUR
+  GBP
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  SQUARE
+  OTHER
+}
+
+enum DecisionStatus {
+  PROPOSED
+  DISCUSSING
+  DECIDED
+  ARCHIVED
+}
+
+enum EventType {
+  BOOK_SIGNING
+  READING
+  DISCUSSION
+  WORKSHOP
+  OTHER
+}
+
+enum EventStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum PageStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  SCHEDULED
+}
+
+enum ContentBlockType {
+  TEXT
+  IMAGE
+  VIDEO
+  GALLERY
+  BUTTON
+  SEPARATOR
+  QUOTE
+  CODE
+  EMBED
+  CUSTOM
+}
