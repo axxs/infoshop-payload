@@ -133,3 +133,186 @@ Examples:
 - LLMS-FULL.txt: <https://payloadcms.com/llms-full.txt>
 - Node version: ^18.20.2 || >=20.9.0
 - pnpm version: ^9.7.0
+
+---
+
+# Development Partnership & Quality Standards
+
+We're building production-quality code together. Your role is to create maintainable, efficient solutions while catching potential issues early.
+
+## 🚨 AUTOMATED CHECKS ARE MANDATORY
+
+**ALL hook issues are BLOCKING - EVERYTHING must be ✅ GREEN!**
+No errors. No formatting issues. No linting problems. Zero tolerance.
+These are not suggestions. Fix ALL issues before continuing.
+
+When hooks report ANY issues (exit code 2), you MUST:
+
+1. **STOP IMMEDIATELY** - Do not continue with other tasks
+2. **FIX ALL ISSUES** - Address every ❌ issue until everything is ✅ GREEN
+3. **VERIFY THE FIX** - Re-run the failed command to confirm it's fixed
+4. **CONTINUE ORIGINAL TASK** - Return to what you were doing before the interrupt
+5. **NEVER IGNORE** - There are NO warnings, only requirements
+
+## .agent Documentation System
+
+**Before starting ANY feature, read the .agent documentation for context.**
+
+This project uses the `.agent/` documentation system to optimize context and reduce token consumption. The system provides focused, summarized documentation about the codebase.
+
+### Before Starting Features
+
+1. **Read `.agent/README.md`** - Documentation index and usage guide
+2. **Check relevant system docs**:
+   - `.agent/system/project-architecture.md` - Payload architecture patterns
+   - `.agent/system/database-schema.md` - Collections, Drizzle schemas
+   - `.agent/system/api-endpoints.md` - REST/GraphQL API contracts
+   - `.agent/system/key-components.md` - Collection configs, hooks, plugins
+3. **Look for similar implementations** in `.agent/task/`
+4. **Review relevant SOPs** in `.agent/SOPs/`
+
+### After Completing Features
+
+1. **Update documentation**: Run `/update-doc` to refresh system docs
+2. **Save implementation**: Run `/update-doc task <feature-name>` to document your approach
+3. **Create SOPs**: Run `/update-doc sop <process-name>` for repeatable processes
+
+### Benefits
+
+- **Token Savings**: 30-50% reduction for similar features
+- **Faster Context**: Find patterns without grepping entire codebase
+- **Cumulative Knowledge**: Each feature makes future work easier
+
+## CRITICAL WORKFLOW - ALWAYS FOLLOW THIS!
+
+### Research → Plan → Implement
+
+**NEVER JUMP STRAIGHT TO CODING!** Always follow this sequence:
+
+1. **Research**: Read `.agent/` docs, explore codebase, understand existing patterns
+2. **Plan**: Create a detailed implementation plan and verify it with user
+3. **Implement**: Execute the plan with validation checkpoints
+
+When asked to implement any feature, first say: "Let me research the codebase and create a plan before implementing."
+
+### USE MULTIPLE AGENTS!
+
+Leverage subagents aggressively for better results:
+
+- Spawn agents to explore different parts of the codebase in parallel
+- Use one agent to write tests while another implements features
+- Delegate research tasks
+- For complex refactors: One agent identifies changes, another implements them
+
+### Reality Checkpoints
+
+**Stop and validate** at these moments:
+
+- After implementing a complete feature
+- Before starting a new major component
+- When something feels wrong
+- Before declaring "done"
+- **WHEN HOOKS FAIL WITH ERRORS** ❌
+
+Run: `pnpm lint && pnpm test`
+
+> Why: You can lose track of what's actually working. These checkpoints prevent cascading failures.
+
+## TypeScript-Specific Rules
+
+### FORBIDDEN - NEVER DO THESE:
+
+- **NO any type** - use specific types or generics!
+- **NO console.log()** in production code - use proper logging!
+- **NO synchronous file operations** - use async/await!
+- **NO** keeping old and new code together
+- **NO** migration functions or compatibility layers
+- **NO** versioned function names (processV2, handleNew)
+- **NO** deeply nested callbacks - use async/await
+- **NO** TODOs in final code
+
+> **AUTOMATED ENFORCEMENT**: The smart-lint hook will BLOCK commits that violate these rules.
+> When you see `❌ FORBIDDEN PATTERN`, you MUST fix it immediately!
+
+### Required Standards:
+
+- **Delete** old code when replacing it
+- **Meaningful names**: `userId` not `id`
+- **Early returns** to reduce nesting
+- **Strict types**: `function createServer(): Server`
+- **Proper error handling**: Use try/catch or Result types
+- **Test all edge cases** with Vitest/Jest
+- **Async/await for async operations**: No callback hell
+- **Proper timeouts**: Use Promise.race() or AbortController
+
+## Implementation Standards
+
+### Code is complete when:
+
+- ✅ All linters pass with zero issues
+- ✅ All tests pass (unit, integration, e2e)
+- ✅ Feature works end-to-end
+- ✅ Old code is deleted
+- ✅ JSDoc/TSDoc on all exported symbols
+
+### Testing Strategy
+
+- Complex business logic → Write tests first (TDD)
+- Simple CRUD → Write tests after
+- Hot paths → Add performance tests
+- Test all public APIs and edge cases
+- Follow Payload test structure (int.spec.ts, e2e.spec.ts)
+
+## Working Memory Management
+
+### When context gets long:
+
+- Re-read this CLAUDE.md file
+- Summarise progress in a PROGRESS.md file
+- Document current state before major changes
+
+### Maintain TODO.md:
+
+```
+## Current Task
+- [ ] What we're doing RIGHT NOW
+
+## Completed
+- [x] What's actually done and tested
+
+## Next Steps
+- [ ] What comes next
+```
+
+## Problem-Solving Together
+
+When you're stuck or confused:
+
+1. **Stop** - Don't spiral into complex solutions
+2. **Delegate** - Consider spawning agents for parallel investigation
+3. **Step back** - Re-read the requirements
+4. **Simplify** - The simple solution is usually correct
+5. **Ask** - "I see two approaches: [A] vs [B]. Which do you prefer?"
+
+## Performance & Security
+
+### Measure First:
+
+- No premature optimisation
+- Profile before claiming something is faster
+- Use Chrome DevTools or Node.js profiler for bottlenecks
+
+### Security Always:
+
+- Validate all inputs
+- Use crypto.randomBytes() for randomness
+- Parameterised queries (Drizzle handles this)
+- Sanitise user input for XSS prevention
+
+## Working Together
+
+- This is always a feature branch - no backwards compatibility needed
+- When in doubt, we choose clarity over cleverness
+- **REMINDER**: If this file hasn't been referenced in 30+ minutes, RE-READ IT!
+
+Avoid complex abstractions or "clever" code. The simple, obvious solution is probably better.
