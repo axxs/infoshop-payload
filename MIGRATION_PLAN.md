@@ -15,11 +15,13 @@
 ### Existing Custom Codebase (`/home/axxs/infoshop`)
 
 **Architecture:**
+
 - Backend: Express.js + Prisma + PostgreSQL
 - Frontend: React + Vite + Zustand
 - Monorepo structure with separate backend/frontend
 
 **Key Services Implemented:**
+
 1. **Core Domain**
    - Book management (CRUD, lookup, bulk processing)
    - Category & Subject taxonomy
@@ -46,14 +48,17 @@
 ### New Payload Workspace (`/home/axxs/infoshop-payload`)
 
 **Architecture:**
+
 - Unified: Payload CMS + Next.js 15 + React 19
 - Single codebase (admin + API + frontend)
 - SQLite (development) → PostgreSQL (production)
 
 **Collections Configured:**
+
 - Users, Media, Books, Categories, Subjects, Suppliers, Events
 
 **Missing from Payload:**
+
 - Frontend customer UI
 - Square integration
 - Shopping cart logic
@@ -65,10 +70,13 @@
 ## Migration Strategy
 
 ### Phase 1: Foundation Setup (Week 1)
+
 **Goal:** Establish Payload as working development environment
 
 #### Tasks:
+
 1. **Git Integration**
+
    ```bash
    cd /home/axxs/infoshop-payload
    git init
@@ -102,15 +110,18 @@
 ---
 
 ### Phase 2: Data Migration (Week 2)
+
 **Goal:** Migrate existing PostgreSQL data to Payload
 
 #### Tasks:
+
 1. **Database Audit**
    - Export existing data from PostgreSQL
    - Map Prisma models → Payload collections
    - Identify data transformations needed
 
 2. **Migration Scripts**
+
    ```typescript
    // scripts/migrate-from-prisma.ts
    // - Books: map pricing, stock, relationships
@@ -129,11 +140,13 @@
 ---
 
 ### Phase 3: Core Features (Weeks 3-4)
+
 **Goal:** Rebuild critical business logic in Payload
 
 #### 3.1 Collection Enhancements
 
 **Books Collection:**
+
 ```typescript
 // Add hooks for:
 - Price validation (cost < member < sell)
@@ -142,6 +155,7 @@
 ```
 
 **Events Collection:**
+
 ```typescript
 // Add features:
 - Capacity tracking
@@ -152,6 +166,7 @@
 #### 3.2 Custom Endpoints
 
 **Square Integration:**
+
 ```typescript
 // src/endpoints/square-sync.ts
 export const squareSyncEndpoint = {
@@ -159,11 +174,12 @@ export const squareSyncEndpoint = {
   method: 'post',
   handler: async (req) => {
     // Migrate square sync logic
-  }
+  },
 }
 ```
 
 **Book Lookup:**
+
 ```typescript
 // src/endpoints/book-lookup.ts
 export const bookLookupEndpoint = {
@@ -171,7 +187,7 @@ export const bookLookupEndpoint = {
   method: 'get',
   handler: async (req) => {
     // Migrate Open Library integration
-  }
+  },
 }
 ```
 
@@ -190,12 +206,12 @@ export const Books = {
               // Custom: Lookup ISBN
               // Custom: Bulk import
               // Custom: Generate barcode
-            ]
-          }
-        }
-      }
-    }
-  }
+            ],
+          },
+        },
+      },
+    },
+  },
 }
 ```
 
@@ -204,6 +220,7 @@ export const Books = {
 ---
 
 ### Phase 4: Frontend Development (Weeks 5-6)
+
 **Goal:** Build customer-facing storefront
 
 #### 4.1 Next.js App Structure
@@ -228,6 +245,7 @@ src/app/
 #### 4.2 Component Migration
 
 Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
+
 - BookCard, BookGrid, BookDetail
 - EventCard, EventCalendar
 - Cart, CartItem
@@ -236,11 +254,13 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
 #### 4.3 State Management
 
 **Option A: Server Components (Recommended)**
+
 - Use Next.js Server Components
 - Server Actions for mutations
 - Minimal client-side state
 
 **Option B: Zustand (If needed)**
+
 - Migrate cart state management
 - Keep client state minimal
 
@@ -255,9 +275,11 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
 ---
 
 ### Phase 5: Testing & Deployment (Week 7)
+
 **Goal:** Production-ready application
 
 #### Tasks:
+
 1. **Testing**
    - Unit tests for hooks and utilities
    - Integration tests for custom endpoints
@@ -285,6 +307,7 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
 ## Feature Migration Checklist
 
 ### Must Have (Phase 3)
+
 - [x] Book CRUD (Payload handles)
 - [x] Category management (Payload handles)
 - [x] User authentication (Payload handles)
@@ -296,6 +319,7 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
 - [ ] Bulk CSV import
 
 ### Should Have (Phase 4)
+
 - [ ] Customer storefront
 - [ ] Shopping cart
 - [ ] Book search & filters
@@ -303,6 +327,7 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
 - [ ] Member pricing display
 
 ### Nice to Have (Phase 5+)
+
 - [ ] CMS page builder
 - [ ] Theme customization
 - [ ] Advanced reporting
@@ -314,6 +339,7 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
 ## Claude Code Infrastructure Alignment
 
 ### Current Infoshop Setup
+
 - Custom commands in `.claude/commands/`
 - Quality plugins configured
 - Session-specific rules
@@ -321,6 +347,7 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
 ### Payload Alignment Needed
 
 1. **Copy Infrastructure**
+
    ```bash
    cp -r /home/axxs/infoshop/.claude /home/axxs/infoshop-payload/
    ```
@@ -331,8 +358,10 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
    - Hooks - Adjust for Next.js patterns
 
 3. **Add Payload Commands**
+
    ```markdown
    # .claude/commands/payload-generate.md
+
    Generate Payload types and import map:
    npm run generate:types
    npm run generate:importmap
@@ -348,17 +377,20 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
 ## Risk Mitigation
 
 ### Data Loss Prevention
+
 - ✅ Keep existing database running during migration
 - ✅ Export full database backup before migration
 - ✅ Run migration in test environment first
 - ✅ Maintain rollback scripts
 
 ### Feature Continuity
+
 - ✅ Phase migrations allow parallel operation
 - ✅ Keep custom backend running until Phase 4 complete
 - ✅ Gradual traffic cutover
 
 ### Team Knowledge
+
 - ✅ Document Payload patterns in `.agent/`
 - ✅ Create SOPs for common tasks
 - ✅ Maintain comparison guides
@@ -368,21 +400,25 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
 ## Success Criteria
 
 ### Phase 1-2 (Foundation)
+
 - [ ] Payload running locally without errors
 - [ ] All existing data migrated successfully
 - [ ] Admin UI fully functional
 
 ### Phase 3 (Features)
+
 - [ ] All critical business logic working
 - [ ] Square integration operational
 - [ ] Bulk import tools available
 
 ### Phase 4 (Frontend)
+
 - [ ] Customer storefront complete
 - [ ] Shopping cart functional
 - [ ] Mobile-responsive
 
 ### Phase 5 (Production)
+
 - [ ] All tests passing
 - [ ] Performance benchmarks met
 - [ ] Deployed to production
@@ -391,14 +427,14 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
 
 ## Timeline Summary
 
-| Phase | Duration | Status |
-|-------|----------|--------|
-| Phase 1: Foundation | 1 week | 🔄 Ready to start |
-| Phase 2: Data Migration | 1 week | ⏳ Pending |
-| Phase 3: Core Features | 2 weeks | ⏳ Pending |
-| Phase 4: Frontend | 2 weeks | ⏳ Pending |
-| Phase 5: Deployment | 1 week | ⏳ Pending |
-| **Total** | **7 weeks** | |
+| Phase                   | Duration    | Status            |
+| ----------------------- | ----------- | ----------------- |
+| Phase 1: Foundation     | 1 week      | 🔄 Ready to start |
+| Phase 2: Data Migration | 1 week      | ⏳ Pending        |
+| Phase 3: Core Features  | 2 weeks     | ⏳ Pending        |
+| Phase 4: Frontend       | 2 weeks     | ⏳ Pending        |
+| Phase 5: Deployment     | 1 week      | ⏳ Pending        |
+| **Total**               | **7 weeks** |                   |
 
 ---
 
@@ -450,19 +486,25 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
 ## Decision Points
 
 ### Database Choice
+
 **Recommended:** PostgreSQL (production), SQLite (development)
+
 - Matches existing Prisma setup
 - Better for production workloads
 - Easy migration path
 
 ### Hosting Choice
+
 **Options:**
+
 1. **Payload Cloud** - Fully managed, optimized for Payload
 2. **Vercel** - Next.js optimized, good free tier
 3. **VPS** - Full control, requires maintenance
 
 ### Frontend Framework
+
 **Decision:** Use Next.js App Router with Server Components
+
 - Modern React patterns
 - Better performance
 - Simpler state management
