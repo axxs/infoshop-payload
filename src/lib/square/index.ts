@@ -10,3 +10,11 @@ export {
   syncModifiedBooks,
   type SquareSyncResult,
 } from './catalogSync'
+export {
+  processPayment,
+  refundPayment,
+  getPayment,
+  cancelPayment,
+  type PaymentParams,
+  type PaymentResult,
+} from './payments'
