@@ -3,6 +3,7 @@
  * POST /api/square/sync
  *
  * Synchronizes books with Square catalog
+ * Requires authentication via API key
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -14,6 +15,25 @@ import {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    // Authenticate request
+    const authHeader = request.headers.get('authorization')
+    const apiKey = process.env.SQUARE_SYNC_API_KEY
+
+    if (!apiKey) {
+      console.error('SQUARE_SYNC_API_KEY not configured')
+      return NextResponse.json(
+        { success: false, error: 'Service not configured' },
+        { status: 500 },
+      )
+    }
+
+    if (!authHeader || authHeader !== `Bearer ${apiKey}`) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 },
+      )
+    }
+
     const body = await request.json()
     const { strategy, bookIds, since } = body
 
@@ -38,6 +58,26 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             {
               success: false,
               error: 'bookIds array is required for specific strategy',
+            },
+            { status: 400 },
+          )
+        }
+        // Validate bookIds format to prevent injection
+        if (!bookIds.every((id) => typeof id === 'string' && /^[a-zA-Z0-9-_]+$/.test(id))) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'Invalid bookId format',
+            },
+            { status: 400 },
+          )
+        }
+        // Limit request size to prevent DoS
+        if (bookIds.length > 1000) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'Maximum 1000 bookIds per request',
             },
             { status: 400 },
           )

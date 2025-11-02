@@ -25,15 +25,65 @@ export interface SquareSyncResult {
 }
 
 /**
- * Convert Payload Book to Square CatalogObject
+ * Square API batch size limit
  */
-function bookToCatalogItem(book: Book): unknown {
-  // Square expects amounts in the smallest currency unit (cents for USD/EUR/GBP)
-  const costPriceCents = Math.round(Number(book.costPrice) * 100)
-  const sellPriceCents = Math.round(Number(book.sellPrice) * 100)
+const SQUARE_MAX_BATCH_SIZE = 10
 
-  // Use book currency or default to USD
-  const currencyCode = book.currency || 'USD'
+/**
+ * Rate limit delay between batches (milliseconds)
+ */
+const SQUARE_RATE_LIMIT_DELAY_MS = 500
+
+/**
+ * Supported currencies for Square catalog
+ */
+const SUPPORTED_CURRENCIES = ['USD', 'EUR', 'GBP', 'AUD', 'CAD', 'JPY'] as const
+
+/**
+ * Square catalog object structure (simplified type for our use case)
+ */
+interface SquareCatalogObject {
+  type: string
+  id: string
+  itemData?: {
+    name: string
+    description?: string
+    variations?: unknown[]
+    productType?: string
+  }
+  version?: number
+}
+
+/**
+ * Convert Payload Book to Square CatalogObject
+ * @throws Error if book data is invalid
+ */
+function bookToCatalogItem(book: Book): SquareCatalogObject {
+  // Validate required fields
+  if (!book.title || book.title.trim() === '') {
+    throw new Error(`Book ${book.id} missing required title`)
+  }
+
+  // Validate sell price
+  const sellPrice = Number(book.sellPrice)
+  if (isNaN(sellPrice) || sellPrice < 0) {
+    throw new Error(`Book ${book.id} has invalid sell price: ${book.sellPrice}`)
+  }
+
+  // Validate cost price
+  const costPrice = Number(book.costPrice)
+  if (isNaN(costPrice) || costPrice < 0) {
+    throw new Error(`Book ${book.id} has invalid cost price: ${book.costPrice}`)
+  }
+
+  // Square expects amounts in the smallest currency unit (cents for USD/EUR/GBP)
+  const costPriceCents = Math.round(costPrice * 100)
+  const sellPriceCents = Math.round(sellPrice * 100)
+
+  // Validate and use book currency or default to USD
+  const currencyCode = SUPPORTED_CURRENCIES.includes(book.currency as any)
+    ? book.currency
+    : 'USD'
 
   // Build item data
   const itemData: {
@@ -127,11 +177,16 @@ function bookToCatalogItem(book: Book): unknown {
 export async function pushBooksToSquare(
   bookIds: string[],
   options: {
-    batchSize?: number
+    batchSize?: number // Max 10 due to Square API limits
     updateExisting?: boolean
   } = {},
 ): Promise<SquareSyncResult> {
-  const { batchSize = 10, updateExisting = true } = options
+  const { batchSize = SQUARE_MAX_BATCH_SIZE, updateExisting = true } = options
+
+  // Validate batch size
+  if (batchSize > SQUARE_MAX_BATCH_SIZE) {
+    throw new Error(`Batch size cannot exceed ${SQUARE_MAX_BATCH_SIZE} (Square API limit)`)
+  }
 
   const result: SquareSyncResult = {
     success: true,
@@ -173,139 +228,104 @@ export async function pushBooksToSquare(
     const idempotencyKey = generateIdempotencyKey()
 
     try {
-      // Separate books into create vs update
-      const booksToCreate: Book[] = []
-      const booksToUpdate: Book[] = []
+      // Build catalog objects for batch upsert (handles both creates and updates)
+      const catalogObjects: SquareCatalogObject[] = []
+      const bookMap = new Map<string, Book>() // Map temp ID to book for matching
 
       for (const book of batch) {
         if (book.squareCatalogObjectId && updateExisting) {
-          booksToUpdate.push(book)
+          // Update existing item
+          const catalogItem = bookToCatalogItem(book)
+          catalogItem.id = book.squareCatalogObjectId
+          catalogItem.version = undefined // Square will use latest version
+          catalogObjects.push(catalogItem)
+          bookMap.set(book.squareCatalogObjectId, book)
         } else if (!book.squareCatalogObjectId) {
-          booksToCreate.push(book)
+          // Create new item with temporary ID
+          const catalogItem = bookToCatalogItem(book)
+          catalogObjects.push(catalogItem)
+          bookMap.set(`#${book.id}`, book)
         }
       }
 
-      // Create new items
-      if (booksToCreate.length > 0) {
-        const catalogObjects = booksToCreate.map(bookToCatalogItem)
+      if (catalogObjects.length === 0) {
+        continue
+      }
 
-        try {
-          const createResult = await squareClient.catalog.batchUpsert({
-            idempotencyKey,
-            batches: [
-              {
-                objects: catalogObjects as any,
-              },
-            ],
-          })
+      // Batch upsert all items (creates and updates together)
+      const upsertResult = await squareClient.catalog.batchUpsert({
+        idempotencyKey,
+        batches: [{ objects: catalogObjects as any }],
+      })
 
-          if (createResult.objects) {
-            // Update Payload database with Square IDs
-            for (let j = 0; j < booksToCreate.length; j++) {
-              const book = booksToCreate[j]
-              const squareObject = createResult.objects[j]
+      if (upsertResult.objects) {
+        // Update Payload database with Square IDs
+        for (const squareObject of upsertResult.objects) {
+          if (!squareObject?.id) continue
 
-              if (squareObject?.id) {
-                try {
-                  await payload.update({
-                    collection: 'books',
-                    id: book.id,
-                    data: {
-                      squareCatalogObjectId: squareObject.id,
-                      squareLastSyncedAt: new Date().toISOString(),
-                    },
-                  })
-
-                  result.itemsCreated++
-                  console.info('Created Square catalog item', {
-                    bookId: book.id,
-                    bookTitle: book.title,
-                    squareItemId: squareObject.id,
-                  })
-                } catch (dbError) {
-                  console.error('Failed to update Payload after Square creation', {
-                    bookId: book.id,
-                    squareItemId: squareObject.id,
-                    error: dbError,
-                  })
-                  result.errors.push({
-                    bookId: String(book.id),
-                    bookTitle: book.title,
-                    error: 'Created in Square but failed to update local database',
-                  })
-                  result.itemsFailed++
-                }
-              }
+          // Find matching book by Square ID or temporary ID
+          let book = bookMap.get(squareObject.id)
+          if (!book) {
+            // Try finding by temporary ID pattern
+            const tempIdMatch = Array.from(bookMap.keys()).find((key) =>
+              squareObject.id?.includes(key.replace('#', '')),
+            )
+            if (tempIdMatch) {
+              book = bookMap.get(tempIdMatch)
             }
           }
-        } catch (error) {
-          console.error('Failed to create Square catalog items', { error })
-          booksToCreate.forEach((book) => {
-            result.errors.push({
-              bookId: String(book.id),
-              bookTitle: book.title,
-              error: error instanceof Error ? error.message : 'Creation failed',
-            })
-            result.itemsFailed++
-          })
-        }
-      }
+          if (!book) {
+            // Last resort: match by title
+            const itemData = (squareObject as any).itemData
+            book = Array.from(bookMap.values()).find((b) => b.title === itemData?.name)
+          }
 
-      // Update existing items
-      if (booksToUpdate.length > 0) {
-        for (const book of booksToUpdate) {
+          if (!book) {
+            const itemData = (squareObject as any).itemData
+            console.warn('Could not match Square object to book', {
+              squareObjectId: squareObject.id,
+              squareObjectName: itemData?.name,
+            })
+            continue
+          }
+
+          const wasCreate = !book.squareCatalogObjectId
+
           try {
-            const catalogItem = bookToCatalogItem(book) as {
-              id?: string
-              version?: number
-            }
-            catalogItem.id = book.squareCatalogObjectId || undefined
-            catalogItem.version = undefined // Square will use latest version
-
-            const updateResult = await squareClient.catalog.object.upsert({
-              idempotencyKey: generateIdempotencyKey(),
-              object: catalogItem as any,
+            await payload.update({
+              collection: 'books',
+              id: book.id,
+              data: {
+                squareCatalogObjectId: squareObject.id,
+                squareLastSyncedAt: new Date().toISOString(),
+              },
             })
 
-            if (updateResult.catalogObject) {
-              try {
-                await payload.update({
-                  collection: 'books',
-                  id: book.id,
-                  data: {
-                    squareLastSyncedAt: new Date().toISOString(),
-                  },
-                })
-
-                result.itemsUpdated++
-                console.info('Updated Square catalog item', {
-                  bookId: book.id,
-                  bookTitle: book.title,
-                  squareItemId: book.squareCatalogObjectId,
-                })
-              } catch (dbError) {
-                console.error('Failed to update Payload after Square update', {
-                  bookId: book.id,
-                  squareItemId: book.squareCatalogObjectId,
-                  error: dbError,
-                })
-                result.errors.push({
-                  bookId: String(book.id),
-                  bookTitle: book.title,
-                  error: 'Updated in Square but failed to update local sync timestamp',
-                })
-                result.itemsFailed++
-              }
+            if (wasCreate) {
+              result.itemsCreated++
+              console.info('Created Square catalog item', {
+                bookId: book.id,
+                bookTitle: book.title,
+                squareItemId: squareObject.id,
+              })
+            } else {
+              result.itemsUpdated++
+              console.info('Updated Square catalog item', {
+                bookId: book.id,
+                bookTitle: book.title,
+                squareItemId: squareObject.id,
+              })
             }
-          } catch (error) {
-            console.error('Failed to update Square catalog item', {
+          } catch (dbError) {
+            console.error('Failed to update Payload after Square sync', {
               bookId: book.id,
-              error,
+              squareItemId: squareObject.id,
+              error: dbError,
             })
             result.errors.push({
               bookId: String(book.id),
               bookTitle: book.title,
-              error: error instanceof Error ? error.message : 'Update failed',
+              error: `${wasCreate ? 'Created' : 'Updated'} in Square but failed to update local database`,
             })
             result.itemsFailed++
           }
@@ -327,7 +347,7 @@ export async function pushBooksToSquare(
 
     // Add delay between batches to respect rate limits
     if (i + batchSize < books.length) {
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      await new Promise((resolve) => setTimeout(resolve, SQUARE_RATE_LIMIT_DELAY_MS))
     }
   }
 
@@ -342,27 +362,38 @@ export async function pushBooksToSquare(
 
 /**
  * Sync all books that haven't been synced yet
+ * Handles pagination for large datasets
  */
 export async function syncUnsyncedBooks(): Promise<SquareSyncResult> {
   const payload = await getPayload({ config })
+  let page = 1
+  const pageSize = 100
+  let hasMore = true
+  const allBookIds: string[] = []
 
-  const { docs: unsyncedBooks } = await payload.find({
-    collection: 'books',
-    where: {
-      squareCatalogObjectId: {
-        exists: false,
+  // Paginate through all unsynced books
+  while (hasMore) {
+    const { docs, hasNextPage } = await payload.find({
+      collection: 'books',
+      where: {
+        squareCatalogObjectId: {
+          exists: false,
+        },
       },
-    },
-    limit: 1000,
-  })
+      limit: pageSize,
+      page,
+    })
 
-  const bookIds = unsyncedBooks.map((b) => String(b.id))
+    allBookIds.push(...docs.map((b) => String(b.id)))
+    hasMore = hasNextPage || false
+    page++
+  }
 
   console.info('Syncing unsynced books to Square', {
-    count: bookIds.length,
+    count: allBookIds.length,
   })
 
-  if (bookIds.length === 0) {
+  if (allBookIds.length === 0) {
     return {
       success: true,
       itemsProcessed: 0,
@@ -373,11 +404,12 @@ export async function syncUnsyncedBooks(): Promise<SquareSyncResult> {
     }
   }
 
-  return pushBooksToSquare(bookIds)
+  return pushBooksToSquare(allBookIds)
 }
 
 /**
  * Sync books that have been updated since last sync
+ * Handles pagination for large datasets
  */
 export async function syncModifiedBooks(since?: Date): Promise<SquareSyncResult> {
   const payload = await getPayload({ config })
@@ -397,20 +429,31 @@ export async function syncModifiedBooks(since?: Date): Promise<SquareSyncResult>
     }
   }
 
-  const { docs: modifiedBooks } = await payload.find({
-    collection: 'books',
-    where: whereClause,
-    limit: 1000,
-  })
+  let page = 1
+  const pageSize = 100
+  let hasMore = true
+  const allBookIds: string[] = []
 
-  const bookIds = modifiedBooks.map((b) => String(b.id))
+  // Paginate through all modified books
+  while (hasMore) {
+    const { docs, hasNextPage } = await payload.find({
+      collection: 'books',
+      where: whereClause,
+      limit: pageSize,
+      page,
+    })
+
+    allBookIds.push(...docs.map((b) => String(b.id)))
+    hasMore = hasNextPage || false
+    page++
+  }
 
   console.info('Syncing modified books to Square', {
-    count: bookIds.length,
+    count: allBookIds.length,
     since: since?.toISOString(),
   })
 
-  if (bookIds.length === 0) {
+  if (allBookIds.length === 0) {
     return {
       success: true,
       itemsProcessed: 0,
@@ -421,5 +464,5 @@ export async function syncModifiedBooks(since?: Date): Promise<SquareSyncResult>
     }
   }
 
-  return pushBooksToSquare(bookIds, { updateExisting: true })
+  return pushBooksToSquare(allBookIds, { updateExisting: true })
 }
