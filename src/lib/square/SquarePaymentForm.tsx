@@ -2,8 +2,41 @@
 
 import React, { useEffect, useState } from 'react'
 
+/**
+ * Square SDK Type Definitions
+ */
+interface SquareCard {
+  attach: (elementId: string) => Promise<void>
+  tokenize: () => Promise<TokenizeResult>
+  destroy: () => Promise<void>
+}
+
+interface TokenizeResult {
+  status: 'OK' | 'INVALID' | 'CANCEL'
+  token?: string
+  errors?: Array<{ message: string; field?: string }>
+}
+
+interface SquarePayments {
+  card: () => Promise<SquareCard>
+}
+
+interface SquareSDK {
+  payments: (appId: string, locationId: string) => SquarePayments
+}
+
+interface SquareWindow extends Window {
+  Square?: SquareSDK
+}
+
+declare const window: SquareWindow
+
+/**
+ * Component Props
+ */
 interface SquarePaymentFormProps {
   amount: number
+  currency?: 'AUD' | 'USD' | 'EUR' | 'GBP' | 'CAD' | 'NZD'
   onPaymentSuccess: (transactionId: string, receiptUrl?: string) => void
   onPaymentError: (error: string) => void
   onCancel: () => void
@@ -18,6 +51,7 @@ interface SquarePaymentFormProps {
  */
 export function SquarePaymentForm({
   amount,
+  currency = 'AUD',
   onPaymentSuccess,
   onPaymentError,
   onCancel,
@@ -25,13 +59,13 @@ export function SquarePaymentForm({
   const [isLoading, setIsLoading] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [cardInstance, setCardInstance] = useState<any>(null)
+  const [cardInstance, setCardInstance] = useState<SquareCard | null>(null)
 
   useEffect(() => {
     const loadSquareSDK = async () => {
       try {
         // Check if Square script is already loaded
-        if ((window as any).Square) {
+        if (window.Square) {
           await initializeSquarePayments()
           return
         }
@@ -67,7 +101,7 @@ export function SquarePaymentForm({
         throw new Error('Square configuration missing. Check environment variables.')
       }
 
-      const Square = (window as any).Square
+      const Square = window.Square
       if (!Square) {
         throw new Error('Square SDK not loaded')
       }
@@ -107,7 +141,7 @@ export function SquarePaymentForm({
           body: JSON.stringify({
             sourceId,
             amount,
-            currency: 'USD',
+            currency,
           }),
         })
 
@@ -120,7 +154,7 @@ export function SquarePaymentForm({
           onPaymentError(data.error || 'Payment processing failed')
         }
       } else {
-        const errors = result.errors?.map((e: any) => e.message).join(', ')
+        const errors = result.errors?.map((e) => e.message).join(', ')
         setError(errors || 'Card tokenization failed')
         onPaymentError(errors || 'Card tokenization failed')
       }
