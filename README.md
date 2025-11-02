@@ -2,7 +2,7 @@
 
 A complete management system for infoshops that serves as both a book inventory and sales platform, and a community organizing hub for events and collective decision-making built with Payload CMS 3.x and Next.js 15.
 
-*This is a complete, in progress, rewrite of the Infoshop system using modern headless CMS architecture.*
+_This is a complete, in progress, rewrite of the Infoshop system using modern headless CMS architecture._
 
 ## Features
 
@@ -389,6 +389,6 @@ For questions or issues:
 
 ---
 
-**Current Migration Status**: Phase 1 (Foundation Setup) ✅
+**Current Migration Status**: Phase 3 (Core Integrations) - 60% Complete 🔄
 
-See `MIGRATION_PLAN.md` for next steps.
+See `MIGRATION_ROADMAP.md` for detailed migration plan and next steps.
