@@ -14,6 +14,8 @@ import { Categories } from './collections/Categories'
 import { Subjects } from './collections/Subjects'
 import { Suppliers } from './collections/Suppliers'
 import { Events } from './collections/Events'
+import { Sales } from './collections/Sales'
+import { SaleItems } from './collections/SaleItems'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -28,7 +30,7 @@ export default buildConfig({
       titleSuffix: '- Infoshop',
     },
   },
-  collections: [Users, Media, Books, Categories, Subjects, Suppliers, Events],
+  collections: [Users, Media, Books, Categories, Subjects, Suppliers, Events, Sales, SaleItems],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
