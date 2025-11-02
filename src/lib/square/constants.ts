@@ -11,19 +11,7 @@ import type { Currency } from 'square'
 export const MAX_PAYMENT_AMOUNT = 1_000_000
 
 /**
- * Allowed currency codes for Square payments
- * Supported: Australian Dollar, US Dollar, Euro, British Pound, Canadian Dollar, New Zealand Dollar
- */
-export const ALLOWED_CURRENCIES: readonly Currency[] = [
-  'AUD',
-  'USD',
-  'EUR',
-  'GBP',
-  'CAD',
-  'NZD',
-] as const
-
-/**
  * Default currency for payments
+ * Note: Square supports 100+ currencies. Currency validation is handled by Square API.
  */
 export const DEFAULT_CURRENCY: Currency = 'AUD'

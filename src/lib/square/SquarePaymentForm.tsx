@@ -117,6 +117,8 @@ export function SquarePaymentForm({
         scriptRef.current.parentNode.removeChild(scriptRef.current)
       }
     }
+    // Intentionally run once on mount. cardInstance is managed via state setter
+    // and cleanup closure captures the current instance at unmount time.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

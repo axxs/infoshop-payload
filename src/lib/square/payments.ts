@@ -5,7 +5,7 @@
 
 import { getSquareClient, generateIdempotencyKey } from './client'
 import type { Payment, CreatePaymentRequest, Currency } from 'square'
-import { MAX_PAYMENT_AMOUNT, ALLOWED_CURRENCIES, DEFAULT_CURRENCY } from './constants'
+import { MAX_PAYMENT_AMOUNT, DEFAULT_CURRENCY } from './constants'
 
 export interface PaymentParams {
   /**
@@ -78,14 +78,9 @@ export async function processPayment(params: PaymentParams): Promise<PaymentResu
     return { success: false, error: 'Payment source is required' }
   }
 
-  // Validate currency
+  // Use provided currency or default to AUD
+  // Currency validation is handled by Square API
   const currency = params.currency || DEFAULT_CURRENCY
-  if (!ALLOWED_CURRENCIES.includes(currency)) {
-    return {
-      success: false,
-      error: `Invalid currency. Allowed: ${ALLOWED_CURRENCIES.join(', ')}`,
-    }
-  }
 
   try {
     const client = getSquareClient()
@@ -198,13 +193,17 @@ export async function refundPayment(
       return { success: false, error: 'Payment not found' }
     }
 
-    // Validate refund doesn't exceed original payment amount
+    // Validate refund doesn't exceed remaining refundable amount
+    // Account for partial refunds already processed to prevent race conditions
     const originalAmountCents = Number(originalPayment.amountMoney?.amount || 0)
-    const originalAmountDollars = originalAmountCents / 100
-    if (amountInDollars > originalAmountDollars) {
+    const refundedAmountCents = Number(originalPayment.refundedMoney?.amount || 0)
+    const remainingCents = originalAmountCents - refundedAmountCents
+    const remainingDollars = remainingCents / 100
+
+    if (amountInDollars > remainingDollars) {
       return {
         success: false,
-        error: `Refund amount ($${amountInDollars}) exceeds original payment amount ($${originalAmountDollars.toFixed(2)})`,
+        error: `Refund amount ($${amountInDollars}) exceeds remaining refundable amount ($${remainingDollars.toFixed(2)})`,
       }
     }
 

@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { processPayment } from '@/lib/square/payments'
-import { ALLOWED_CURRENCIES, DEFAULT_CURRENCY } from '@/lib/square/constants'
+import { DEFAULT_CURRENCY } from '@/lib/square/constants'
 import type { Currency } from 'square'
 
 export async function POST(request: NextRequest) {
@@ -24,14 +24,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate currency if provided
+    // Use provided currency or default to AUD
+    // Currency validation is handled by Square API
     const currency: Currency = body.currency || DEFAULT_CURRENCY
-    if (!ALLOWED_CURRENCIES.includes(currency)) {
-      return NextResponse.json(
-        { error: `Invalid currency. Allowed: ${ALLOWED_CURRENCIES.join(', ')}` },
-        { status: 400 },
-      )
-    }
 
     // Process payment through Square
     const result = await processPayment({

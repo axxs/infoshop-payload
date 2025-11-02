@@ -51,36 +51,6 @@ describe('Square Payments - Input Validation', () => {
     expect(result.success).toBe(false)
     expect(result.error).toContain('Payment source is required')
   })
-
-  test('rejects invalid currency', async () => {
-    const result = await processPayment({
-      sourceId: 'cnon:card-nonce-ok',
-      amount: 10.0,
-      currency: 'INVALID' as any,
-    })
-
-    expect(result.success).toBe(false)
-    expect(result.error).toContain('Invalid currency')
-  })
-
-  test('accepts valid currencies (AUD, USD, EUR, GBP, CAD, NZD)', async () => {
-    const currencies = ['AUD', 'USD', 'EUR', 'GBP', 'CAD', 'NZD']
-
-    for (const currency of currencies) {
-      // Just validate that currency passes validation
-      // Actual API call may fail in sandbox, but shouldn't be a validation error
-      const result = await processPayment({
-        sourceId: 'cnon:card-nonce-ok',
-        amount: 10.0,
-        currency: currency as any,
-      })
-
-      // If it fails, it should NOT be a currency validation error
-      if (!result.success) {
-        expect(result.error).not.toContain('Invalid currency')
-      }
-    }
-  })
 })
 
 describe('Square Payments - Amount Conversion', () => {
