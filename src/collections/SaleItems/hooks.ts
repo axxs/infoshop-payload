@@ -9,7 +9,12 @@ import config from '@payload-config'
 
 /**
  * Calculate Line Total
- * lineTotal = (quantity × unitPrice) - discount
+ * Formula: lineTotal = (quantity × unitPrice) - discount
+ * Ensures line total is never negative
+ *
+ * @param data - SaleItem data being created/updated
+ * @returns Updated sale item data with calculated lineTotal
+ * @throws Error if calculated line total is negative
  */
 export const calculateLineTotal: CollectionBeforeChangeHook = async ({ data }) => {
   if (!data) return data
@@ -33,6 +38,13 @@ export const calculateLineTotal: CollectionBeforeChangeHook = async ({ data }) =
 /**
  * Validate Stock Availability
  * Ensures book has sufficient stock before allowing sale
+ * Skips validation for digital products
+ *
+ * Note: This validation runs before stock deduction, creating a potential
+ * race condition window. See Sales/hooks.ts deductStock for details.
+ *
+ * @param data - SaleItem data to validate
+ * @throws Error if insufficient stock available for physical products
  */
 export const validateStockAvailability: CollectionBeforeValidateHook = async ({ data }) => {
   if (!data) return
@@ -65,22 +77,24 @@ export const validateStockAvailability: CollectionBeforeValidateHook = async ({ 
     )
   }
 
-  // Warn if this sale would put stock below reorder level
-  const stockAfterSale = availableStock - requestedQuantity
-  const reorderLevel = book.reorderLevel ?? 5
-
-  if (stockAfterSale <= reorderLevel && stockAfterSale > 0) {
-    console.warn(`⚠️  LOW STOCK WARNING: "${book.title}" will be at ${stockAfterSale} after sale`, {
-      bookId: book.id,
-      stockAfterSale,
-      reorderLevel,
-    })
-  }
+  // Note: Low stock warnings are now logged in Sales afterChange hook
+  // where we have access to proper logging infrastructure
 }
 
 /**
  * Set Unit Price from Book
  * Auto-populate unitPrice based on priceType if not provided
+ * Only runs on create operation or when unitPrice is missing
+ *
+ * Pricing rules:
+ * - RETAIL: Uses book.sellPrice
+ * - MEMBER: Uses book.memberPrice
+ * - CUSTOM: Requires manual unitPrice (throws if missing)
+ *
+ * @param data - SaleItem data being created/updated
+ * @param operation - Type of operation (create/update)
+ * @returns Updated sale item data with unitPrice set from book
+ * @throws Error if CUSTOM price type is used without manual unitPrice
  */
 export const setUnitPriceFromBook: CollectionBeforeChangeHook = async ({ data, operation }) => {
   if (!data) return data

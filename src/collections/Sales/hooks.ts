@@ -14,6 +14,10 @@ import config from '@payload-config'
 /**
  * Calculate Total Amount from Sale Items
  * Sums up all line totals from related sale items
+ *
+ * @param data - Sale data being created/updated
+ * @param req - Payload request object
+ * @returns Updated sale data with calculated totalAmount
  */
 export const calculateTotalAmount: CollectionBeforeChangeHook = async ({ data, req }) => {
   if (!data) return data
@@ -46,6 +50,12 @@ export const calculateTotalAmount: CollectionBeforeChangeHook = async ({ data, r
 /**
  * Generate Receipt Number
  * Creates unique receipt number: RCPT-YYYYMMDD-XXXX
+ * Format: RCPT-20251102-0001 (sequential per day)
+ *
+ * @param data - Sale data being created/updated
+ * @param operation - Type of operation (create/update)
+ * @param req - Payload request object
+ * @returns Updated sale data with generated receiptNumber
  */
 export const generateReceiptNumber: CollectionBeforeChangeHook = async ({
   data,
@@ -94,7 +104,20 @@ export const generateReceiptNumber: CollectionBeforeChangeHook = async ({
 
 /**
  * Deduct Stock After Sale
- * Reduces book stock quantities when sale is created/updated
+ * Reduces book stock quantities when sale is created
+ * Only runs on create operation to prevent double-deduction
+ *
+ * Note: Current implementation has a race condition risk between
+ * SaleItem validation and stock deduction. For production use,
+ * consider implementing:
+ * - Pessimistic locking (reserve stock when SaleItem is created)
+ * - Database transactions for atomicity
+ * - Two-phase commit pattern
+ *
+ * @param doc - Created sale document
+ * @param operation - Type of operation (only runs on 'create')
+ * @param req - Payload request object with logger
+ * @returns Sale document (unchanged)
  */
 export const deductStock: CollectionAfterChangeHook = async ({ doc, operation, req }) => {
   // Only deduct stock on create (not on updates to avoid double-deduction)
@@ -108,7 +131,7 @@ export const deductStock: CollectionAfterChangeHook = async ({ doc, operation, r
 
   const payload = await getPayload({ config })
 
-  console.info(`Deducting stock for sale ${doc.receiptNumber}`)
+  req.payload.logger.info(`Deducting stock for sale ${doc.receiptNumber}`)
 
   for (const itemId of doc.items) {
     try {
@@ -147,12 +170,11 @@ export const deductStock: CollectionAfterChangeHook = async ({ doc, operation, r
         },
       })
 
-      console.info(`Stock deducted: "${book.title}" ${currentStock} → ${newStock}`)
+      req.payload.logger.info(`Stock deducted: "${book.title}" ${currentStock} → ${newStock}`)
     } catch (error) {
-      console.error('Failed to deduct stock for sale item', {
-        saleItemId: itemId,
-        error,
-      })
+      req.payload.logger.error(
+        `Failed to deduct stock for sale item ${typeof itemId === 'string' ? itemId : itemId.id}: ${error instanceof Error ? error.message : String(error)}`,
+      )
       // Don't throw - allow sale to complete even if stock update fails
       // This prevents blocking sales due to stock sync issues
     }
@@ -164,6 +186,9 @@ export const deductStock: CollectionAfterChangeHook = async ({ doc, operation, r
 /**
  * Validate Sale Items Exist
  * Ensures sale has at least one item before saving
+ *
+ * @param data - Sale data to validate
+ * @throws Error if sale has no items
  */
 export const validateSaleItems: CollectionBeforeValidateHook = async ({ data }) => {
   if (!data) return
