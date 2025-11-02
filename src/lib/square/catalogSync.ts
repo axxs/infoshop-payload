@@ -274,18 +274,21 @@ export async function pushBooksToSquare(
               book = bookMap.get(tempIdMatch)
             }
           }
-          if (!book) {
-            // Last resort: match by title
-            const itemData = (squareObject as any).itemData
-            book = Array.from(bookMap.values()).find((b) => b.title === itemData?.name)
-          }
 
+          // If no match found, fail explicitly to prevent data corruption
           if (!book) {
             const itemData = (squareObject as any).itemData
-            console.warn('Could not match Square object to book', {
+            console.error('CRITICAL: Could not match Square object to book', {
               squareObjectId: squareObject.id,
               squareObjectName: itemData?.name,
+              availableKeys: Array.from(bookMap.keys()),
             })
+            result.errors.push({
+              bookId: 'UNKNOWN',
+              bookTitle: itemData?.name || 'Unknown',
+              error: `Square object ${squareObject.id} could not be matched to any book in batch`,
+            })
+            result.itemsFailed++
             continue
           }
 

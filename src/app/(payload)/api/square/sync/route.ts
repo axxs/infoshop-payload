@@ -6,6 +6,7 @@
  * Requires authentication via API key
  */
 
+import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import {
   pushBooksToSquare,
@@ -27,7 +28,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    if (!authHeader || authHeader !== `Bearer ${apiKey}`) {
+    // Timing-safe authentication check to prevent timing attacks
+    const expectedAuth = `Bearer ${apiKey}`
+    if (!authHeader || authHeader.length !== expectedAuth.length) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 },
+      )
+    }
+
+    // Use constant-time comparison to prevent timing attacks
+    const authBuffer = Buffer.from(authHeader)
+    const expectedBuffer = Buffer.from(expectedAuth)
+
+    if (!crypto.timingSafeEqual(authBuffer, expectedBuffer)) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 },
