@@ -5,16 +5,7 @@
 
 import { getSquareClient, generateIdempotencyKey } from './client'
 import type { Payment, CreatePaymentRequest, Currency } from 'square'
-
-/**
- * Maximum payment amount in dollars (prevents accidental large charges)
- */
-const MAX_PAYMENT_AMOUNT = 1_000_000
-
-/**
- * Allowed currency codes for payments
- */
-const ALLOWED_CURRENCIES: Currency[] = ['AUD', 'USD', 'EUR', 'GBP', 'CAD', 'NZD']
+import { MAX_PAYMENT_AMOUNT, ALLOWED_CURRENCIES, DEFAULT_CURRENCY } from './constants'
 
 export interface PaymentParams {
   /**
@@ -88,7 +79,7 @@ export async function processPayment(params: PaymentParams): Promise<PaymentResu
   }
 
   // Validate currency
-  const currency = params.currency || 'AUD'
+  const currency = params.currency || DEFAULT_CURRENCY
   if (!ALLOWED_CURRENCIES.includes(currency)) {
     return {
       success: false,
@@ -146,15 +137,6 @@ export async function processPayment(params: PaymentParams): Promise<PaymentResu
       errorMessage = error.message
     }
 
-    // Log error for debugging (server-side only)
-    if (typeof window === 'undefined') {
-      console.error('Square payment processing failed:', {
-        amount: params.amount,
-        currency: params.currency || 'AUD',
-        error: errorMessage,
-      })
-    }
-
     return {
       success: false,
       error: errorMessage,
@@ -173,14 +155,7 @@ export async function getPayment(paymentId: string): Promise<Payment | null> {
     const response = await paymentsApi.get({ paymentId })
 
     return response.payment || null
-  } catch (error) {
-    // Log error for debugging (server-side only)
-    if (typeof window === 'undefined') {
-      console.error('Failed to retrieve payment:', {
-        paymentId,
-        error: error instanceof Error ? error.message : String(error),
-      })
-    }
+  } catch (_error) {
     return null
   }
 }
@@ -195,14 +170,7 @@ export async function cancelPayment(paymentId: string): Promise<boolean> {
 
     await paymentsApi.cancel({ paymentId })
     return true
-  } catch (error) {
-    // Log error for debugging (server-side only)
-    if (typeof window === 'undefined') {
-      console.error('Failed to cancel payment:', {
-        paymentId,
-        error: error instanceof Error ? error.message : String(error),
-      })
-    }
+  } catch (_error) {
     return false
   }
 }
@@ -215,17 +183,32 @@ export async function refundPayment(
   amountInDollars: number,
   reason?: string,
 ): Promise<PaymentResult> {
+  // Validate refund amount is positive
+  if (amountInDollars <= 0) {
+    return { success: false, error: 'Refund amount must be positive' }
+  }
+
   try {
     const client = getSquareClient()
     const refundsApi = client.refunds
 
-    // Get original payment to retrieve its currency
+    // Get original payment to retrieve its currency and validate amount
     const originalPayment = await getPayment(paymentId)
     if (!originalPayment) {
       return { success: false, error: 'Payment not found' }
     }
 
-    const currency = (originalPayment.amountMoney?.currency as Currency) || 'AUD'
+    // Validate refund doesn't exceed original payment amount
+    const originalAmountCents = Number(originalPayment.amountMoney?.amount || 0)
+    const originalAmountDollars = originalAmountCents / 100
+    if (amountInDollars > originalAmountDollars) {
+      return {
+        success: false,
+        error: `Refund amount ($${amountInDollars}) exceeds original payment amount ($${originalAmountDollars.toFixed(2)})`,
+      }
+    }
+
+    const currency = (originalPayment.amountMoney?.currency as Currency) || DEFAULT_CURRENCY
 
     const amountMoney = {
       amount: convertDollarsToCents(amountInDollars),
@@ -260,15 +243,6 @@ export async function refundPayment(
       }
     } else if (error instanceof Error) {
       errorMessage = error.message
-    }
-
-    // Log error for debugging (server-side only)
-    if (typeof window === 'undefined') {
-      console.error('Square refund failed:', {
-        paymentId,
-        amount: amountInDollars,
-        error: errorMessage,
-      })
     }
 
     return {

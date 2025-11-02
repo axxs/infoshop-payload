@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 
 /**
  * Square SDK Type Definitions
@@ -60,8 +60,11 @@ export function SquarePaymentForm({
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [cardInstance, setCardInstance] = useState<SquareCard | null>(null)
+  const scriptRef = useRef<HTMLScriptElement | null>(null)
 
   useEffect(() => {
+    let isMounted = true
+
     const loadSquareSDK = async () => {
       try {
         // Check if Square script is already loaded
@@ -75,21 +78,46 @@ export function SquarePaymentForm({
         script.src = 'https://web.squarecdn.com/v1/square.js'
         script.async = true
         script.onload = async () => {
-          await initializeSquarePayments()
+          if (isMounted) {
+            await initializeSquarePayments()
+          }
         }
         script.onerror = () => {
-          setError('Failed to load Square Payments SDK')
-          setIsLoading(false)
+          if (isMounted) {
+            setError('Failed to load Square Payments SDK')
+            setIsLoading(false)
+          }
         }
 
+        scriptRef.current = script
         document.body.appendChild(script)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to initialize Square payments')
-        setIsLoading(false)
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Failed to initialize Square payments')
+          setIsLoading(false)
+        }
       }
     }
 
     loadSquareSDK()
+
+    // Cleanup function
+    return () => {
+      isMounted = false
+
+      // Destroy card instance
+      if (cardInstance) {
+        cardInstance.destroy().catch(() => {
+          // Ignore errors during cleanup
+        })
+      }
+
+      // Remove script tag
+      if (scriptRef.current && scriptRef.current.parentNode) {
+        scriptRef.current.parentNode.removeChild(scriptRef.current)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const initializeSquarePayments = async () => {
@@ -127,6 +155,10 @@ export function SquarePaymentForm({
     setIsProcessing(true)
     setError(null)
 
+    // Create AbortController for timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+
     try {
       // Tokenize card
       const result = await cardInstance.tokenize()
@@ -143,6 +175,7 @@ export function SquarePaymentForm({
             amount,
             currency,
           }),
+          signal: controller.signal,
         })
 
         const data = await response.json()
@@ -159,10 +192,17 @@ export function SquarePaymentForm({
         onPaymentError(errors || 'Card tokenization failed')
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Payment processing failed'
-      setError(errorMessage)
-      onPaymentError(errorMessage)
+      if (err instanceof Error && err.name === 'AbortError') {
+        const timeoutMessage = 'Payment request timed out. Please try again.'
+        setError(timeoutMessage)
+        onPaymentError(timeoutMessage)
+      } else {
+        const errorMessage = err instanceof Error ? err.message : 'Payment processing failed'
+        setError(errorMessage)
+        onPaymentError(errorMessage)
+      }
     } finally {
+      clearTimeout(timeoutId)
       setIsProcessing(false)
     }
   }

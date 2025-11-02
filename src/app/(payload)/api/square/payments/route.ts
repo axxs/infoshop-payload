@@ -5,12 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { processPayment } from '@/lib/square/payments'
+import { ALLOWED_CURRENCIES, DEFAULT_CURRENCY } from '@/lib/square/constants'
 import type { Currency } from 'square'
-
-/**
- * Allowed currency codes
- */
-const ALLOWED_CURRENCIES: Currency[] = ['AUD', 'USD', 'EUR', 'GBP', 'CAD', 'NZD']
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate currency if provided
-    const currency: Currency = body.currency || 'AUD'
+    const currency: Currency = body.currency || DEFAULT_CURRENCY
     if (!ALLOWED_CURRENCIES.includes(currency)) {
       return NextResponse.json(
         { error: `Invalid currency. Allowed: ${ALLOWED_CURRENCIES.join(', ')}` },
