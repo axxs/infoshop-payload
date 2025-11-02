@@ -1,4 +1,12 @@
 import type { CollectionConfig } from 'payload'
+import {
+  validateStock,
+  validatePricing,
+  validateISBNFormat,
+  calculateStockStatus,
+  checkLowStock,
+  validateDigitalProduct,
+} from './Books/hooks'
 
 export const Books: CollectionConfig = {
   slug: 'books',
@@ -132,20 +140,8 @@ export const Books: CollectionConfig = {
         { label: 'Out of Stock', value: 'OUT_OF_STOCK' },
         { label: 'Discontinued', value: 'DISCONTINUED' },
       ],
-      hooks: {
-        beforeChange: [
-          ({ data }) => {
-            // Auto-calculate stock status based on quantity
-            if (!data) return undefined
-            if (data.stockQuantity === 0) {
-              return 'OUT_OF_STOCK'
-            }
-            if (data.stockQuantity <= (data.reorderLevel || 5)) {
-              return 'LOW_STOCK'
-            }
-            return 'IN_STOCK'
-          },
-        ],
+      admin: {
+        description: 'Auto-calculated based on stock quantity (or set to Discontinued manually)',
       },
     },
     // Categorisation
@@ -248,18 +244,12 @@ export const Books: CollectionConfig = {
   ],
   hooks: {
     beforeChange: [
-      async ({ data }) => {
-        // Validate three-tier pricing logic
-        if (data.memberPrice && data.sellPrice && data.costPrice) {
-          if (data.memberPrice < data.costPrice) {
-            throw new Error('Member price cannot be below cost price')
-          }
-          if (data.sellPrice < data.memberPrice) {
-            throw new Error('Sell price cannot be below member price')
-          }
-        }
-        return data
-      },
+      validateStock,
+      validatePricing,
+      validateISBNFormat,
+      validateDigitalProduct,
+      calculateStockStatus,
     ],
+    afterChange: [checkLowStock],
   },
 }

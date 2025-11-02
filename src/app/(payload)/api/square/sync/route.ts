@@ -8,11 +8,7 @@
 
 import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
-import {
-  pushBooksToSquare,
-  syncUnsyncedBooks,
-  syncModifiedBooks,
-} from '@/lib/square/catalogSync'
+import { pushBooksToSquare, syncUnsyncedBooks, syncModifiedBooks } from '@/lib/square/catalogSync'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
@@ -22,19 +18,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (!apiKey) {
       console.error('SQUARE_SYNC_API_KEY not configured')
-      return NextResponse.json(
-        { success: false, error: 'Service not configured' },
-        { status: 500 },
-      )
+      return NextResponse.json({ success: false, error: 'Service not configured' }, { status: 500 })
     }
 
     // Timing-safe authentication check to prevent timing attacks
     const expectedAuth = `Bearer ${apiKey}`
     if (!authHeader || authHeader.length !== expectedAuth.length) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 },
-      )
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
     // Use constant-time comparison to prevent timing attacks
@@ -42,10 +32,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const expectedBuffer = Buffer.from(expectedAuth)
 
     if (!crypto.timingSafeEqual(authBuffer, expectedBuffer)) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 },
-      )
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()

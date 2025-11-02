@@ -1,4 +1,5 @@
 # Infoshop Migration Roadmap
+
 ## From Express/Prisma/React to Payload CMS/Next.js
 
 **Last Updated**: 2025-11-02
@@ -9,11 +10,13 @@
 ## Migration Overview
 
 ### Old System
+
 - **Backend**: Express + Prisma + PostgreSQL
 - **Frontend**: React + Mantine UI + Zustand
 - **Architecture**: Separate backend/frontend repos
 
 ### New System
+
 - **Platform**: Payload CMS 3.62.0 + Next.js 15.4.4
 - **Database**: SQLite (dev) / PostgreSQL (prod) via Drizzle
 - **Architecture**: Unified full-stack with React Server Components
@@ -22,15 +25,15 @@
 
 ## Progress Summary
 
-| Phase | Status | Completion |
-|-------|--------|------------|
-| Phase 1: Foundation | ✅ Complete | 100% |
-| Phase 2: Data Migration | ✅ Complete | 100% (N/A) |
-| Phase 3: Core Integrations | 🔄 In Progress | 60% |
-| Phase 4: Sales System | 📅 Planned | 0% |
-| Phase 5: Community Features | 📅 Planned | 0% |
-| Phase 6: CMS/Website | 📅 Planned | 0% |
-| Phase 7: Advanced Features | 📅 Planned | 0% |
+| Phase                       | Status         | Completion |
+| --------------------------- | -------------- | ---------- |
+| Phase 1: Foundation         | ✅ Complete    | 100%       |
+| Phase 2: Data Migration     | ✅ Complete    | 100% (N/A) |
+| Phase 3: Core Integrations  | 🔄 In Progress | 60%        |
+| Phase 4: Sales System       | 📅 Planned     | 0%         |
+| Phase 5: Community Features | 📅 Planned     | 0%         |
+| Phase 6: CMS/Website        | 📅 Planned     | 0%         |
+| Phase 7: Advanced Features  | 📅 Planned     | 0%         |
 
 ---
 
@@ -39,6 +42,7 @@
 ### ✅ Phase 1: Foundation (Complete)
 
 **Completed:**
+
 - [x] Payload CMS 3.x installation
 - [x] Next.js 15.4.4 App Router setup
 - [x] SQLite database for development
@@ -49,6 +53,7 @@
 - [x] Claude Code integration
 
 **Collections Created:**
+
 - [x] Users (authentication)
 - [x] Books (inventory)
 - [x] Categories (hierarchical)
@@ -64,6 +69,7 @@
 **Status**: No migration needed - old database was development instance only
 
 **Deliverables Created:**
+
 - [x] Database audit documentation (715 lines)
 - [x] Prisma-to-Payload mapping reference
 - [x] Data export script template
@@ -76,6 +82,7 @@
 #### ✅ Completed (Phase 3.1-3.4)
 
 **3.1 Open Library Integration** ✅
+
 - [x] ISBN lookup API endpoint (`/api/books/lookup-isbn`)
 - [x] Book metadata fetching (title, author, subjects, covers)
 - [x] Cover image URL generation
@@ -83,6 +90,7 @@
 - [x] Documentation
 
 **3.2 Square Catalog Sync** ✅
+
 - [x] Square SDK client configuration
 - [x] Catalog sync service (create/update items)
 - [x] API endpoint (`/api/square/sync`)
@@ -94,6 +102,7 @@
 #### 📋 Remaining (Phase 3.5-3.7)
 
 **3.5 Collection Hooks** 📅
+
 - [ ] Stock level validation
 - [ ] Low stock warnings (email/notification)
 - [ ] Price validation (member < sell, cost tracking)
@@ -103,6 +112,7 @@
 - [ ] beforeChange/afterChange hooks
 
 **3.6 Admin UI Enhancements** 📅
+
 - [ ] Custom book actions (ISBN lookup button)
 - [ ] Stock level indicators (visual warnings)
 - [ ] Barcode generation
@@ -111,6 +121,7 @@
 - [ ] Custom dashboard widgets
 
 **3.7 API Improvements** 📅
+
 - [ ] Advanced search/filtering
 - [ ] Book availability checking
 - [ ] Inventory reporting endpoints
@@ -125,6 +136,7 @@
 #### 4.1 Collections & Data Models
 
 **Sale Collection**
+
 - [ ] Sale transaction model
 - [ ] Payment method tracking
 - [ ] Square transaction linking
@@ -133,6 +145,7 @@
 - [ ] Sale date and totals
 
 **SaleItem Collection**
+
 - [ ] Line item model
 - [ ] Quantity and pricing
 - [ ] Discount handling
@@ -166,6 +179,7 @@
 - [ ] Export functionality
 
 **Old System Reference:**
+
 ```prisma
 model Sale {
   id                  String
@@ -197,9 +211,11 @@ model SaleItem {
 #### 5.1 Event Management (Partial)
 
 **Completed:**
+
 - [x] Basic Event collection
 
 **Remaining:**
+
 - [ ] EventAttendance collection (user registrations)
 - [ ] Attendance limits and waitlist
 - [ ] Event calendar view
@@ -209,6 +225,7 @@ model SaleItem {
 #### 5.2 Volunteer Management
 
 **VolunteerShift Collection**
+
 - [ ] Shift scheduling
 - [ ] User assignment
 - [ ] Shift notes
@@ -218,6 +235,7 @@ model SaleItem {
 #### 5.3 Collective Decision Making
 
 **CollectiveDecision Collection**
+
 - [ ] Proposal creation
 - [ ] Status tracking (proposed, approved, rejected)
 - [ ] Discussion threads
@@ -225,6 +243,7 @@ model SaleItem {
 - [ ] Decision history
 
 **Old System Reference:**
+
 ```prisma
 model EventAttendance {
   id           String
@@ -262,6 +281,7 @@ model CollectiveDecision {
 #### 6.1 Content Management
 
 **Page Collection**
+
 - [ ] Page creation and editing
 - [ ] Rich content blocks
 - [ ] SEO metadata
@@ -270,6 +290,7 @@ model CollectiveDecision {
 - [ ] Scheduled publishing
 
 **ContentBlock Collection**
+
 - [ ] Block types (text, image, code, embed)
 - [ ] Block ordering
 - [ ] Block configuration
@@ -278,6 +299,7 @@ model CollectiveDecision {
 #### 6.2 Theme System
 
 **Theme Collection**
+
 - [ ] Theme configuration
 - [ ] Theme switching
 - [ ] Default theme
@@ -295,6 +317,7 @@ model CollectiveDecision {
 - [ ] Order history
 
 **Old System Reference:**
+
 ```prisma
 model Page {
   id              String
@@ -337,6 +360,7 @@ model Theme {
 #### 7.1 Configuration System
 
 **Configuration Collection**
+
 - [ ] System-wide settings
 - [ ] Shop information
 - [ ] Email templates
@@ -370,6 +394,7 @@ model Theme {
 ## Migration Dependencies
 
 ### Critical Path
+
 ```
 Phase 1 (Foundation)
   → Phase 3 (Integrations)
@@ -378,6 +403,7 @@ Phase 1 (Foundation)
 ```
 
 ### Parallel Work
+
 - Phase 5 (Community) can be developed alongside Phase 4
 - Phase 7 (Advanced) can be developed incrementally
 
@@ -385,37 +411,37 @@ Phase 1 (Foundation)
 
 ## Feature Comparison Matrix
 
-| Feature | Old System | New System | Status |
-|---------|------------|------------|--------|
+| Feature            | Old System        | New System      | Status      |
+| ------------------ | ----------------- | --------------- | ----------- |
 | **Core Inventory** |
-| Book Management | ✅ Express/Prisma | ✅ Payload | ✅ Complete |
-| Categories | ✅ Hierarchical | ✅ Hierarchical | ✅ Complete |
-| Subjects | ✅ Flat tags | ✅ Flat tags | ✅ Complete |
-| Suppliers | ✅ Full CRUD | ✅ Full CRUD | ✅ Complete |
-| Media/Images | ✅ Upload | ✅ Upload | ✅ Complete |
-| **Integrations** |
-| Open Library | ❌ None | ✅ ISBN Lookup | ✅ Complete |
-| Square Catalog | ✅ Sync | ✅ Sync | ✅ Complete |
-| Square Payments | ✅ Payment | ❌ Not yet | 📅 Phase 4 |
-| **Sales** |
-| POS Interface | ✅ React UI | ❌ Not yet | 📅 Phase 4 |
-| Sales Tracking | ✅ Full system | ❌ Not yet | 📅 Phase 4 |
-| Receipts | ✅ Generate | ❌ Not yet | 📅 Phase 4 |
-| Reporting | ✅ Analytics | ❌ Not yet | 📅 Phase 4 |
-| **Community** |
-| Events | ✅ Basic | ✅ Basic | ✅ Complete |
-| Event Attendance | ✅ Track | ❌ Not yet | 📅 Phase 5 |
-| Volunteer Shifts | ✅ Schedule | ❌ Not yet | 📅 Phase 5 |
-| Decisions | ✅ Track | ❌ Not yet | 📅 Phase 5 |
-| **Website/CMS** |
-| Pages | ✅ CMS | ❌ Not yet | 📅 Phase 6 |
-| Content Blocks | ✅ Flexible | ❌ Not yet | 📅 Phase 6 |
-| Themes | ✅ Custom | ❌ Not yet | 📅 Phase 6 |
-| Public Store | ✅ React | ❌ Not yet | 📅 Phase 6 |
-| **Admin** |
-| User Management | ✅ Full | ✅ Full | ✅ Complete |
-| Permissions | ✅ Roles | ✅ Roles | ✅ Complete |
-| Configuration | ✅ Database | ❌ Not yet | 📅 Phase 7 |
+| Book Management    | ✅ Express/Prisma | ✅ Payload      | ✅ Complete |
+| Categories         | ✅ Hierarchical   | ✅ Hierarchical | ✅ Complete |
+| Subjects           | ✅ Flat tags      | ✅ Flat tags    | ✅ Complete |
+| Suppliers          | ✅ Full CRUD      | ✅ Full CRUD    | ✅ Complete |
+| Media/Images       | ✅ Upload         | ✅ Upload       | ✅ Complete |
+| **Integrations**   |
+| Open Library       | ❌ None           | ✅ ISBN Lookup  | ✅ Complete |
+| Square Catalog     | ✅ Sync           | ✅ Sync         | ✅ Complete |
+| Square Payments    | ✅ Payment        | ❌ Not yet      | 📅 Phase 4  |
+| **Sales**          |
+| POS Interface      | ✅ React UI       | ❌ Not yet      | 📅 Phase 4  |
+| Sales Tracking     | ✅ Full system    | ❌ Not yet      | 📅 Phase 4  |
+| Receipts           | ✅ Generate       | ❌ Not yet      | 📅 Phase 4  |
+| Reporting          | ✅ Analytics      | ❌ Not yet      | 📅 Phase 4  |
+| **Community**      |
+| Events             | ✅ Basic          | ✅ Basic        | ✅ Complete |
+| Event Attendance   | ✅ Track          | ❌ Not yet      | 📅 Phase 5  |
+| Volunteer Shifts   | ✅ Schedule       | ❌ Not yet      | 📅 Phase 5  |
+| Decisions          | ✅ Track          | ❌ Not yet      | 📅 Phase 5  |
+| **Website/CMS**    |
+| Pages              | ✅ CMS            | ❌ Not yet      | 📅 Phase 6  |
+| Content Blocks     | ✅ Flexible       | ❌ Not yet      | 📅 Phase 6  |
+| Themes             | ✅ Custom         | ❌ Not yet      | 📅 Phase 6  |
+| Public Store       | ✅ React          | ❌ Not yet      | 📅 Phase 6  |
+| **Admin**          |
+| User Management    | ✅ Full           | ✅ Full         | ✅ Complete |
+| Permissions        | ✅ Roles          | ✅ Roles        | ✅ Complete |
+| Configuration      | ✅ Database       | ❌ Not yet      | 📅 Phase 7  |
 
 ---
 
@@ -424,12 +450,14 @@ Phase 1 (Foundation)
 ### Immediate Priorities (Phase 3 Completion)
 
 **Week 1: Collection Hooks**
+
 1. Stock validation and low-stock warnings
 2. Price validation business logic
 3. Auto-slug generation
 4. Relationship validation
 
 **Week 2: Admin UI Enhancements**
+
 1. ISBN lookup button integration
 2. Stock level indicators
 3. Bulk CSV import/export
@@ -438,12 +466,14 @@ Phase 1 (Foundation)
 ### Medium-Term (Phase 4 - Critical)
 
 **Week 3-4: Sales System Foundation**
+
 1. Create Sale and SaleItem collections
 2. Build POS interface in admin
 3. Square Payments API integration
 4. Receipt generation
 
 **Week 5-6: Sales Completion**
+
 1. Reporting and analytics
 2. Refund handling
 3. Sales history views
@@ -460,15 +490,18 @@ Phase 1 (Foundation)
 ## Risk Assessment
 
 ### High Risk
+
 - **Sales System Migration**: Critical business functionality, requires careful testing
 - **Square Payments**: Financial transactions must be reliable and secure
 - **Data Integrity**: Ensure no data loss during any future migrations
 
 ### Medium Risk
+
 - **Community Features**: Requires user adoption and training
 - **Public Storefront**: SEO and performance critical
 
 ### Low Risk
+
 - **Configuration System**: Can use Payload's native config initially
 - **Advanced Features**: Can be deferred if needed
 
@@ -477,12 +510,14 @@ Phase 1 (Foundation)
 ## Success Criteria
 
 ### Phase 3 Complete When:
+
 - [ ] All collection hooks implemented and tested
 - [ ] Admin UI enhancements deployed
 - [ ] CSV import/export working
 - [ ] No regressions in existing features
 
 ### Phase 4 Complete When:
+
 - [ ] POS interface fully functional
 - [ ] Sales can be processed end-to-end
 - [ ] Square Payments working reliably
@@ -490,6 +525,7 @@ Phase 1 (Foundation)
 - [ ] Daily sales reports available
 
 ### Migration Complete When:
+
 - [ ] All old system features migrated
 - [ ] Old system can be decommissioned
 - [ ] Team trained on new system
@@ -500,13 +536,13 @@ Phase 1 (Foundation)
 
 ## Timeline Estimate
 
-| Phase | Estimated Duration | Target Date |
-|-------|-------------------|-------------|
-| Phase 3 (remaining) | 2 weeks | Week of Nov 11 |
-| Phase 4 (Sales) | 3-4 weeks | Week of Dec 2 |
-| Phase 5 (Community) | 2 weeks | Week of Dec 16 |
-| Phase 6 (CMS/Website) | 3-4 weeks | Week of Jan 6 |
-| Phase 7 (Advanced) | 2-3 weeks | Week of Jan 27 |
+| Phase                 | Estimated Duration | Target Date    |
+| --------------------- | ------------------ | -------------- |
+| Phase 3 (remaining)   | 2 weeks            | Week of Nov 11 |
+| Phase 4 (Sales)       | 3-4 weeks          | Week of Dec 2  |
+| Phase 5 (Community)   | 2 weeks            | Week of Dec 16 |
+| Phase 6 (CMS/Website) | 3-4 weeks          | Week of Jan 6  |
+| Phase 7 (Advanced)    | 2-3 weeks          | Week of Jan 27 |
 
 **Total Estimated Timeline**: 12-15 weeks from now (complete by late January 2026)
 

@@ -20,15 +20,18 @@ Implemented Square Point of Sale catalog synchronization to enable real-time inv
 **Purpose**: Initialize and configure the Square SDK with environment-based settings.
 
 **Key Functions**:
+
 - `getSquareClient()` - Returns configured Square client (sandbox or production)
 - `generateIdempotencyKey()` - Generates UUID v4 for idempotent API requests
 
 **Configuration**:
+
 - Uses `SQUARE_ACCESS_TOKEN` from environment
 - Switches between sandbox/production via `SQUARE_ENVIRONMENT`
 - Validates required credentials on initialization
 
 **Example Usage**:
+
 ```typescript
 import { getSquareClient } from '@/lib/square/client'
 
@@ -45,22 +48,26 @@ const catalogApi = client.catalogApi
 **Key Functions**:
 
 **`pushBooksToSquare(bookIds, options)`**
+
 - Syncs specific books to Square catalog
 - Creates new items or updates existing ones
 - Processes in batches of 10 (Square API limit)
 - Tracks sync status in Payload database
 
 **`syncUnsyncedBooks()`**
+
 - Finds all books without `squareCatalogObjectId`
 - Pushes them to Square catalog
 - Updates database with Square IDs
 
 **`syncModifiedBooks(since?)`**
+
 - Syncs books updated since specified date
 - Defaults to last 24 hours if no date provided
 - Updates existing Square catalog items
 
 **Sync Result Structure**:
+
 ```typescript
 interface SquareSyncResult {
   success: boolean
@@ -83,6 +90,7 @@ interface SquareSyncResult {
 **Mapping Logic**:
 
 **Payload Book → Square Catalog Object**:
+
 - `title` → `itemData.name`
 - `description` → `itemData.description` (falls back to author)
 - `sellPrice` → `priceMoney.amount` (converted to cents)
@@ -93,6 +101,7 @@ interface SquareSyncResult {
 - `isDigital` → `trackInventory = false` (no stock tracking for digital)
 
 **Price Conversion**:
+
 ```typescript
 // Square expects smallest currency unit (cents)
 const sellPriceCents = Math.round(Number(book.sellPrice) * 100)
@@ -100,6 +109,7 @@ const sellPriceCents = Math.round(Number(book.sellPrice) * 100)
 ```
 
 **Multi-Currency Support**:
+
 - USD, EUR, GBP fully supported
 - Currency code passed to Square priceMoney
 
@@ -110,6 +120,7 @@ const sellPriceCents = Math.round(Number(book.sellPrice) * 100)
 **Endpoint**: `POST /api/square/sync`
 
 **Request Body**:
+
 ```json
 {
   "strategy": "specific" | "unsynced" | "modified",
@@ -121,6 +132,7 @@ const sellPriceCents = Math.round(Number(book.sellPrice) * 100)
 **Sync Strategies**:
 
 1. **Specific** - Sync selected books
+
    ```json
    {
      "strategy": "specific",
@@ -129,6 +141,7 @@ const sellPriceCents = Math.round(Number(book.sellPrice) * 100)
    ```
 
 2. **Unsynced** - Sync all books never pushed to Square
+
    ```json
    {
      "strategy": "unsynced"
@@ -139,11 +152,12 @@ const sellPriceCents = Math.round(Number(book.sellPrice) * 100)
    ```json
    {
      "strategy": "modified",
-     "since": "2025-11-01T00:00:00Z"  // Optional, defaults to last 24h
+     "since": "2025-11-01T00:00:00Z" // Optional, defaults to last 24h
    }
    ```
 
 **Success Response (200)**:
+
 ```json
 {
   "success": true,
@@ -159,6 +173,7 @@ const sellPriceCents = Math.round(Number(book.sellPrice) * 100)
 ```
 
 **Error Response (400/500)**:
+
 ```json
 {
   "success": false,
@@ -172,11 +187,13 @@ const sellPriceCents = Math.round(Number(book.sellPrice) * 100)
 ### 5. Database Fields (Already in Books Collection)
 
 **`squareCatalogObjectId`** (Books.ts:206-212)
+
 - Stores Square's catalog object ID
 - Null if never synced
 - Used to update existing items
 
 **`squareLastSyncedAt`** (Books.ts:214-220)
+
 - Timestamp of last successful sync
 - Used for "modified" sync strategy
 - Helps track sync freshness
@@ -188,6 +205,7 @@ const sellPriceCents = Math.round(Number(book.sellPrice) * 100)
 ### Integration Tests (`tests/int/square/catalogSync.int.spec.ts`)
 
 **9 tests covering**:
+
 - UUID v4 idempotency key generation
 - Environment variable validation
 - Square client initialization
@@ -200,6 +218,7 @@ const sellPriceCents = Math.round(Number(book.sellPrice) * 100)
 ### E2E Tests (`tests/e2e/square-sync-api.e2e.spec.ts`)
 
 **Tests covering**:
+
 - Invalid strategy validation
 - Missing bookIds validation
 - Empty/invalid bookIds arrays
@@ -256,8 +275,8 @@ const response = await fetch('/api/square/sync', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    strategy: 'unsynced'
-  })
+    strategy: 'unsynced',
+  }),
 })
 
 const result = await response.json()
@@ -275,8 +294,8 @@ const response = await fetch('/api/square/sync', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     strategy: 'specific',
-    bookIds
-  })
+    bookIds,
+  }),
 })
 ```
 
@@ -287,8 +306,8 @@ const response = await fetch('/api/square/sync', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    strategy: 'modified'
-  })
+    strategy: 'modified',
+  }),
 })
 ```
 
@@ -334,6 +353,7 @@ if (result.success) {
 **Why**: Payload has cost/member/sell pricing, Square has single price.
 
 **Decision**:
+
 - Sync `sellPrice` to Square (public price)
 - Track `costPrice` in vendor info (internal)
 - Keep `memberPrice` Payload-only (not synced)
@@ -366,6 +386,7 @@ if (result.success) {
 ### Future Enhancements
 
 **Phase 4 Candidates**:
+
 - Inventory quantity sync (requires location management)
 - Bidirectional sync (Square → Payload)
 - Category hierarchy mapping
@@ -379,16 +400,17 @@ if (result.success) {
 
 **Differences from `/home/axxs/infoshop` implementation**:
 
-| Aspect | Legacy (Express + Prisma) | Payload Implementation |
-|--------|--------------------------|------------------------|
-| **Database ORM** | Prisma | Payload CMS API |
-| **API Framework** | Express routes | Next.js API routes |
-| **Logging** | Winston logger | Console (structured) |
-| **Error Handling** | try/catch with logger | try/catch with console |
-| **Field Names** | `squareItemId`, `lastSyncedAt` | `squareCatalogObjectId`, `squareLastSyncedAt` |
-| **Type Safety** | Prisma generated types | Payload generated types |
+| Aspect             | Legacy (Express + Prisma)      | Payload Implementation                        |
+| ------------------ | ------------------------------ | --------------------------------------------- |
+| **Database ORM**   | Prisma                         | Payload CMS API                               |
+| **API Framework**  | Express routes                 | Next.js API routes                            |
+| **Logging**        | Winston logger                 | Console (structured)                          |
+| **Error Handling** | try/catch with logger          | try/catch with console                        |
+| **Field Names**    | `squareItemId`, `lastSyncedAt` | `squareCatalogObjectId`, `squareLastSyncedAt` |
+| **Type Safety**    | Prisma generated types         | Payload generated types                       |
 
 **Preserved Features**:
+
 - ✅ Batch processing logic
 - ✅ Three sync strategies
 - ✅ Error accumulation
@@ -397,6 +419,7 @@ if (result.success) {
 - ✅ Rate limiting (500ms delays)
 
 **Simplified**:
+
 - ❌ Removed payment processing (not needed for catalog sync)
 - ❌ Removed customer management (Phase 4)
 - ❌ Removed refund logic (Phase 4)
@@ -406,18 +429,22 @@ if (result.success) {
 ## Files Created
 
 ### Core Implementation (3 files)
+
 - `src/lib/square/client.ts` - Square SDK configuration
 - `src/lib/square/catalogSync.ts` - Sync service logic
 - `src/lib/square/index.ts` - Library exports
 
 ### API Endpoint (1 file)
+
 - `src/app/(payload)/api/square/sync/route.ts` - HTTP endpoint
 
 ### Tests (2 files)
+
 - `tests/int/square/catalogSync.int.spec.ts` - Integration tests (9 tests)
 - `tests/e2e/square-sync-api.e2e.spec.ts` - E2E API tests
 
 ### Configuration (1 file modified)
+
 - `.env.example` - Added Square environment variables
 
 **Total**: 7 files (6 new, 1 modified)

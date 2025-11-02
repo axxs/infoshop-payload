@@ -81,9 +81,7 @@ function bookToCatalogItem(book: Book): SquareCatalogObject {
   const sellPriceCents = Math.round(sellPrice * 100)
 
   // Validate and use book currency or default to USD
-  const currencyCode = SUPPORTED_CURRENCIES.includes(book.currency as any)
-    ? book.currency
-    : 'USD'
+  const currencyCode = SUPPORTED_CURRENCIES.includes(book.currency as any) ? book.currency : 'USD'
 
   // Build item data
   const itemData: {

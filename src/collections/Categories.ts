@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { slugify } from './utils/slugify'
 
 export const Categories: CollectionConfig = {
   slug: 'categories',
@@ -24,7 +25,7 @@ export const Categories: CollectionConfig = {
       required: true,
       unique: true,
       admin: {
-        description: 'URL-friendly identifier',
+        description: 'URL-friendly identifier (auto-generated from name if empty)',
       },
     },
     {
@@ -40,4 +41,15 @@ export const Categories: CollectionConfig = {
       },
     },
   ],
+  hooks: {
+    beforeChange: [
+      async ({ data, operation }) => {
+        // Auto-generate slug from name if not provided
+        if (data?.name && (!data.slug || operation === 'create')) {
+          data.slug = slugify(data.name)
+        }
+        return data
+      },
+    ],
+  },
 }
