@@ -1,13 +1,13 @@
-# Infoshop Payload CMS
+# 🏴 Infoshop Payload CMS
 
-**Independent bookshop inventory management system** built with Payload CMS 3.x and Next.js 15.
+A complete management system for infoshops that serves as both a book inventory and sales platform, and a community organizing hub for events and collective decision-making built with Payload CMS 3.x and Next.js 15.
 
-This is a complete rewrite of the Infoshop system using modern headless CMS architecture.
+*This is a complete, in progress, rewrite of the Infoshop system using modern headless CMS architecture.*
 
 ## Features
 
 - **Book Management**: Complete inventory system with ISBN lookup, bulk operations
-- **Category & Subject Taxonomy**: Hierarchical categories + flat subject tags
+- **Category & Subject Taxonomy**: Categories + flat subject tags
 - **Supplier Management**: Vendor tracking and purchasing workflow
 - **Event Management**: Store events, workshops, and author appearances
 - **Square POS Integration**: (Phase 3) Real-time inventory sync
