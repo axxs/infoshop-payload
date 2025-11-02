@@ -12,6 +12,11 @@ interface POSReceiptProps {
   onClose: () => void
 }
 
+/**
+ * Receipt preview and print component for POS interface
+ * Displays sale receipt with print functionality using secure DOM methods
+ * Shows receipt number, date, items, payment method, and total
+ */
 export function POSReceipt({
   receiptNumber,
   saleDate,

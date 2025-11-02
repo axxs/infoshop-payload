@@ -1,38 +1,92 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import type { CartItem, BookSearchResult } from '../types'
 
 interface POSSearchProps {
   onAddToCart: (item: CartItem) => void
 }
 
+/**
+ * Product search component for POS interface
+ * Features: debounced search, price type selection, stock status display
+ */
 export function POSSearch({ onAddToCart }: POSSearchProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<BookSearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
+  const [searchError, setSearchError] = useState<string | null>(null)
   const [selectedPriceType, setSelectedPriceType] = useState<'RETAIL' | 'MEMBER'>('RETAIL')
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       setSearchResults([])
+      setSearchError(null)
+      return
+    }
+
+    // Minimum 2 characters for search
+    if (searchQuery.trim().length < 2) {
+      setSearchError('Please enter at least 2 characters to search')
       return
     }
 
     setIsSearching(true)
+    setSearchError(null)
+
     try {
       const response = await fetch(
         `/api/books?where[or][0][title][contains]=${encodeURIComponent(searchQuery)}&where[or][1][isbn][contains]=${encodeURIComponent(searchQuery)}&where[or][2][author][contains]=${encodeURIComponent(searchQuery)}&limit=10`,
       )
-      const data = await response.json()
 
+      if (!response.ok) {
+        throw new Error('Search failed. Please try again.')
+      }
+
+      const data = await response.json()
       setSearchResults(data.docs || [])
     } catch (error) {
-      console.error('Search error:', error)
+      setSearchError(error instanceof Error ? error.message : 'Search failed. Please try again.')
       setSearchResults([])
     } finally {
       setIsSearching(false)
     }
+  }
+
+  // Debounced search effect
+  useEffect(() => {
+    // Clear previous timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    // Don't search if query is empty
+    if (!searchQuery.trim()) {
+      setSearchResults([])
+      setSearchError(null)
+      return
+    }
+
+    // Set new timer for debounced search (500ms delay)
+    debounceTimerRef.current = setTimeout(() => {
+      handleSearch()
+    }, 500)
+
+    // Cleanup on unmount
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [searchQuery])
+
+  const handleManualSearch = () => {
+    // Clear debounce timer and search immediately
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+    handleSearch()
   }
 
   const handleAddToCart = (book: BookSearchResult) => {
@@ -132,8 +186,8 @@ export function POSSearch({ onAddToCart }: POSSearchProps) {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            placeholder="Type to search..."
+            onKeyDown={(e) => e.key === 'Enter' && handleManualSearch()}
+            placeholder="Type to search (min 2 characters)..."
             style={{
               flex: 1,
               padding: '0.5rem',
@@ -142,7 +196,7 @@ export function POSSearch({ onAddToCart }: POSSearchProps) {
             }}
           />
           <button
-            onClick={handleSearch}
+            onClick={handleManualSearch}
             disabled={isSearching}
             style={{
               padding: '0.5rem 1.5rem',
@@ -157,6 +211,20 @@ export function POSSearch({ onAddToCart }: POSSearchProps) {
             {isSearching ? 'Searching...' : 'Search'}
           </button>
         </div>
+        {searchError && (
+          <div
+            style={{
+              marginTop: '0.5rem',
+              padding: '0.5rem',
+              backgroundColor: '#fee2e2',
+              color: '#dc2626',
+              borderRadius: '0.375rem',
+              fontSize: '0.875rem',
+            }}
+          >
+            {searchError}
+          </div>
+        )}
       </div>
 
       {/* Search Results */}

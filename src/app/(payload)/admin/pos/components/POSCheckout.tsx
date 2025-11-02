@@ -16,6 +16,11 @@ interface SaleReceipt {
   totalAmount: number
 }
 
+/**
+ * Checkout component for POS interface
+ * Handles payment method selection, customer association, and sale creation
+ * Validates customer ID and creates sale with all line items
+ */
 export function POSCheckout({ cart, onComplete, onCancel }: POSCheckoutProps) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH')
   const [isProcessing, setIsProcessing] = useState(false)
@@ -30,6 +35,14 @@ export function POSCheckout({ cart, onComplete, onCancel }: POSCheckoutProps) {
     setError(null)
 
     try {
+      // Step 0: Validate customer ID if provided
+      if (customerId && customerId.trim()) {
+        const customerResponse = await fetch(`/api/users/${customerId}`)
+        if (!customerResponse.ok) {
+          throw new Error('Invalid customer ID. Customer not found.')
+        }
+      }
+
       // Step 1: Create sale items
       const saleItemIds: string[] = []
 

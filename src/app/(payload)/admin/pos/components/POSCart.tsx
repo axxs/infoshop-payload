@@ -11,6 +11,10 @@ interface POSCartProps {
   onCheckout: () => void
 }
 
+/**
+ * Shopping cart component for POS interface
+ * Displays cart items with quantity controls, subtotal, and checkout button
+ */
 export function POSCart({
   cart,
   onUpdateQuantity,
