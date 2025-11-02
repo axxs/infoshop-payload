@@ -1,6 +1,6 @@
 /**
  * Square Catalog Sync Service
- * Handles synchronization between Payload book inventory and Square catalog
+ * Handles synchronisation between Payload book inventory and Square catalog
  */
 
 import { getPayload } from 'payload'
@@ -190,15 +190,14 @@ export async function pushBooksToSquare(
         const catalogObjects = booksToCreate.map(bookToCatalogItem)
 
         try {
-          const { result: createResult } =
-            await squareClient.catalogApi.batchUpsertCatalogObjects({
-              idempotencyKey,
-              batches: [
-                {
-                  objects: catalogObjects,
-                },
-              ],
-            })
+          const createResult = await squareClient.catalog.batchUpsert({
+            idempotencyKey,
+            batches: [
+              {
+                objects: catalogObjects as any,
+              },
+            ],
+          })
 
           if (createResult.objects) {
             // Update Payload database with Square IDs
@@ -207,21 +206,35 @@ export async function pushBooksToSquare(
               const squareObject = createResult.objects[j]
 
               if (squareObject?.id) {
-                await payload.update({
-                  collection: 'books',
-                  id: book.id,
-                  data: {
-                    squareCatalogObjectId: squareObject.id,
-                    squareLastSyncedAt: new Date().toISOString(),
-                  },
-                })
+                try {
+                  await payload.update({
+                    collection: 'books',
+                    id: book.id,
+                    data: {
+                      squareCatalogObjectId: squareObject.id,
+                      squareLastSyncedAt: new Date().toISOString(),
+                    },
+                  })
 
-                result.itemsCreated++
-                console.info('Created Square catalog item', {
-                  bookId: book.id,
-                  bookTitle: book.title,
-                  squareItemId: squareObject.id,
-                })
+                  result.itemsCreated++
+                  console.info('Created Square catalog item', {
+                    bookId: book.id,
+                    bookTitle: book.title,
+                    squareItemId: squareObject.id,
+                  })
+                } catch (dbError) {
+                  console.error('Failed to update Payload after Square creation', {
+                    bookId: book.id,
+                    squareItemId: squareObject.id,
+                    error: dbError,
+                  })
+                  result.errors.push({
+                    bookId: String(book.id),
+                    bookTitle: book.title,
+                    error: 'Created in Square but failed to update local database',
+                  })
+                  result.itemsFailed++
+                }
               }
             }
           }
@@ -229,7 +242,7 @@ export async function pushBooksToSquare(
           console.error('Failed to create Square catalog items', { error })
           booksToCreate.forEach((book) => {
             result.errors.push({
-              bookId: book.id,
+              bookId: String(book.id),
               bookTitle: book.title,
               error: error instanceof Error ? error.message : 'Creation failed',
             })
@@ -249,27 +262,40 @@ export async function pushBooksToSquare(
             catalogItem.id = book.squareCatalogObjectId || undefined
             catalogItem.version = undefined // Square will use latest version
 
-            const { result: updateResult } =
-              await squareClient.catalogApi.upsertCatalogObject({
-                idempotencyKey: generateIdempotencyKey(),
-                object: catalogItem,
-              })
+            const updateResult = await squareClient.catalog.object.upsert({
+              idempotencyKey: generateIdempotencyKey(),
+              object: catalogItem as any,
+            })
 
             if (updateResult.catalogObject) {
-              await payload.update({
-                collection: 'books',
-                id: book.id,
-                data: {
-                  squareLastSyncedAt: new Date().toISOString(),
-                },
-              })
+              try {
+                await payload.update({
+                  collection: 'books',
+                  id: book.id,
+                  data: {
+                    squareLastSyncedAt: new Date().toISOString(),
+                  },
+                })
 
-              result.itemsUpdated++
-              console.info('Updated Square catalog item', {
-                bookId: book.id,
-                bookTitle: book.title,
-                squareItemId: book.squareCatalogObjectId,
-              })
+                result.itemsUpdated++
+                console.info('Updated Square catalog item', {
+                  bookId: book.id,
+                  bookTitle: book.title,
+                  squareItemId: book.squareCatalogObjectId,
+                })
+              } catch (dbError) {
+                console.error('Failed to update Payload after Square update', {
+                  bookId: book.id,
+                  squareItemId: book.squareCatalogObjectId,
+                  error: dbError,
+                })
+                result.errors.push({
+                  bookId: String(book.id),
+                  bookTitle: book.title,
+                  error: 'Updated in Square but failed to update local sync timestamp',
+                })
+                result.itemsFailed++
+              }
             }
           } catch (error) {
             console.error('Failed to update Square catalog item', {
@@ -277,7 +303,7 @@ export async function pushBooksToSquare(
               error,
             })
             result.errors.push({
-              bookId: book.id,
+              bookId: String(book.id),
               bookTitle: book.title,
               error: error instanceof Error ? error.message : 'Update failed',
             })
@@ -291,7 +317,7 @@ export async function pushBooksToSquare(
       console.error('Batch sync failed', { error })
       batch.forEach((book) => {
         result.errors.push({
-          bookId: book.id,
+          bookId: String(book.id),
           bookTitle: book.title,
           error: error instanceof Error ? error.message : 'Batch failed',
         })
@@ -330,7 +356,7 @@ export async function syncUnsyncedBooks(): Promise<SquareSyncResult> {
     limit: 1000,
   })
 
-  const bookIds = unsyncedBooks.map((b) => b.id)
+  const bookIds = unsyncedBooks.map((b) => String(b.id))
 
   console.info('Syncing unsynced books to Square', {
     count: bookIds.length,
@@ -377,7 +403,7 @@ export async function syncModifiedBooks(since?: Date): Promise<SquareSyncResult>
     limit: 1000,
   })
 
-  const bookIds = modifiedBooks.map((b) => b.id)
+  const bookIds = modifiedBooks.map((b) => String(b.id))
 
   console.info('Syncing modified books to Square', {
     count: bookIds.length,

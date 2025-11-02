@@ -3,12 +3,12 @@
  * Initializes the Square SDK with environment-based settings
  */
 
-import { Client, Environment } from 'square'
+import { SquareClient, SquareEnvironment } from 'square'
 
 /**
  * Initialize Square client with credentials from environment variables
  */
-export function getSquareClient(): Client {
+export function getSquareClient(): SquareClient {
   const accessToken = process.env.SQUARE_ACCESS_TOKEN
 
   if (!accessToken) {
@@ -17,11 +17,11 @@ export function getSquareClient(): Client {
 
   const environment =
     process.env.SQUARE_ENVIRONMENT === 'production'
-      ? Environment.Production
-      : Environment.Sandbox
+      ? SquareEnvironment.Production
+      : SquareEnvironment.Sandbox
 
-  return new Client({
-    accessToken,
+  return new SquareClient({
+    token: accessToken,
     environment,
   })
 }
