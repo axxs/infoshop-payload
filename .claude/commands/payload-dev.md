@@ -52,7 +52,7 @@ On first run, you'll need to:
 
 ```env
 PAYLOAD_SECRET=your-secret-key
-DATABASE_URI=file:./infoshop-blank.db
+DATABASE_URI=file:./infoshop.db
 NEXT_PUBLIC_SERVER_URL=http://localhost:3000
 ```
 
@@ -109,7 +109,7 @@ After server starts:
 **Database locked**
 
 - Close any database clients
-- Delete `infoshop-blank.db-shm` and `infoshop-blank.db-wal`
+- Delete `infoshop.db-shm` and `infoshop.db-wal`
 
 **Build errors**
 

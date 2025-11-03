@@ -163,7 +163,7 @@ Categories ──has-one──→ Categories (parent, for hierarchy)
 
 ## Database Technology
 
-**Current**: SQLite (file: `infoshop-blank.db`)
+**Current**: SQLite (file: `infoshop.db`)
 
 - Suitable for development
 - No server required

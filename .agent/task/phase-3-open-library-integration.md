@@ -214,7 +214,7 @@ infoshop-payload/
 
 ## Cleanup Done
 
-- ✅ Removed `infoshop-blank.db` from git tracking
+- ✅ Removed `infoshop.db` from git tracking
 - ✅ Database files already in `.gitignore` (\*.db pattern)
 - ✅ All code passes TypeScript strict mode
 - ✅ Formatting and linting checks pass
