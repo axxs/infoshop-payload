@@ -59,7 +59,7 @@ _This is a complete, in progress, rewrite of the Infoshop system using modern he
    PAYLOAD_SECRET=your-secret-key-here
 
    # SQLite for development
-   DATABASE_URI=file:./infoshop-blank.db
+   DATABASE_URI=file:./infoshop.db
 
    # Your local server URL
    NEXT_PUBLIC_SERVER_URL=http://localhost:3000
@@ -266,7 +266,7 @@ npm run test:e2e:headed  # With browser UI
 
 ### Development (SQLite)
 
-- File-based: `infoshop-blank.db`
+- File-based: `infoshop.db`
 - No server required
 - Automatically created on first run
 
@@ -351,7 +351,7 @@ npm run dev
 
 ```bash
 # Close any database clients, then:
-rm infoshop-blank.db-shm infoshop-blank.db-wal
+rm infoshop.db-shm infoshop.db-wal
 npm run dev
 ```
 

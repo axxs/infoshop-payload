@@ -108,13 +108,13 @@ SqliteError: database is locked
 2. **Delete lock files**:
 
    ```bash
-   rm infoshop-blank.db-shm infoshop-blank.db-wal
+   rm infoshop.db-shm infoshop.db-wal
    npm run dev
    ```
 
 3. **Last resort - recreate database**:
    ```bash
-   rm infoshop-blank.db*
+   rm infoshop.db*
    npm run dev  # Database will be recreated
    ```
 
@@ -135,7 +135,7 @@ Error: no such table: books
 1. **Let Payload regenerate schema**:
 
    ```bash
-   rm infoshop-blank.db*
+   rm infoshop.db*
    npm run dev
    ```
 
@@ -477,7 +477,7 @@ export default buildConfig({
 rm -rf .next node_modules package-lock.json
 
 # 3. Delete database (WARNING: loses all data)
-rm infoshop-blank.db*
+rm infoshop.db*
 
 # 4. Reinstall dependencies
 npm install
