@@ -19,7 +19,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { MAX_SALES_QUERY_LIMIT } from '@/lib/reports/constants'
-import { formatCurrency, validateDateRange } from '@/lib/reports/validation'
+import {
+  centsToDollars,
+  dollarsToCents,
+  formatCurrency,
+  validateDateRange,
+} from '@/lib/reports/validation'
 
 export async function GET(request: NextRequest) {
   try {
@@ -55,38 +60,58 @@ export async function GET(request: NextRequest) {
       ? `WARNING: Results limited to ${MAX_SALES_QUERY_LIMIT} of ${totalDocs} total sales. Revenue and statistics are INCOMPLETE. Please narrow your date range for accurate results.`
       : undefined
 
-    // Aggregate data
-    const totalRevenue = sales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0)
+    // Aggregate data using integer cents for precision
+    const totalCents = sales.reduce((sum, sale) => {
+      return sum + dollarsToCents(sale.totalAmount || 0)
+    }, 0)
+    const totalRevenue = centsToDollars(totalCents)
     const transactionCount = sales.length
-    const averageTransactionValue = transactionCount > 0 ? totalRevenue / transactionCount : 0
+    const averageTransactionValue =
+      transactionCount > 0 ? centsToDollars(Math.round(totalCents / transactionCount)) : 0
 
-    // Sales by payment method
-    const salesByPaymentMethod = sales.reduce(
+    // Sales by payment method (using integer cents)
+    const salesByPaymentMethodCents = sales.reduce(
       (acc, sale) => {
         const method = sale.paymentMethod || 'UNKNOWN'
-        acc[method] = (acc[method] || 0) + (sale.totalAmount || 0)
+        acc[method] = (acc[method] || 0) + dollarsToCents(sale.totalAmount || 0)
         return acc
       },
       {} as Record<string, number>,
     )
 
-    // Group sales by date (for multi-day ranges)
-    const salesByDate = sales.reduce(
+    // Convert to dollars for output
+    const salesByPaymentMethod = Object.entries(salesByPaymentMethodCents).reduce(
+      (acc, [method, cents]) => {
+        acc[method] = centsToDollars(cents)
+        return acc
+      },
+      {} as Record<string, number>,
+    )
+
+    // Group sales by date (using integer cents for precision)
+    const salesByDateCents = sales.reduce(
       (acc, sale) => {
         const date = new Date(sale.saleDate).toISOString().split('T')[0]
         if (!acc[date]) {
           acc[date] = {
             date,
-            revenue: 0,
+            revenueCents: 0,
             transactions: 0,
           }
         }
-        acc[date].revenue += sale.totalAmount || 0
+        acc[date].revenueCents += dollarsToCents(sale.totalAmount || 0)
         acc[date].transactions += 1
         return acc
       },
-      {} as Record<string, { date: string; revenue: number; transactions: number }>,
+      {} as Record<string, { date: string; revenueCents: number; transactions: number }>,
     )
+
+    // Convert to dollars for output
+    const salesByDate = Object.values(salesByDateCents).map((day) => ({
+      date: day.date,
+      revenue: centsToDollars(day.revenueCents),
+      transactions: day.transactions,
+    }))
 
     return NextResponse.json({
       success: true,

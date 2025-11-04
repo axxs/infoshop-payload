@@ -16,7 +16,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { DEFAULT_DATE_RANGE_DAYS, MAX_SALES_QUERY_LIMIT } from '@/lib/reports/constants'
-import { formatCurrency, validateDateRange } from '@/lib/reports/validation'
+import { centsToDollars, dollarsToCents, validateDateRange } from '@/lib/reports/validation'
 
 function escapeCSV(value: unknown): string {
   if (value === null || value === undefined) return ''
@@ -177,7 +177,7 @@ export async function GET(request: NextRequest) {
         return sale.items.filter((item) => typeof item === 'object' && item !== null)
       })
 
-      // Aggregate by book
+      // Aggregate by book using integer cents for precision
       const bookSales = new Map<
         string,
         {
@@ -185,8 +185,7 @@ export async function GET(request: NextRequest) {
           author: string
           isbn: string
           quantitySold: number
-          totalRevenue: number
-          averagePrice: number
+          totalRevenueCents: number
         }
       >()
 
@@ -196,29 +195,34 @@ export async function GET(request: NextRequest) {
 
         const bookId = String(book.id)
         const existing = bookSales.get(bookId)
+        const lineTotalCents = dollarsToCents(item.lineTotal || 0)
 
         if (existing) {
           existing.quantitySold += item.quantity || 0
-          existing.totalRevenue += item.lineTotal || 0
-          existing.averagePrice = existing.totalRevenue / existing.quantitySold
+          existing.totalRevenueCents += lineTotalCents
         } else {
           bookSales.set(bookId, {
             title: book.title || 'Unknown',
             author: book.author || '',
             isbn: book.isbn || '',
             quantitySold: item.quantity || 0,
-            totalRevenue: item.lineTotal || 0,
-            averagePrice: item.unitPrice || 0,
+            totalRevenueCents: lineTotalCents,
           })
         }
       }
 
       const flatData = Array.from(bookSales.values())
-        .sort((a, b) => b.totalRevenue - a.totalRevenue)
+        .sort((a, b) => b.totalRevenueCents - a.totalRevenueCents)
         .map((book) => ({
-          ...book,
-          totalRevenue: formatCurrency(book.totalRevenue),
-          averagePrice: formatCurrency(book.averagePrice),
+          title: book.title,
+          author: book.author,
+          isbn: book.isbn,
+          quantitySold: book.quantitySold,
+          totalRevenue: centsToDollars(book.totalRevenueCents),
+          averagePrice:
+            book.quantitySold > 0
+              ? centsToDollars(Math.round(book.totalRevenueCents / book.quantitySold))
+              : 0,
         }))
 
       const headers = ['title', 'author', 'isbn', 'quantitySold', 'totalRevenue', 'averagePrice']

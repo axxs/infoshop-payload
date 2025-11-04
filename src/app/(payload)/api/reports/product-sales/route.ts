@@ -21,15 +21,19 @@ import {
   MAX_SALES_QUERY_LIMIT,
   MAX_TOP_PRODUCTS_LIMIT,
 } from '@/lib/reports/constants'
-import { formatCurrency, validateDateRange } from '@/lib/reports/validation'
+import {
+  centsToDollars,
+  dollarsToCents,
+  formatCurrency,
+  validateDateRange,
+} from '@/lib/reports/validation'
 
 interface BookSalesData {
   bookId: string
   title: string
   author?: string
   quantitySold: number
-  totalRevenue: number
-  averagePrice: number
+  totalRevenueCents: number
   transactionCount: number
 }
 
@@ -86,7 +90,7 @@ export async function GET(request: NextRequest) {
       return sale.items.filter((item) => typeof item === 'object' && item !== null)
     })
 
-    // Aggregate sales by book
+    // Aggregate sales by book using integer cents for precision
     const bookSalesMap = new Map<string, BookSalesData>()
 
     for (const item of filteredSaleItems) {
@@ -95,20 +99,19 @@ export async function GET(request: NextRequest) {
 
       const bookId = String(book.id)
       const existing = bookSalesMap.get(bookId)
+      const lineTotalCents = dollarsToCents(item.lineTotal || 0)
 
       if (existing) {
         existing.quantitySold += item.quantity || 0
-        existing.totalRevenue += item.lineTotal || 0
+        existing.totalRevenueCents += lineTotalCents
         existing.transactionCount += 1
-        existing.averagePrice = existing.totalRevenue / existing.quantitySold
       } else {
         bookSalesMap.set(bookId, {
           bookId,
           title: book.title || 'Unknown',
           author: book.author || undefined,
           quantitySold: item.quantity || 0,
-          totalRevenue: item.lineTotal || 0,
-          averagePrice: item.unitPrice || 0,
+          totalRevenueCents: lineTotalCents,
           transactionCount: 1,
         })
       }
@@ -116,12 +119,19 @@ export async function GET(request: NextRequest) {
 
     // Convert to array and sort by revenue (descending)
     const topProducts = Array.from(bookSalesMap.values())
-      .sort((a, b) => b.totalRevenue - a.totalRevenue)
+      .sort((a, b) => b.totalRevenueCents - a.totalRevenueCents)
       .slice(0, limit)
       .map((product) => ({
-        ...product,
-        totalRevenue: formatCurrency(product.totalRevenue),
-        averagePrice: formatCurrency(product.averagePrice),
+        bookId: product.bookId,
+        title: product.title,
+        author: product.author,
+        quantitySold: product.quantitySold,
+        totalRevenue: centsToDollars(product.totalRevenueCents),
+        averagePrice:
+          product.quantitySold > 0
+            ? centsToDollars(Math.round(product.totalRevenueCents / product.quantitySold))
+            : 0,
+        transactionCount: product.transactionCount,
       }))
 
     // Calculate summary statistics

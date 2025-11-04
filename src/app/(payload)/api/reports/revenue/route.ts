@@ -22,15 +22,19 @@ import {
   DEFAULT_WEEK_RANGE_DAYS,
   MAX_SALES_QUERY_LIMIT,
 } from '@/lib/reports/constants'
-import { formatCurrency, validateDateRange } from '@/lib/reports/validation'
+import {
+  centsToDollars,
+  dollarsToCents,
+  formatCurrency,
+  validateDateRange,
+} from '@/lib/reports/validation'
 
 type GroupBy = 'day' | 'week' | 'month'
 
 interface RevenueDataPoint {
   period: string
-  revenue: number
+  revenueCents: number
   transactions: number
-  averageValue: number
 }
 
 function getGroupKey(date: Date, groupBy: GroupBy): string {
@@ -115,35 +119,38 @@ export async function GET(request: NextRequest) {
       ? `WARNING: Results limited to ${MAX_SALES_QUERY_LIMIT} of ${totalDocs} total sales. Revenue statistics are INCOMPLETE. Please narrow your date range for accurate results.`
       : undefined
 
-    // Group revenue by time period
+    // Group revenue by time period using integer cents for precision
     const revenueByPeriod = new Map<string, RevenueDataPoint>()
 
     for (const sale of sales) {
       const saleDate = new Date(sale.saleDate)
       const period = getGroupKey(saleDate, groupBy)
+      const saleCents = dollarsToCents(sale.totalAmount || 0)
 
       const existing = revenueByPeriod.get(period)
       if (existing) {
-        existing.revenue += sale.totalAmount || 0
+        existing.revenueCents += saleCents
         existing.transactions += 1
-        existing.averageValue = existing.revenue / existing.transactions
       } else {
         revenueByPeriod.set(period, {
           period,
-          revenue: sale.totalAmount || 0,
+          revenueCents: saleCents,
           transactions: 1,
-          averageValue: sale.totalAmount || 0,
         })
       }
     }
 
-    // Convert to sorted array
+    // Convert to sorted array with dollars
     const revenueData = Array.from(revenueByPeriod.values())
       .sort((a, b) => a.period.localeCompare(b.period))
       .map((point) => ({
-        ...point,
-        revenue: formatCurrency(point.revenue),
-        averageValue: formatCurrency(point.averageValue),
+        period: point.period,
+        revenue: centsToDollars(point.revenueCents),
+        transactions: point.transactions,
+        averageValue:
+          point.transactions > 0
+            ? centsToDollars(Math.round(point.revenueCents / point.transactions))
+            : 0,
       }))
 
     // Calculate summary statistics
