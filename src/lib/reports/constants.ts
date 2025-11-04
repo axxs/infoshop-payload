@@ -1,5 +1,20 @@
 /**
  * Constants for reporting APIs
+ *
+ * DATA TRUNCATION POLICY:
+ * - All APIs have a MAX_SALES_QUERY_LIMIT to prevent performance issues
+ * - When data would be truncated, behavior depends on endpoint type:
+ *
+ *   JSON APIs (daily-sales, product-sales, revenue):
+ *   - Return 200 with warning message and metadata
+ *   - Users can see partial data with clear indication it's incomplete
+ *   - Designed for dashboards where partial data is better than no data
+ *
+ *   Export APIs (CSV exports):
+ *   - Return 400 error and block the export
+ *   - Incomplete CSV files are misleading and dangerous for business decisions
+ *   - Users must narrow date range to get complete data
+ *   - This ensures exported data is always 100% accurate
  */
 
 // Date range defaults (in days)

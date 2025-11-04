@@ -7,8 +7,14 @@ import { RevenueChartWidget } from './components/RevenueChartWidget'
 import { DEFAULT_DATE_RANGE_DAYS, TOP_PRODUCTS_DAYS } from '@/lib/reports/constants'
 
 export default function ReportsPage() {
+  const [exporting, setExporting] = React.useState<'sales' | 'products' | null>(null)
+  const [error, setError] = React.useState<string | null>(null)
+
   const handleExport = async (type: 'sales' | 'products') => {
     try {
+      setExporting(type)
+      setError(null)
+
       const endDate = new Date()
       const startDate = new Date(endDate)
       startDate.setDate(startDate.getDate() - DEFAULT_DATE_RANGE_DAYS)
@@ -18,7 +24,8 @@ export default function ReportsPage() {
       )
 
       if (!response.ok) {
-        throw new Error('Export failed')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Export failed')
       }
 
       // Download the CSV
@@ -31,8 +38,11 @@ export default function ReportsPage() {
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
-    } catch (_error) {
-      alert('Failed to export data. Please try again.')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to export data'
+      setError(errorMessage)
+    } finally {
+      setExporting(null)
     }
   }
 
@@ -41,14 +51,40 @@ export default function ReportsPage() {
       <div style={styles.header}>
         <h1 style={styles.pageTitle}>Sales Reports</h1>
         <div style={styles.actions}>
-          <button onClick={() => handleExport('sales')} style={styles.exportButton}>
-            Export Sales (CSV)
+          <button
+            onClick={() => handleExport('sales')}
+            disabled={exporting !== null}
+            style={{
+              ...styles.exportButton,
+              ...(exporting === 'sales' ? styles.exportButtonLoading : {}),
+              ...(exporting !== null ? styles.exportButtonDisabled : {}),
+            }}
+          >
+            {exporting === 'sales' ? 'Exporting...' : 'Export Sales (CSV)'}
           </button>
-          <button onClick={() => handleExport('products')} style={styles.exportButton}>
-            Export Products (CSV)
+          <button
+            onClick={() => handleExport('products')}
+            disabled={exporting !== null}
+            style={{
+              ...styles.exportButton,
+              ...(exporting === 'products' ? styles.exportButtonLoading : {}),
+              ...(exporting !== null ? styles.exportButtonDisabled : {}),
+            }}
+          >
+            {exporting === 'products' ? 'Exporting...' : 'Export Products (CSV)'}
           </button>
         </div>
       </div>
+
+      {error && (
+        <div style={styles.errorBanner}>
+          <span style={styles.errorIcon}>⚠️</span>
+          <span style={styles.errorText}>{error}</span>
+          <button onClick={() => setError(null)} style={styles.errorClose}>
+            ×
+          </button>
+        </div>
+      )}
 
       <div style={styles.content}>
         <SalesSummaryWidget />
@@ -111,6 +147,43 @@ const styles = {
     color: '#fff',
     cursor: 'pointer',
     transition: 'all 0.2s',
+  },
+  exportButtonLoading: {
+    backgroundColor: '#2c5282',
+    cursor: 'wait',
+  },
+  exportButtonDisabled: {
+    opacity: 0.6,
+    cursor: 'not-allowed',
+  },
+  errorBanner: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '12px 16px',
+    marginBottom: '24px',
+    backgroundColor: '#fed7d7',
+    border: '1px solid #fc8181',
+    borderRadius: '6px',
+    color: '#742a2a',
+  },
+  errorIcon: {
+    fontSize: '20px',
+  },
+  errorText: {
+    flex: 1,
+    fontSize: '14px',
+    fontWeight: '500',
+  },
+  errorClose: {
+    background: 'none',
+    border: 'none',
+    fontSize: '24px',
+    fontWeight: '700',
+    color: '#742a2a',
+    cursor: 'pointer',
+    padding: '0',
+    lineHeight: '1',
   },
   content: {
     display: 'flex',

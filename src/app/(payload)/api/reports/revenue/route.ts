@@ -15,6 +15,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { getISOWeek, getISOWeekYear } from 'date-fns'
 import {
   DEFAULT_DATE_RANGE_DAYS,
   DEFAULT_MONTH_RANGE_MONTHS,
@@ -41,18 +42,11 @@ function getGroupKey(date: Date, groupBy: GroupBy): string {
     case 'day':
       return `${year}-${month}-${day}`
     case 'week': {
-      // ISO 8601 week date calculation
+      // ISO 8601 week date calculation using date-fns (production-ready)
       // Week 1 is the week with the first Thursday of the year
-      const target = new Date(date.valueOf())
-      // Set to nearest Thursday: current date + 4 - current day number
-      // Make Sunday's day number 7 instead of 0
-      const dayNum = date.getDay() || 7
-      target.setDate(date.getDate() + 4 - dayNum)
-      // Get first day of year
-      const yearStart = new Date(target.getFullYear(), 0, 1)
-      // Calculate full weeks to nearest Thursday
-      const weekNum = Math.ceil(((target.valueOf() - yearStart.valueOf()) / 86400000 + 1) / 7)
-      return `${target.getFullYear()}-W${String(weekNum).padStart(2, '0')}`
+      const weekNum = getISOWeek(date)
+      const weekYear = getISOWeekYear(date)
+      return `${weekYear}-W${String(weekNum).padStart(2, '0')}`
     }
     case 'month':
       return `${year}-${month}`
