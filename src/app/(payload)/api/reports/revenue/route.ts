@@ -1,6 +1,15 @@
 /**
  * Revenue Tracking API
  * Returns revenue data with various time groupings and comparisons
+ *
+ * TIMEZONE HANDLING:
+ * All dates are parsed and stored in UTC. When providing startDate/endDate:
+ * - Format: YYYY-MM-DD (e.g., "2024-11-04")
+ * - Interpreted as: midnight UTC on that date
+ * - Example: "2024-11-04" becomes "2024-11-04T00:00:00.000Z"
+ * - End dates include the full day: "2024-11-04" becomes "2024-11-04T23:59:59.999Z"
+ *
+ * IMPORTANT: If you need results for a specific timezone, adjust your dates accordingly.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -12,6 +21,7 @@ import {
   DEFAULT_WEEK_RANGE_DAYS,
   MAX_SALES_QUERY_LIMIT,
 } from '@/lib/reports/constants'
+import { formatCurrency, validateDateRange } from '@/lib/reports/validation'
 
 type GroupBy = 'day' | 'week' | 'month'
 
@@ -88,25 +98,13 @@ export async function GET(request: NextRequest) {
     const endDateParam = searchParams.get('endDate') || endDate.toISOString().split('T')[0]
 
     // Input validation
-    const startDateObj = new Date(startDateParam)
-    const endDateObj = new Date(endDateParam)
-
-    if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid date format. Use YYYY-MM-DD' },
-        { status: 400 },
-      )
-    }
-
-    if (startDateObj > endDateObj) {
-      return NextResponse.json(
-        { success: false, error: 'startDate cannot be after endDate' },
-        { status: 400 },
-      )
+    const validation = validateDateRange(startDateParam, endDateParam)
+    if (!validation.isValid) {
+      return NextResponse.json({ success: false, error: validation.error }, { status: 400 })
     }
 
     // Query sales within date range
-    const { docs: sales } = await payload.find({
+    const { docs: sales, totalDocs } = await payload.find({
       collection: 'sales',
       where: {
         saleDate: {
@@ -116,6 +114,12 @@ export async function GET(request: NextRequest) {
       },
       limit: MAX_SALES_QUERY_LIMIT,
     })
+
+    // Check for data truncation
+    const isDataTruncated = totalDocs > MAX_SALES_QUERY_LIMIT
+    const truncationWarning = isDataTruncated
+      ? `WARNING: Results limited to ${MAX_SALES_QUERY_LIMIT} of ${totalDocs} total sales. Revenue statistics are INCOMPLETE. Please narrow your date range for accurate results.`
+      : undefined
 
     // Group revenue by time period
     const revenueByPeriod = new Map<string, RevenueDataPoint>()
@@ -144,8 +148,8 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => a.period.localeCompare(b.period))
       .map((point) => ({
         ...point,
-        revenue: Number(point.revenue.toFixed(2)),
-        averageValue: Number(point.averageValue.toFixed(2)),
+        revenue: formatCurrency(point.revenue),
+        averageValue: formatCurrency(point.averageValue),
       }))
 
     // Calculate summary statistics
@@ -166,18 +170,24 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      warning: truncationWarning,
       data: {
         period: {
           startDate: startDateParam,
           endDate: endDateParam,
           groupBy,
         },
+        metadata: {
+          totalRecords: totalDocs,
+          returnedRecords: sales.length,
+          isDataTruncated,
+        },
         summary: {
-          totalRevenue: Number(totalRevenue.toFixed(2)),
+          totalRevenue: formatCurrency(totalRevenue),
           totalTransactions,
-          averageRevenuePerPeriod: Number(averageRevenuePerPeriod.toFixed(2)),
+          averageRevenuePerPeriod: formatCurrency(averageRevenuePerPeriod),
           periodsWithData: revenueData.length,
-          growthRate,
+          growthRate: growthRate !== null ? formatCurrency(growthRate) : null,
         },
         revenueData,
       },

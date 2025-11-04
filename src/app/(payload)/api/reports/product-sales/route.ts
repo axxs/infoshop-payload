@@ -1,6 +1,15 @@
 /**
  * Product Sales Analysis API
  * Returns sales data aggregated by product/book
+ *
+ * TIMEZONE HANDLING:
+ * All dates are parsed and stored in UTC. When providing startDate/endDate:
+ * - Format: YYYY-MM-DD (e.g., "2024-11-04")
+ * - Interpreted as: midnight UTC on that date
+ * - Example: "2024-11-04" becomes "2024-11-04T00:00:00.000Z"
+ * - End dates include the full day: "2024-11-04" becomes "2024-11-04T23:59:59.999Z"
+ *
+ * IMPORTANT: If you need results for a specific timezone, adjust your dates accordingly.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -12,6 +21,7 @@ import {
   MAX_SALES_QUERY_LIMIT,
   MAX_TOP_PRODUCTS_LIMIT,
 } from '@/lib/reports/constants'
+import { formatCurrency, validateDateRange } from '@/lib/reports/validation'
 
 interface BookSalesData {
   bookId: string
@@ -41,26 +51,18 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(Math.max(parseInt(limitParam, 10), 1), MAX_TOP_PRODUCTS_LIMIT)
 
     // Validate dates
-    const startDateObj = new Date(startDateParam)
-    const endDateObj = new Date(endDateParam)
-
-    if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid date format. Use YYYY-MM-DD' },
-        { status: 400 },
-      )
+    const validation = validateDateRange(startDateParam, endDateParam)
+    if (!validation.isValid) {
+      return NextResponse.json({ success: false, error: validation.error }, { status: 400 })
     }
 
-    if (startDateObj > endDateObj) {
-      return NextResponse.json(
-        { success: false, error: 'startDate cannot be after endDate' },
-        { status: 400 },
-      )
-    }
+    // After validation, dates are guaranteed to be defined
+    const startDateObj = validation.startDate!
+    const endDateObj = validation.endDate!
 
     // Fetch sales with items included (depth: 2 gets items -> books)
     // This avoids N+1 query by fetching everything in one go
-    const { docs: sales } = await payload.find({
+    const { docs: sales, totalDocs } = await payload.find({
       collection: 'sales',
       where: {
         saleDate: {
@@ -71,6 +73,12 @@ export async function GET(request: NextRequest) {
       depth: 2, // Include items with book details
       limit: MAX_SALES_QUERY_LIMIT,
     })
+
+    // Check for data truncation
+    const isDataTruncated = totalDocs > MAX_SALES_QUERY_LIMIT
+    const truncationWarning = isDataTruncated
+      ? `WARNING: Results limited to ${MAX_SALES_QUERY_LIMIT} of ${totalDocs} total sales. Product sales statistics are INCOMPLETE. Please narrow your date range for accurate results.`
+      : undefined
 
     // Extract sale items from sales (avoiding separate query)
     const filteredSaleItems = sales.flatMap((sale) => {
@@ -112,8 +120,8 @@ export async function GET(request: NextRequest) {
       .slice(0, limit)
       .map((product) => ({
         ...product,
-        totalRevenue: Number(product.totalRevenue.toFixed(2)),
-        averagePrice: Number(product.averagePrice.toFixed(2)),
+        totalRevenue: formatCurrency(product.totalRevenue),
+        averagePrice: formatCurrency(product.averagePrice),
       }))
 
     // Calculate summary statistics
@@ -123,15 +131,21 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      warning: truncationWarning,
       data: {
         period: {
           startDate: startDateParam,
           endDate: endDateParam,
         },
+        metadata: {
+          totalRecords: totalDocs,
+          returnedRecords: sales.length,
+          isDataTruncated,
+        },
         summary: {
           uniqueProducts,
           totalQuantitySold,
-          totalRevenue: Number(totalRevenue.toFixed(2)),
+          totalRevenue: formatCurrency(totalRevenue),
         },
         topProducts,
       },

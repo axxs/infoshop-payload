@@ -1,12 +1,25 @@
 /**
  * Daily Sales Report API
  * Returns sales data aggregated by date
+ *
+ * TIMEZONE HANDLING:
+ * All dates are parsed and stored in UTC. When providing startDate/endDate:
+ * - Format: YYYY-MM-DD (e.g., "2024-11-04")
+ * - Interpreted as: midnight UTC on that date
+ * - Example: "2024-11-04" becomes "2024-11-04T00:00:00.000Z"
+ * - End dates include the full day: "2024-11-04" becomes "2024-11-04T23:59:59.999Z"
+ *
+ * IMPORTANT: If you need results for a specific timezone, adjust your dates accordingly.
+ * For example, to get sales for 2024-11-04 in EST (UTC-5), query:
+ * - startDate: 2024-11-04 (covers 7pm EST on 11/03 to 7pm EST on 11/04)
+ * OR adjust client-side to account for timezone offset.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { MAX_SALES_QUERY_LIMIT } from '@/lib/reports/constants'
+import { formatCurrency, validateDateRange } from '@/lib/reports/validation'
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,25 +31,13 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get('endDate') || new Date().toISOString().split('T')[0]
 
     // Input validation
-    const startDateObj = new Date(startDate)
-    const endDateObj = new Date(endDate)
-
-    if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid date format. Use YYYY-MM-DD' },
-        { status: 400 },
-      )
-    }
-
-    if (startDateObj > endDateObj) {
-      return NextResponse.json(
-        { success: false, error: 'startDate cannot be after endDate' },
-        { status: 400 },
-      )
+    const validation = validateDateRange(startDate, endDate)
+    if (!validation.isValid) {
+      return NextResponse.json({ success: false, error: validation.error }, { status: 400 })
     }
 
     // Query sales within date range
-    const { docs: sales } = await payload.find({
+    const { docs: sales, totalDocs } = await payload.find({
       collection: 'sales',
       where: {
         saleDate: {
@@ -47,6 +48,12 @@ export async function GET(request: NextRequest) {
       depth: 1, // Include customer relationship
       limit: MAX_SALES_QUERY_LIMIT,
     })
+
+    // Check for data truncation
+    const isDataTruncated = totalDocs > MAX_SALES_QUERY_LIMIT
+    const truncationWarning = isDataTruncated
+      ? `WARNING: Results limited to ${MAX_SALES_QUERY_LIMIT} of ${totalDocs} total sales. Revenue and statistics are INCOMPLETE. Please narrow your date range for accurate results.`
+      : undefined
 
     // Aggregate data
     const totalRevenue = sales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0)
@@ -83,15 +90,21 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      warning: truncationWarning,
       data: {
         period: {
           startDate,
           endDate,
         },
+        metadata: {
+          totalRecords: totalDocs,
+          returnedRecords: sales.length,
+          isDataTruncated,
+        },
         summary: {
-          totalRevenue: Number(totalRevenue.toFixed(2)),
+          totalRevenue: formatCurrency(totalRevenue),
           transactionCount,
-          averageTransactionValue: Number(averageTransactionValue.toFixed(2)),
+          averageTransactionValue: formatCurrency(averageTransactionValue),
         },
         salesByPaymentMethod,
         salesByDate: Object.values(salesByDate).sort((a, b) => a.date.localeCompare(b.date)),

@@ -1,12 +1,22 @@
 /**
  * Sales Data Export API
  * Exports sales data in CSV format
+ *
+ * TIMEZONE HANDLING:
+ * All dates are parsed and stored in UTC. When providing startDate/endDate:
+ * - Format: YYYY-MM-DD (e.g., "2024-11-04")
+ * - Interpreted as: midnight UTC on that date
+ * - Example: "2024-11-04" becomes "2024-11-04T00:00:00.000Z"
+ * - End dates include the full day: "2024-11-04" becomes "2024-11-04T23:59:59.999Z"
+ *
+ * IMPORTANT: If you need results for a specific timezone, adjust your dates accordingly.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { DEFAULT_DATE_RANGE_DAYS, MAX_SALES_QUERY_LIMIT } from '@/lib/reports/constants'
+import { formatCurrency, validateDateRange } from '@/lib/reports/validation'
 
 function escapeCSV(value: unknown): string {
   if (value === null || value === undefined) return ''
@@ -59,26 +69,18 @@ export async function GET(request: NextRequest) {
     const exportType = searchParams.get('type') || 'sales' // 'sales' or 'products'
 
     // Input validation
-    const startDateObj = new Date(startDateParam)
-    const endDateObj = new Date(endDateParam)
-
-    if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid date format. Use YYYY-MM-DD' },
-        { status: 400 },
-      )
+    const validation = validateDateRange(startDateParam, endDateParam)
+    if (!validation.isValid) {
+      return NextResponse.json({ success: false, error: validation.error }, { status: 400 })
     }
 
-    if (startDateObj > endDateObj) {
-      return NextResponse.json(
-        { success: false, error: 'startDate cannot be after endDate' },
-        { status: 400 },
-      )
-    }
+    // After validation, dates are guaranteed to be defined
+    const startDateObj = validation.startDate!
+    const endDateObj = validation.endDate!
 
     if (exportType === 'sales') {
       // Export individual sales transactions
-      const { docs: sales } = await payload.find({
+      const { docs: sales, totalDocs } = await payload.find({
         collection: 'sales',
         where: {
           saleDate: {
@@ -89,6 +91,21 @@ export async function GET(request: NextRequest) {
         depth: 2, // Include customer and items
         limit: MAX_SALES_QUERY_LIMIT,
       })
+
+      // Check for data truncation - critical for exports
+      if (totalDocs > MAX_SALES_QUERY_LIMIT) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Cannot export: ${totalDocs} sales found but limit is ${MAX_SALES_QUERY_LIMIT}. Please narrow your date range to export complete data.`,
+            metadata: {
+              totalRecords: totalDocs,
+              maxAllowed: MAX_SALES_QUERY_LIMIT,
+            },
+          },
+          { status: 400 },
+        )
+      }
 
       // Flatten sales data for CSV
       const flatData = sales.map((sale) => ({
@@ -127,7 +144,7 @@ export async function GET(request: NextRequest) {
     } else if (exportType === 'products') {
       // Export product sales summary
       // Fetch sales with items included (avoids N+1 query)
-      const { docs: sales } = await payload.find({
+      const { docs: sales, totalDocs } = await payload.find({
         collection: 'sales',
         where: {
           saleDate: {
@@ -138,6 +155,21 @@ export async function GET(request: NextRequest) {
         depth: 2, // Include items with book details
         limit: MAX_SALES_QUERY_LIMIT,
       })
+
+      // Check for data truncation - critical for exports
+      if (totalDocs > MAX_SALES_QUERY_LIMIT) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Cannot export: ${totalDocs} sales found but limit is ${MAX_SALES_QUERY_LIMIT}. Please narrow your date range to export complete data.`,
+            metadata: {
+              totalRecords: totalDocs,
+              maxAllowed: MAX_SALES_QUERY_LIMIT,
+            },
+          },
+          { status: 400 },
+        )
+      }
 
       // Extract sale items from sales (avoiding separate query)
       const filteredSaleItems = sales.flatMap((sale) => {
@@ -185,8 +217,8 @@ export async function GET(request: NextRequest) {
         .sort((a, b) => b.totalRevenue - a.totalRevenue)
         .map((book) => ({
           ...book,
-          totalRevenue: Number(book.totalRevenue.toFixed(2)),
-          averagePrice: Number(book.averagePrice.toFixed(2)),
+          totalRevenue: formatCurrency(book.totalRevenue),
+          averagePrice: formatCurrency(book.averagePrice),
         }))
 
       const headers = ['title', 'author', 'isbn', 'quantitySold', 'totalRevenue', 'averagePrice']
