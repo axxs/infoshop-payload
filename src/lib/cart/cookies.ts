@@ -6,7 +6,13 @@
 import { cookies } from 'next/headers'
 import { SignJWT, jwtVerify } from 'jose'
 import type { Cart } from './types'
-import { validateCart, createEmptyCart, isCartExpired } from './validation'
+import {
+  validateCart,
+  createEmptyCart,
+  isCartExpired,
+  MAX_COOKIE_SIZE_BYTES,
+  COOKIE_SIZE_WARNING_THRESHOLD,
+} from './validation'
 
 /** Cookie name for cart storage */
 const CART_COOKIE_NAME = 'infoshop_cart'
@@ -99,13 +105,29 @@ export async function getCartFromCookies(): Promise<Cart> {
 }
 
 /**
- * Save cart to cookies
+ * Save cart to cookies with size validation
  */
 export async function saveCartToCookies(cart: Cart): Promise<void> {
   const cookieStore = await cookies()
 
   // Encrypt cart
   const encrypted = await encryptCart(cart)
+
+  // SECURITY: Check cookie size to prevent exceeding browser limits
+  const cookieSizeBytes = new Blob([encrypted]).size
+
+  if (cookieSizeBytes > MAX_COOKIE_SIZE_BYTES) {
+    throw new Error(
+      `Cart is too large (${cookieSizeBytes} bytes). Please remove some items. Maximum cart size is ${MAX_COOKIE_SIZE_BYTES} bytes.`,
+    )
+  }
+
+  // Warn if approaching limit (for monitoring/debugging)
+  if (cookieSizeBytes > COOKIE_SIZE_WARNING_THRESHOLD) {
+    console.warn(
+      `⚠️ Cart cookie size approaching limit: ${cookieSizeBytes}/${MAX_COOKIE_SIZE_BYTES} bytes (${Math.round((cookieSizeBytes / MAX_COOKIE_SIZE_BYTES) * 100)}%)`,
+    )
+  }
 
   // Set cookie with httpOnly and secure flags
   cookieStore.set(CART_COOKIE_NAME, encrypted, {

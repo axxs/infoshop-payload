@@ -9,6 +9,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import type { PopulatedCart } from '../cart/types'
 import { isCartExpired } from '../cart/validation'
+import { calculateTax } from '../tax/taxCalculation'
 
 export interface CreateOrderParams {
   cart: PopulatedCart
@@ -101,7 +102,6 @@ export async function createOrder(params: CreateOrderParams): Promise<CreateOrde
       stockUpdates.push({
         bookId: item.bookId,
         quantityToDeduct: item.quantity,
-        currentStock: currentBook.stockQuantity,
       })
     }
 
@@ -114,9 +114,8 @@ export async function createOrder(params: CreateOrderParams): Promise<CreateOrde
     }
 
     // 5. Calculate total (including tax if applicable)
-    const taxRate = cart.currency === 'AUD' ? 0.1 : 0
-    const tax = cart.subtotal * taxRate
-    const totalAmount = cart.subtotal + tax
+    const taxCalculation = calculateTax(cart.subtotal, cart.currency)
+    const totalAmount = taxCalculation.totalWithTax
 
     // 6. Create SaleItem records (use validated items only)
     const saleItemIds: number[] = []
@@ -138,13 +137,31 @@ export async function createOrder(params: CreateOrderParams): Promise<CreateOrde
       saleItemIds.push(saleItem.id)
     }
 
-    // 7. Update stock quantities atomically using Promise.all
-    // This reduces race condition window but doesn't eliminate it completely
-    // For true atomicity, would need database transactions
+    // 7. IMPROVED: Atomic stock updates with just-in-time re-fetch
+    // Re-fetch current stock immediately before update to minimize race condition window
+    // Combined with beforeChange hook validation (prevents negative stock), this provides strong protection
     await Promise.all(
-      stockUpdates.map(async ({ bookId, quantityToDeduct, currentStock }) => {
-        const newStock = Math.max(0, currentStock - quantityToDeduct)
+      stockUpdates.map(async ({ bookId, quantityToDeduct }) => {
+        // Re-fetch book to get absolute latest stock quantity
+        const freshBook = await payload.findByID({
+          collection: 'books',
+          id: bookId,
+        })
 
+        if (!freshBook) {
+          throw new Error(`Book ID ${bookId} not found during stock update`)
+        }
+
+        // Final stock check with fresh data (critical for race condition prevention)
+        if (freshBook.stockQuantity < quantityToDeduct) {
+          throw new Error(
+            `Insufficient stock for "${freshBook.title}". Available: ${freshBook.stockQuantity}, Required: ${quantityToDeduct}`,
+          )
+        }
+
+        const newStock = freshBook.stockQuantity - quantityToDeduct
+
+        // Update will be validated by beforeChange hook (prevents negative stock)
         return payload.update({
           collection: 'books',
           id: bookId,

@@ -135,6 +135,22 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: number;
+  /**
+   * Full name of the user
+   */
+  name?: string | null;
+  /**
+   * Is this user a collective member? (Grants access to member pricing)
+   */
+  isMember?: boolean | null;
+  /**
+   * Membership number (optional)
+   */
+  membershipNumber?: string | null;
+  /**
+   * Member since date
+   */
+  memberSince?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -553,6 +569,10 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  name?: T;
+  isMember?: T;
+  membershipNumber?: T;
+  memberSince?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;

@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCart, clearCart } from '@/lib/cart'
 import { createOrder } from '@/lib/checkout/createOrder'
 import { verifySquarePayment } from '@/lib/square/paymentVerification'
+import { calculateTax } from '@/lib/tax/taxCalculation'
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,9 +49,8 @@ export async function POST(request: NextRequest) {
     // CRITICAL SECURITY: Verify payment with Square (if CARD payment)
     if (body.paymentMethod === 'CARD') {
       // Calculate expected amount (including tax)
-      const taxRate = cartResult.cart.currency === 'AUD' ? 0.1 : 0
-      const tax = cartResult.cart.subtotal * taxRate
-      const expectedAmount = cartResult.cart.subtotal + tax
+      const taxCalculation = calculateTax(cartResult.cart.subtotal, cartResult.cart.currency)
+      const expectedAmount = taxCalculation.totalWithTax
 
       const paymentVerification = await verifySquarePayment(
         body.squareTransactionId,
@@ -65,14 +65,6 @@ export async function POST(request: NextRequest) {
             error: `Payment verification failed: ${paymentVerification.error}`,
           },
           { status: 400 },
-        )
-      }
-
-      // Log warning if payment is unverified (temporary state)
-      if (paymentVerification.status === 'UNVERIFIED') {
-        console.warn(
-          '⚠️ Payment created without full Square verification. Transaction ID:',
-          body.squareTransactionId,
         )
       }
     }

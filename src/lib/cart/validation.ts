@@ -7,14 +7,20 @@ import { z } from 'zod'
 /** Supported currencies */
 export const SUPPORTED_CURRENCIES = ['USD', 'EUR', 'GBP', 'AUD'] as const
 
-/** Maximum items in cart */
-export const MAX_CART_ITEMS = 50
+/** Maximum items in cart (reduced from 50 to stay well under 4KB cookie limit with JWT overhead) */
+export const MAX_CART_ITEMS = 20
 
 /** Maximum quantity per item */
 export const MAX_ITEM_QUANTITY = 99
 
 /** Cart expiry in days */
 export const CART_EXPIRY_DAYS = 7
+
+/** Maximum cookie size in bytes (browsers typically limit to 4KB) */
+export const MAX_COOKIE_SIZE_BYTES = 4096
+
+/** Warning threshold for cookie size (80% of max) */
+export const COOKIE_SIZE_WARNING_THRESHOLD = MAX_COOKIE_SIZE_BYTES * 0.8
 
 /** Cart item validation schema */
 export const CartItemSchema = z.object({

@@ -123,6 +123,19 @@ export async function addToCart(
   try {
     const payload = await getPayload({ config })
 
+    // SECURITY: Verify member pricing authorization
+    if (isMemberPrice) {
+      const { user } = await payload.auth({ headers: new Headers() })
+
+      if (!user || !user.isMember) {
+        return {
+          success: false,
+          error:
+            'Member pricing requires an active membership. Please sign in or contact us about membership.',
+        }
+      }
+    }
+
     // Fetch book details
     const book = await payload.findByID({
       collection: 'books',
