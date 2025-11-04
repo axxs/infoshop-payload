@@ -430,15 +430,17 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
 - [x] Open Library API integration
 - [ ] Bulk CSV import tools (needs migration from legacy)
 
-### Phase 4 (Extended Features) - 🔄 60% COMPLETE
+### Phase 4 (Extended Features) - 🔄 75% COMPLETE
 
 - [x] Point of Sale interface complete
 - [x] Square Payments integration operational
 - [x] Sales analytics dashboard with reporting
 - [x] Admin UI for sales management
-- [ ] Customer storefront
-- [ ] Shopping cart functional
-- [ ] Mobile-responsive public site
+- [x] Customer storefront (Phase 4.5)
+- [x] Shopping cart functional (Phase 4.6)
+- [x] Mobile-responsive public site
+- [ ] Order history and tracking (Phase 4.7)
+- [ ] Advanced e-commerce features (Phase 4.8)
 
 ### Phase 5 (Production)
 
@@ -455,7 +457,7 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
 | Phase 1: Foundation     | 1 week      | ✅ Complete       | 2025-10-15      |
 | Phase 2: Data Migration | 1 week      | ⏸️ Deferred       | TBD             |
 | Phase 3: Core Features  | 2 weeks     | ✅ Complete       | 2025-10-28      |
-| Phase 4: Extended       | 3 weeks     | 🔄 In Progress    | ~60% Complete   |
+| Phase 4: Extended       | 3 weeks     | 🔄 In Progress    | ~75% Complete   |
 | Phase 5: Deployment     | 1 week      | ⏳ Pending        | TBD             |
 | **Total**               | **8 weeks** | **~70% Complete** |                 |
 
@@ -465,8 +467,10 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
 - ✅ Phase 4.2: Point of Sale Interface (Complete)
 - ✅ Phase 4.3: Square Payments Integration (Complete)
 - ✅ Phase 4.4: Sales Analytics Dashboard (Complete)
-- ⏳ Phase 4.5: Customer Storefront (Pending)
-- ⏳ Phase 4.6: Shopping Cart (Pending)
+- ✅ Phase 4.5: Customer Storefront (Complete - PR #10)
+- ✅ Phase 4.6: Shopping Cart & Checkout (Complete - PR #11)
+- ⏳ Phase 4.7: Order History & Tracking (Pending)
+- ⏳ Phase 4.8: Advanced E-commerce Features (Pending)
 
 ---
 
@@ -483,20 +487,21 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
 
 ### Next Priorities
 
-1. **Phase 4.5: Customer Storefront (2-3 weeks)**
-   - Public-facing Next.js routes in `src/app/(public)/`
-   - Book listing and search functionality
-   - Book detail pages with pricing display
-   - Category/subject browsing
-   - Mobile-responsive design
+1. **Phase 4.7: Order History & Tracking (1-2 weeks)**
+   - Customer order history page
+   - Order detail views
+   - Order status tracking
+   - Email notifications for orders
+   - Admin order management interface
 
-2. **Phase 4.6: Shopping Cart (1 week)**
-   - Cart state management (Server Components + cookies)
-   - Add to cart functionality
-   - Cart page with quantity adjustments
-   - Checkout flow integration with Square
+2. **Phase 4.8: Advanced E-commerce Features (1-2 weeks)**
+   - Abandoned cart recovery
+   - Gift cards and discount codes
+   - Shipping address collection
+   - Guest checkout support
+   - Wishlist functionality
 
-3. **Data Migration (deferred until storefront complete)**
+3. **Data Migration (deferred until all features complete)**
    - Export existing PostgreSQL data from legacy system
    - Write migration scripts for Books, Categories, Sales
    - Validate data integrity
@@ -626,5 +631,5 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
 
 This migration represents a strategic shift from custom infrastructure to a batteries-included CMS. The phased approach has proven successful, with ~70% completion and all core business features operational.
 
-**Current Status:** Ready to proceed with Phase 4.5 (Customer Storefront)
+**Current Status:** Phase 4.6 complete - Ready for Phase 4.7 (Order History)
 **Last Updated:** 2025-11-04
