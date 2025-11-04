@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter } from '../ui/card'
 import { Badge } from '../ui/badge'
 import { formatPrice, getStockStatusLabel } from '@/lib/utils'
 import { BookCoverImage } from './BookCoverImage'
+import { AddToCartButton } from '../cart/AddToCartButton'
 
 interface BookCardProps {
   book: Book
@@ -21,10 +22,11 @@ export function BookCard({ book }: BookCardProps) {
   const isOutOfStock = book.stockStatus === 'OUT_OF_STOCK'
   const isDiscontinued = book.stockStatus === 'DISCONTINUED'
   const isLowStock = book.stockStatus === 'LOW_STOCK'
+  const canPurchase = !isOutOfStock && !isDiscontinued && book.stockQuantity > 0
 
   return (
-    <Link href={`/shop/${book.id}`}>
-      <Card className="group h-full overflow-hidden transition-shadow hover:shadow-lg">
+    <Card className="group flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lg">
+      <Link href={`/shop/${book.id}`} className="flex-1">
         <div className="relative aspect-[2/3] overflow-hidden bg-muted">
           <BookCoverImage
             src={coverUrl}
@@ -50,7 +52,9 @@ export function BookCard({ book }: BookCardProps) {
           <h3 className="line-clamp-2 font-semibold">{book.title}</h3>
           <p className="mt-1 text-sm text-muted-foreground">{book.author}</p>
         </CardContent>
-        <CardFooter className="flex items-center justify-between p-4 pt-0">
+      </Link>
+      <CardFooter className="flex flex-col gap-3 p-4 pt-0">
+        <div className="flex w-full items-center justify-between">
           <div className="flex flex-col">
             <span className="text-lg font-bold">{formatPrice(book.sellPrice, book.currency)}</span>
             {book.memberPrice < book.sellPrice && (
@@ -59,8 +63,18 @@ export function BookCard({ book }: BookCardProps) {
               </span>
             )}
           </div>
-        </CardFooter>
-      </Card>
-    </Link>
+        </div>
+        {canPurchase && (
+          <AddToCartButton
+            bookId={book.id}
+            title={book.title}
+            stockQuantity={book.stockQuantity}
+            variant="outline"
+            size="sm"
+            className="w-full"
+          />
+        )}
+      </CardFooter>
+    </Card>
   )
 }

@@ -59,318 +59,325 @@ export type SupportedTimezones =
   | 'Pacific/Guam'
   | 'Pacific/Noumea'
   | 'Pacific/Auckland'
-  | 'Pacific/Fiji'
+  | 'Pacific/Fiji';
 
 export interface Config {
   auth: {
-    users: UserAuthOperations
-  }
-  blocks: {}
+    users: UserAuthOperations;
+  };
+  blocks: {};
   collections: {
-    users: User
-    media: Media
-    books: Book
-    categories: Category
-    subjects: Subject
-    suppliers: Supplier
-    events: Event
-    sales: Sale
-    'sale-items': SaleItem
-    'payload-kv': PayloadKv
-    'payload-locked-documents': PayloadLockedDocument
-    'payload-preferences': PayloadPreference
-    'payload-migrations': PayloadMigration
-  }
-  collectionsJoins: {}
+    users: User;
+    media: Media;
+    books: Book;
+    categories: Category;
+    subjects: Subject;
+    suppliers: Supplier;
+    events: Event;
+    sales: Sale;
+    'sale-items': SaleItem;
+    'payload-kv': PayloadKv;
+    'payload-locked-documents': PayloadLockedDocument;
+    'payload-preferences': PayloadPreference;
+    'payload-migrations': PayloadMigration;
+  };
+  collectionsJoins: {};
   collectionsSelect: {
-    users: UsersSelect<false> | UsersSelect<true>
-    media: MediaSelect<false> | MediaSelect<true>
-    books: BooksSelect<false> | BooksSelect<true>
-    categories: CategoriesSelect<false> | CategoriesSelect<true>
-    subjects: SubjectsSelect<false> | SubjectsSelect<true>
-    suppliers: SuppliersSelect<false> | SuppliersSelect<true>
-    events: EventsSelect<false> | EventsSelect<true>
-    sales: SalesSelect<false> | SalesSelect<true>
-    'sale-items': SaleItemsSelect<false> | SaleItemsSelect<true>
-    'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>
-    'payload-locked-documents':
-      | PayloadLockedDocumentsSelect<false>
-      | PayloadLockedDocumentsSelect<true>
-    'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>
-    'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>
-  }
+    users: UsersSelect<false> | UsersSelect<true>;
+    media: MediaSelect<false> | MediaSelect<true>;
+    books: BooksSelect<false> | BooksSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    subjects: SubjectsSelect<false> | SubjectsSelect<true>;
+    suppliers: SuppliersSelect<false> | SuppliersSelect<true>;
+    events: EventsSelect<false> | EventsSelect<true>;
+    sales: SalesSelect<false> | SalesSelect<true>;
+    'sale-items': SaleItemsSelect<false> | SaleItemsSelect<true>;
+    'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
+    'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
+    'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
+    'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
+  };
   db: {
-    defaultIDType: number
-  }
-  globals: {}
-  globalsSelect: {}
-  locale: null
+    defaultIDType: number;
+  };
+  globals: {};
+  globalsSelect: {};
+  locale: null;
   user: User & {
-    collection: 'users'
-  }
+    collection: 'users';
+  };
   jobs: {
-    tasks: unknown
-    workflows: unknown
-  }
+    tasks: unknown;
+    workflows: unknown;
+  };
 }
 export interface UserAuthOperations {
   forgotPassword: {
-    email: string
-    password: string
-  }
+    email: string;
+    password: string;
+  };
   login: {
-    email: string
-    password: string
-  }
+    email: string;
+    password: string;
+  };
   registerFirstUser: {
-    email: string
-    password: string
-  }
+    email: string;
+    password: string;
+  };
   unlock: {
-    email: string
-    password: string
-  }
+    email: string;
+    password: string;
+  };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
-  id: number
-  updatedAt: string
-  createdAt: string
-  email: string
-  resetPasswordToken?: string | null
-  resetPasswordExpiration?: string | null
-  salt?: string | null
-  hash?: string | null
-  loginAttempts?: number | null
-  lockUntil?: string | null
+  id: number;
+  /**
+   * Full name of the user
+   */
+  name?: string | null;
+  /**
+   * Is this user a collective member? (Grants access to member pricing)
+   */
+  isMember?: boolean | null;
+  /**
+   * Membership number (optional)
+   */
+  membershipNumber?: string | null;
+  /**
+   * Member since date
+   */
+  memberSince?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
   sessions?:
     | {
-        id: string
-        createdAt?: string | null
-        expiresAt: string
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
       }[]
-    | null
-  password?: string | null
+    | null;
+  password?: string | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
-  id: number
-  alt: string
-  updatedAt: string
-  createdAt: string
-  url?: string | null
-  thumbnailURL?: string | null
-  filename?: string | null
-  mimeType?: string | null
-  filesize?: number | null
-  width?: number | null
-  height?: number | null
-  focalX?: number | null
-  focalY?: number | null
+  id: number;
+  alt: string;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "books".
  */
 export interface Book {
-  id: number
-  title: string
+  id: number;
+  title: string;
   /**
    * ISBN-10 or ISBN-13
    */
-  isbn?: string | null
+  isbn?: string | null;
   /**
    * OCLC number for library cataloguing
    */
-  oclcNumber?: string | null
-  author: string
-  publisher?: string | null
-  publishedDate?: string | null
+  oclcNumber?: string | null;
+  author: string;
+  publisher?: string | null;
+  publishedDate?: string | null;
   description?: {
     root: {
-      type: string
+      type: string;
       children: {
-        type: any
-        version: number
-        [k: string]: unknown
-      }[]
-      direction: ('ltr' | 'rtl') | null
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-      indent: number
-      version: number
-    }
-    [k: string]: unknown
-  } | null
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
   /**
    * Wholesale cost price (what we paid)
    */
-  costPrice: number
+  costPrice: number;
   /**
    * Standard retail price for general public
    */
-  sellPrice: number
+  sellPrice: number;
   /**
    * Discounted price for collective members
    */
-  memberPrice: number
-  currency: 'USD' | 'EUR' | 'GBP'
+  memberPrice: number;
+  currency: 'USD' | 'EUR' | 'GBP';
   /**
    * Current stock quantity
    */
-  stockQuantity: number
+  stockQuantity: number;
   /**
    * Alert when stock falls below this level
    */
-  reorderLevel?: number | null
+  reorderLevel?: number | null;
   /**
    * Auto-calculated based on stock quantity (or set to Discontinued manually)
    */
-  stockStatus: 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK' | 'DISCONTINUED'
+  stockStatus: 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK' | 'DISCONTINUED';
   /**
    * Primary categories (hierarchical)
    */
-  categories?: (number | Category)[] | null
+  categories?: (number | Category)[] | null;
   /**
    * Subject tags (flexible)
    */
-  subjects?: (number | Subject)[] | null
+  subjects?: (number | Subject)[] | null;
   /**
    * Book cover image
    */
-  coverImage?: (number | null) | Media
+  coverImage?: (number | null) | Media;
   /**
    * External cover image URL (e.g., from Open Library)
    */
-  externalCoverUrl?: string | null
+  externalCoverUrl?: string | null;
   /**
    * Is this a digital/downloadable product?
    */
-  isDigital?: boolean | null
+  isDigital?: boolean | null;
   /**
    * Digital file for download (PDF, EPUB, etc.)
    */
-  digitalFile?: (number | null) | Media
+  digitalFile?: (number | null) | Media;
   /**
    * Square catalog object ID for sync
    */
-  squareCatalogObjectId?: string | null
+  squareCatalogObjectId?: string | null;
   /**
    * Last Square sync timestamp
    */
-  squareLastSyncedAt?: string | null
+  squareLastSyncedAt?: string | null;
   /**
    * Where we source this book from
    */
-  supplier?: (number | null) | Supplier
-  pages?: number | null
-  format?: ('HARDCOVER' | 'PAPERBACK' | 'EBOOK' | 'AUDIOBOOK' | 'ZINE' | 'PAMPHLET') | null
-  updatedAt: string
-  createdAt: string
+  supplier?: (number | null) | Supplier;
+  pages?: number | null;
+  format?: ('HARDCOVER' | 'PAPERBACK' | 'EBOOK' | 'AUDIOBOOK' | 'ZINE' | 'PAMPHLET') | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "categories".
  */
 export interface Category {
-  id: number
-  name: string
+  id: number;
+  name: string;
   /**
    * URL-friendly identifier (auto-generated from name if empty)
    */
-  slug: string
-  description?: string | null
+  slug: string;
+  description?: string | null;
   /**
    * Parent category for hierarchical organisation
    */
-  parent?: (number | null) | Category
-  updatedAt: string
-  createdAt: string
+  parent?: (number | null) | Category;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "subjects".
  */
 export interface Subject {
-  id: number
-  name: string
+  id: number;
+  name: string;
   /**
    * URL-friendly identifier (auto-generated from name if empty)
    */
-  slug: string
-  description?: string | null
-  updatedAt: string
-  createdAt: string
+  slug: string;
+  description?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "suppliers".
  */
 export interface Supplier {
-  id: number
-  name: string
-  contactEmail?: string | null
-  contactPhone?: string | null
-  website?: string | null
-  notes?: string | null
-  updatedAt: string
-  createdAt: string
+  id: number;
+  name: string;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  website?: string | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "events".
  */
 export interface Event {
-  id: number
-  title: string
+  id: number;
+  title: string;
   description: {
     root: {
-      type: string
+      type: string;
       children: {
-        type: any
-        version: number
-        [k: string]: unknown
-      }[]
-      direction: ('ltr' | 'rtl') | null
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-      indent: number
-      version: number
-    }
-    [k: string]: unknown
-  }
-  eventType:
-    | 'BOOK_SIGNING'
-    | 'READING'
-    | 'DISCUSSION'
-    | 'WORKSHOP'
-    | 'SCREENING'
-    | 'MEETING'
-    | 'OTHER'
-  startDate: string
-  endDate?: string | null
-  location?: string | null
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  eventType: 'BOOK_SIGNING' | 'READING' | 'DISCUSSION' | 'WORKSHOP' | 'SCREENING' | 'MEETING' | 'OTHER';
+  startDate: string;
+  endDate?: string | null;
+  location?: string | null;
   /**
    * Maximum capacity (0 = unlimited)
    */
-  maxAttendees?: number | null
+  maxAttendees?: number | null;
   /**
    * Current number of registered attendees
    */
-  currentAttendees?: number | null
-  status: 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED'
-  registrationRequired?: boolean | null
-  isFree?: boolean | null
+  currentAttendees?: number | null;
+  status: 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
+  registrationRequired?: boolean | null;
+  isFree?: boolean | null;
   /**
    * Event ticket price
    */
-  price?: number | null
-  updatedAt: string
-  createdAt: string
+  price?: number | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Point of sale transactions
@@ -379,42 +386,42 @@ export interface Event {
  * via the `definition` "sales".
  */
 export interface Sale {
-  id: number
+  id: number;
   /**
    * Date and time of sale
    */
-  saleDate: string
+  saleDate: string;
   /**
    * Total sale amount (calculated from items)
    */
-  totalAmount: number
-  paymentMethod: 'CASH' | 'CARD' | 'SQUARE' | 'MEMBER_CREDIT' | 'OTHER'
+  totalAmount: number;
+  paymentMethod: 'CASH' | 'CARD' | 'SQUARE' | 'MEMBER_CREDIT' | 'OTHER';
   /**
    * Square transaction ID (for Square payments)
    */
-  squareTransactionId?: string | null
+  squareTransactionId?: string | null;
   /**
    * Square receipt URL
    */
-  squareReceiptUrl?: string | null
+  squareReceiptUrl?: string | null;
   /**
    * Customer who made the purchase (if registered)
    */
-  customer?: (number | null) | User
+  customer?: (number | null) | User;
   /**
    * Items included in this sale
    */
-  items: (number | SaleItem)[]
+  items: (number | SaleItem)[];
   /**
    * Internal notes about this sale
    */
-  notes?: string | null
+  notes?: string | null;
   /**
    * Receipt/invoice number
    */
-  receiptNumber?: string | null
-  updatedAt: string
-  createdAt: string
+  receiptNumber?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Individual line items for sales
@@ -423,347 +430,352 @@ export interface Sale {
  * via the `definition` "sale-items".
  */
 export interface SaleItem {
-  id: number
+  id: number;
   /**
    * Book being sold
    */
-  book: number | Book
+  book: number | Book;
   /**
    * Quantity sold
    */
-  quantity: number
+  quantity: number;
   /**
    * Price per unit at time of sale
    */
-  unitPrice: number
+  unitPrice: number;
   /**
    * Discount amount applied to this item
    */
-  discount?: number | null
+  discount?: number | null;
   /**
    * Total for this line item (quantity × unitPrice - discount)
    */
-  lineTotal: number
+  lineTotal: number;
   /**
    * Price tier used for this sale
    */
-  priceType: 'RETAIL' | 'MEMBER' | 'CUSTOM'
-  updatedAt: string
-  createdAt: string
+  priceType: 'RETAIL' | 'MEMBER' | 'CUSTOM';
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
-  id: number
-  key: string
+  id: number;
+  key: string;
   data:
     | {
-        [k: string]: unknown
+        [k: string]: unknown;
       }
     | unknown[]
     | string
     | number
     | boolean
-    | null
+    | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: number
+  id: number;
   document?:
     | ({
-        relationTo: 'users'
-        value: number | User
+        relationTo: 'users';
+        value: number | User;
       } | null)
     | ({
-        relationTo: 'media'
-        value: number | Media
+        relationTo: 'media';
+        value: number | Media;
       } | null)
     | ({
-        relationTo: 'books'
-        value: number | Book
+        relationTo: 'books';
+        value: number | Book;
       } | null)
     | ({
-        relationTo: 'categories'
-        value: number | Category
+        relationTo: 'categories';
+        value: number | Category;
       } | null)
     | ({
-        relationTo: 'subjects'
-        value: number | Subject
+        relationTo: 'subjects';
+        value: number | Subject;
       } | null)
     | ({
-        relationTo: 'suppliers'
-        value: number | Supplier
+        relationTo: 'suppliers';
+        value: number | Supplier;
       } | null)
     | ({
-        relationTo: 'events'
-        value: number | Event
+        relationTo: 'events';
+        value: number | Event;
       } | null)
     | ({
-        relationTo: 'sales'
-        value: number | Sale
+        relationTo: 'sales';
+        value: number | Sale;
       } | null)
     | ({
-        relationTo: 'sale-items'
-        value: number | SaleItem
+        relationTo: 'sale-items';
+        value: number | SaleItem;
       } | null)
     | ({
-        relationTo: 'payload-kv'
-        value: number | PayloadKv
-      } | null)
-  globalSlug?: string | null
+        relationTo: 'payload-kv';
+        value: number | PayloadKv;
+      } | null);
+  globalSlug?: string | null;
   user: {
-    relationTo: 'users'
-    value: number | User
-  }
-  updatedAt: string
-  createdAt: string
+    relationTo: 'users';
+    value: number | User;
+  };
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  id: number
+  id: number;
   user: {
-    relationTo: 'users'
-    value: number | User
-  }
-  key?: string | null
+    relationTo: 'users';
+    value: number | User;
+  };
+  key?: string | null;
   value?:
     | {
-        [k: string]: unknown
+        [k: string]: unknown;
       }
     | unknown[]
     | string
     | number
     | boolean
-    | null
-  updatedAt: string
-  createdAt: string
+    | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  id: number
-  name?: string | null
-  batch?: number | null
-  updatedAt: string
-  createdAt: string
+  id: number;
+  name?: string | null;
+  batch?: number | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
-  updatedAt?: T
-  createdAt?: T
-  email?: T
-  resetPasswordToken?: T
-  resetPasswordExpiration?: T
-  salt?: T
-  hash?: T
-  loginAttempts?: T
-  lockUntil?: T
+  name?: T;
+  isMember?: T;
+  membershipNumber?: T;
+  memberSince?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
   sessions?:
     | T
     | {
-        id?: T
-        createdAt?: T
-        expiresAt?: T
-      }
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
-  alt?: T
-  updatedAt?: T
-  createdAt?: T
-  url?: T
-  thumbnailURL?: T
-  filename?: T
-  mimeType?: T
-  filesize?: T
-  width?: T
-  height?: T
-  focalX?: T
-  focalY?: T
+  alt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "books_select".
  */
 export interface BooksSelect<T extends boolean = true> {
-  title?: T
-  isbn?: T
-  oclcNumber?: T
-  author?: T
-  publisher?: T
-  publishedDate?: T
-  description?: T
-  costPrice?: T
-  sellPrice?: T
-  memberPrice?: T
-  currency?: T
-  stockQuantity?: T
-  reorderLevel?: T
-  stockStatus?: T
-  categories?: T
-  subjects?: T
-  coverImage?: T
-  externalCoverUrl?: T
-  isDigital?: T
-  digitalFile?: T
-  squareCatalogObjectId?: T
-  squareLastSyncedAt?: T
-  supplier?: T
-  pages?: T
-  format?: T
-  updatedAt?: T
-  createdAt?: T
+  title?: T;
+  isbn?: T;
+  oclcNumber?: T;
+  author?: T;
+  publisher?: T;
+  publishedDate?: T;
+  description?: T;
+  costPrice?: T;
+  sellPrice?: T;
+  memberPrice?: T;
+  currency?: T;
+  stockQuantity?: T;
+  reorderLevel?: T;
+  stockStatus?: T;
+  categories?: T;
+  subjects?: T;
+  coverImage?: T;
+  externalCoverUrl?: T;
+  isDigital?: T;
+  digitalFile?: T;
+  squareCatalogObjectId?: T;
+  squareLastSyncedAt?: T;
+  supplier?: T;
+  pages?: T;
+  format?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "categories_select".
  */
 export interface CategoriesSelect<T extends boolean = true> {
-  name?: T
-  slug?: T
-  description?: T
-  parent?: T
-  updatedAt?: T
-  createdAt?: T
+  name?: T;
+  slug?: T;
+  description?: T;
+  parent?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "subjects_select".
  */
 export interface SubjectsSelect<T extends boolean = true> {
-  name?: T
-  slug?: T
-  description?: T
-  updatedAt?: T
-  createdAt?: T
+  name?: T;
+  slug?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "suppliers_select".
  */
 export interface SuppliersSelect<T extends boolean = true> {
-  name?: T
-  contactEmail?: T
-  contactPhone?: T
-  website?: T
-  notes?: T
-  updatedAt?: T
-  createdAt?: T
+  name?: T;
+  contactEmail?: T;
+  contactPhone?: T;
+  website?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "events_select".
  */
 export interface EventsSelect<T extends boolean = true> {
-  title?: T
-  description?: T
-  eventType?: T
-  startDate?: T
-  endDate?: T
-  location?: T
-  maxAttendees?: T
-  currentAttendees?: T
-  status?: T
-  registrationRequired?: T
-  isFree?: T
-  price?: T
-  updatedAt?: T
-  createdAt?: T
+  title?: T;
+  description?: T;
+  eventType?: T;
+  startDate?: T;
+  endDate?: T;
+  location?: T;
+  maxAttendees?: T;
+  currentAttendees?: T;
+  status?: T;
+  registrationRequired?: T;
+  isFree?: T;
+  price?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "sales_select".
  */
 export interface SalesSelect<T extends boolean = true> {
-  saleDate?: T
-  totalAmount?: T
-  paymentMethod?: T
-  squareTransactionId?: T
-  squareReceiptUrl?: T
-  customer?: T
-  items?: T
-  notes?: T
-  receiptNumber?: T
-  updatedAt?: T
-  createdAt?: T
+  saleDate?: T;
+  totalAmount?: T;
+  paymentMethod?: T;
+  squareTransactionId?: T;
+  squareReceiptUrl?: T;
+  customer?: T;
+  items?: T;
+  notes?: T;
+  receiptNumber?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "sale-items_select".
  */
 export interface SaleItemsSelect<T extends boolean = true> {
-  book?: T
-  quantity?: T
-  unitPrice?: T
-  discount?: T
-  lineTotal?: T
-  priceType?: T
-  updatedAt?: T
-  createdAt?: T
+  book?: T;
+  quantity?: T;
+  unitPrice?: T;
+  discount?: T;
+  lineTotal?: T;
+  priceType?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
-  key?: T
-  data?: T
+  key?: T;
+  data?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents_select".
  */
 export interface PayloadLockedDocumentsSelect<T extends boolean = true> {
-  document?: T
-  globalSlug?: T
-  user?: T
-  updatedAt?: T
-  createdAt?: T
+  document?: T;
+  globalSlug?: T;
+  user?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-preferences_select".
  */
 export interface PayloadPreferencesSelect<T extends boolean = true> {
-  user?: T
-  key?: T
-  value?: T
-  updatedAt?: T
-  createdAt?: T
+  user?: T;
+  key?: T;
+  value?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-migrations_select".
  */
 export interface PayloadMigrationsSelect<T extends boolean = true> {
-  name?: T
-  batch?: T
-  updatedAt?: T
-  createdAt?: T
+  name?: T;
+  batch?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "auth".
  */
 export interface Auth {
-  [k: string]: unknown
+  [k: string]: unknown;
 }
+
 
 declare module 'payload' {
   export interface GeneratedTypes extends Config {}

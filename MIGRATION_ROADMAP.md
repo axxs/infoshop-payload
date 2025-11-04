@@ -2,8 +2,8 @@
 
 ## From Express/Prisma/React to Payload CMS/Next.js
 
-**Last Updated**: 2025-11-02
-**Current Status**: Phase 3 (Core Integrations) - 60% Complete
+**Last Updated**: 2025-11-04
+**Current Status**: Phase 4 (Sales System) - 50% Complete
 
 ---
 
@@ -29,8 +29,8 @@
 | --------------------------- | -------------- | ---------- |
 | Phase 1: Foundation         | ✅ Complete    | 100%       |
 | Phase 2: Data Migration     | ✅ Complete    | 100% (N/A) |
-| Phase 3: Core Integrations  | 🔄 In Progress | 60%        |
-| Phase 4: Sales System       | 📅 Planned     | 0%         |
+| Phase 3: Core Integrations  | ✅ Complete    | 100%       |
+| Phase 4: Sales System       | 🔄 In Progress | 50%        |
 | Phase 5: Community Features | 📅 Planned     | 0%         |
 | Phase 6: CMS/Website        | 📅 Planned     | 0%         |
 | Phase 7: Advanced Features  | 📅 Planned     | 0%         |
@@ -129,54 +129,92 @@
 
 ---
 
-### 📅 Phase 4: Sales System (Critical - Not Started)
+### 🔄 Phase 4: Sales System (50% Complete)
 
 **Priority**: HIGH - Core business functionality
 
-#### 4.1 Collections & Data Models
+#### ✅ Completed (Phase 4.1-4.6)
 
-**Sale Collection**
+**4.1 Collections & Data Models** ✅
 
-- [ ] Sale transaction model
-- [ ] Payment method tracking
-- [ ] Square transaction linking
-- [ ] Receipt URL storage
-- [ ] User/customer relationship
-- [ ] Sale date and totals
+- [x] Sale transaction model
+- [x] Payment method tracking
+- [x] Square transaction linking
+- [x] Receipt URL storage
+- [x] User/customer relationship
+- [x] Sale date and totals
+- [x] SaleItem line item model
+- [x] Quantity and pricing
+- [x] Discount handling
+- [x] Book/Sale relationships
 
-**SaleItem Collection**
+**4.2 POS Interface** ✅
 
-- [ ] Line item model
-- [ ] Quantity and pricing
-- [ ] Discount handling
-- [ ] Book relationship
-- [ ] Sale relationship
+- [x] Admin POS screen
+- [x] Product search/barcode scanning
+- [x] Cart management
+- [x] Price calculations (member discounts)
+- [x] Payment processing (Square)
+- [x] Receipt generation
+- [x] Email receipts
 
-#### 4.2 POS Interface
+**4.3 Square Payments Integration** ✅
 
-- [ ] Admin POS screen
-- [ ] Product search/barcode scanning
-- [ ] Cart management
-- [ ] Price calculations (member discounts)
-- [ ] Payment processing (Square)
-- [ ] Receipt generation
-- [ ] Email receipts
+- [x] Square Payments API (separate from catalog sync)
+- [x] Payment processing flow
+- [x] Refund handling
+- [x] Receipt generation
+- [x] Transaction reconciliation
 
-#### 4.3 Square Payments Integration
+**4.4 Reporting & Analytics** ✅
 
-- [ ] Square Payments API (separate from catalog sync)
-- [ ] Payment processing flow
-- [ ] Refund handling
-- [ ] Receipt generation
-- [ ] Transaction reconciliation
+- [x] Daily sales reports
+- [x] Weekly/monthly summaries
+- [x] Product sales analysis
+- [x] Revenue tracking
+- [x] Export functionality
 
-#### 4.4 Reporting & Analytics
+**4.5 Customer Storefront** ✅
 
-- [ ] Daily sales reports
-- [ ] Weekly/monthly summaries
-- [ ] Product sales analysis
-- [ ] Revenue tracking
-- [ ] Export functionality
+- [x] Public book browsing interface
+- [x] Search and filtering by category/subject
+- [x] Book detail pages
+- [x] Stock status display
+- [x] Member vs retail pricing display
+- [x] Grid and list view options
+
+**4.6 Shopping Cart & Checkout** ✅
+
+- [x] Server-side cart state management (encrypted cookies)
+- [x] Add to cart functionality
+- [x] Cart page with quantity management
+- [x] Remove items from cart
+- [x] Multi-currency support (USD, EUR, GBP, AUD)
+- [x] Member pricing support
+- [x] Stock validation on cart operations
+- [x] Checkout page with order summary
+- [x] Order creation (Sale/SaleItem records)
+- [x] Automatic stock reduction
+- [x] Tax calculation (10% GST for AUD)
+- [x] Integration and E2E tests
+
+#### 📋 Remaining (Phase 4.7-4.8)
+
+**4.7 Order Management** 📅
+
+- [ ] Customer order history page
+- [ ] Order tracking and status updates
+- [ ] Email notifications for orders
+- [ ] Order cancellation workflow
+- [ ] Admin order management interface
+
+**4.8 Advanced Features** 📅
+
+- [ ] Abandoned cart recovery
+- [ ] Gift cards and discount codes
+- [ ] Shipping address collection
+- [ ] Guest checkout support
+- [ ] Wishlist functionality
 
 **Old System Reference:**
 
