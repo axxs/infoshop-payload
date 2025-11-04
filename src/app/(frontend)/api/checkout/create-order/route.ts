@@ -1,11 +1,15 @@
 /**
  * Checkout API Route
  * Creates order after successful payment
+ *
+ * SECURITY WARNING: This API route lacks CSRF protection.
+ * TODO: Migrate to Server Action for better security.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getCart, clearCart } from '@/lib/cart'
 import { createOrder } from '@/lib/checkout/createOrder'
+import { verifySquarePayment } from '@/lib/square/paymentVerification'
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,6 +43,38 @@ export async function POST(request: NextRequest) {
     // Check cart is not empty
     if (cartResult.cart.items.length === 0) {
       return NextResponse.json({ success: false, error: 'Cart is empty' }, { status: 400 })
+    }
+
+    // CRITICAL SECURITY: Verify payment with Square (if CARD payment)
+    if (body.paymentMethod === 'CARD') {
+      // Calculate expected amount (including tax)
+      const taxRate = cartResult.cart.currency === 'AUD' ? 0.1 : 0
+      const tax = cartResult.cart.subtotal * taxRate
+      const expectedAmount = cartResult.cart.subtotal + tax
+
+      const paymentVerification = await verifySquarePayment(
+        body.squareTransactionId,
+        expectedAmount,
+        cartResult.cart.currency,
+      )
+
+      if (!paymentVerification.valid) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Payment verification failed: ${paymentVerification.error}`,
+          },
+          { status: 400 },
+        )
+      }
+
+      // Log warning if payment is unverified (temporary state)
+      if (paymentVerification.status === 'UNVERIFIED') {
+        console.warn(
+          '⚠️ Payment created without full Square verification. Transaction ID:',
+          body.squareTransactionId,
+        )
+      }
     }
 
     // Create order

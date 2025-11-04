@@ -1,8 +1,8 @@
-/// <reference types="vitest" />
 /**
  * Integration tests for Reports APIs
  */
 
+import { describe, it, expect } from 'vitest'
 import { NextRequest } from 'next/server'
 import { GET as dailySalesGET } from '../../src/app/(payload)/api/reports/daily-sales/route'
 import { GET as productSalesGET } from '../../src/app/(payload)/api/reports/product-sales/route'

@@ -14,9 +14,21 @@ const CART_COOKIE_NAME = 'infoshop_cart'
 /** Cookie max age (7 days in seconds) */
 const CART_COOKIE_MAX_AGE = 7 * 24 * 60 * 60
 
-/** JWT secret key (from environment or fallback) */
+/** JWT secret key (from environment - required) */
 function getSecretKey(): Uint8Array {
-  const secret = process.env.CART_ENCRYPTION_SECRET || 'fallback-secret-key-change-in-production'
+  const secret = process.env.CART_ENCRYPTION_SECRET
+
+  if (!secret) {
+    throw new Error(
+      'CART_ENCRYPTION_SECRET environment variable is required for cart encryption. ' +
+        'Generate one with: openssl rand -base64 32',
+    )
+  }
+
+  if (secret.length < 32) {
+    throw new Error('CART_ENCRYPTION_SECRET must be at least 32 characters long')
+  }
+
   return new TextEncoder().encode(secret)
 }
 

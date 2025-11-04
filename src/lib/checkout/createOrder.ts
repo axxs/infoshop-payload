@@ -8,6 +8,7 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import type { PopulatedCart } from '../cart/types'
+import { isCartExpired } from '../cart/validation'
 
 export interface CreateOrderParams {
   cart: PopulatedCart
@@ -22,27 +23,105 @@ export interface CreateOrderResult {
   success: boolean
   saleId?: number
   error?: string
+  warnings?: string[]
 }
 
 /**
  * Create Sale record and update stock quantities
+ * Handles atomic stock updates and validates cart integrity
  */
 export async function createOrder(params: CreateOrderParams): Promise<CreateOrderResult> {
   const { cart, squareTransactionId, squareReceiptUrl, paymentMethod } = params
 
   try {
     const payload = await getPayload({ config })
+    const warnings: string[] = []
 
-    // Calculate total (including tax if applicable)
+    // 1. Validate cart hasn't expired
+    if (isCartExpired(cart)) {
+      return {
+        success: false,
+        error: 'Cart has expired. Please add items again.',
+      }
+    }
+
+    // 2. Batch fetch all books to check stock and prices (prevents N+1 queries)
+    const bookIds = cart.items.map((item) => item.bookId)
+    const { docs: currentBooks } = await payload.find({
+      collection: 'books',
+      where: {
+        id: {
+          in: bookIds,
+        },
+      },
+      limit: bookIds.length,
+    })
+
+    // Create lookup map for O(1) access
+    const bookMap = new Map(currentBooks.map((book) => [book.id, book]))
+
+    // 3. Validate all books exist and have sufficient stock
+    const validatedItems = []
+    const stockUpdates = []
+
+    for (const item of cart.items) {
+      const currentBook = bookMap.get(item.bookId)
+
+      // Check if book still exists
+      if (!currentBook) {
+        warnings.push(
+          `Book "${item.book.title}" (ID: ${item.bookId}) no longer exists and was removed from order`,
+        )
+        continue
+      }
+
+      // Check stock availability (CRITICAL: prevent overselling)
+      if (currentBook.stockQuantity < item.quantity) {
+        return {
+          success: false,
+          error: `Insufficient stock for "${currentBook.title}". Available: ${currentBook.stockQuantity}, Requested: ${item.quantity}`,
+        }
+      }
+
+      // Check price staleness (warn if price changed significantly)
+      const currentPrice = item.isMemberPrice
+        ? Number(currentBook.memberPrice)
+        : Number(currentBook.sellPrice)
+      const priceChange = Math.abs(currentPrice - item.priceAtAdd)
+      const priceChangePercent = (priceChange / item.priceAtAdd) * 100
+
+      if (priceChangePercent > 10) {
+        // Price changed more than 10%
+        warnings.push(
+          `Price for "${currentBook.title}" has changed from ${item.priceAtAdd} to ${currentPrice} (${priceChangePercent.toFixed(1)}% change)`,
+        )
+      }
+
+      validatedItems.push(item)
+      stockUpdates.push({
+        bookId: item.bookId,
+        quantityToDeduct: item.quantity,
+        currentStock: currentBook.stockQuantity,
+      })
+    }
+
+    // 4. If all items were deleted, cannot proceed
+    if (validatedItems.length === 0) {
+      return {
+        success: false,
+        error: 'All items in cart no longer exist',
+      }
+    }
+
+    // 5. Calculate total (including tax if applicable)
     const taxRate = cart.currency === 'AUD' ? 0.1 : 0
     const tax = cart.subtotal * taxRate
     const totalAmount = cart.subtotal + tax
 
-    // Create SaleItem records first
+    // 6. Create SaleItem records (use validated items only)
     const saleItemIds: number[] = []
 
-    for (const item of cart.items) {
-      // Create sale item
+    for (const item of validatedItems) {
       const saleItem = await payload.create({
         collection: 'sale-items',
         draft: false,
@@ -57,25 +136,26 @@ export async function createOrder(params: CreateOrderParams): Promise<CreateOrde
       })
 
       saleItemIds.push(saleItem.id)
-
-      // Update book stock quantity
-      const currentBook = await payload.findByID({
-        collection: 'books',
-        id: item.bookId,
-      })
-
-      const newStockQuantity = currentBook.stockQuantity - item.quantity
-
-      await payload.update({
-        collection: 'books',
-        id: item.bookId,
-        data: {
-          stockQuantity: Math.max(0, newStockQuantity),
-        },
-      })
     }
 
-    // Create Sale record with SaleItem IDs
+    // 7. Update stock quantities atomically using Promise.all
+    // This reduces race condition window but doesn't eliminate it completely
+    // For true atomicity, would need database transactions
+    await Promise.all(
+      stockUpdates.map(async ({ bookId, quantityToDeduct, currentStock }) => {
+        const newStock = Math.max(0, currentStock - quantityToDeduct)
+
+        return payload.update({
+          collection: 'books',
+          id: bookId,
+          data: {
+            stockQuantity: newStock,
+          },
+        })
+      }),
+    )
+
+    // 8. Create Sale record with SaleItem IDs
     const sale = await payload.create({
       collection: 'sales',
       draft: false,
@@ -92,6 +172,7 @@ export async function createOrder(params: CreateOrderParams): Promise<CreateOrde
     return {
       success: true,
       saleId: sale.id,
+      warnings: warnings.length > 0 ? warnings : undefined,
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to create order'
