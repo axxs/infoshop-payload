@@ -1,6 +1,5 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Badge } from '../../components/ui/badge'
@@ -8,6 +7,7 @@ import { Button } from '../../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
 import { formatPrice, getStockStatusLabel } from '@/lib/utils'
 import { ArrowLeft, ShoppingCart } from 'lucide-react'
+import { BookCoverImage } from '../../components/books/BookCoverImage'
 
 interface BookPageProps {
   params: Promise<{ id: string }>
@@ -28,7 +28,10 @@ export default async function BookPage({ params }: BookPageProps) {
   }
 
   const coverUrl =
-    typeof book.coverImage === 'object' && book.coverImage?.url
+    typeof book.coverImage === 'object' &&
+    book.coverImage !== null &&
+    'url' in book.coverImage &&
+    book.coverImage.url
       ? book.coverImage.url
       : book.externalCoverUrl || '/placeholder-book.png'
 
@@ -64,7 +67,7 @@ export default async function BookPage({ params }: BookPageProps) {
       <div className="grid gap-8 md:grid-cols-2">
         {/* Cover Image Section */}
         <div className="relative aspect-[2/3] overflow-hidden rounded-lg border bg-muted">
-          <Image src={coverUrl} alt={book.title} fill className="object-cover" priority />
+          <BookCoverImage src={coverUrl} alt={book.title} fill className="object-cover" priority />
           {(isOutOfStock || isDiscontinued) && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/50">
               <Badge variant="destructive" className="text-lg">

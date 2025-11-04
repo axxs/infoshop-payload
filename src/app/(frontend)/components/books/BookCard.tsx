@@ -1,9 +1,9 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { Book } from '@/payload-types'
 import { Card, CardContent, CardFooter } from '../ui/card'
 import { Badge } from '../ui/badge'
 import { formatPrice, getStockStatusLabel } from '@/lib/utils'
+import { BookCoverImage } from './BookCoverImage'
 
 interface BookCardProps {
   book: Book
@@ -11,7 +11,10 @@ interface BookCardProps {
 
 export function BookCard({ book }: BookCardProps) {
   const coverUrl =
-    typeof book.coverImage === 'object' && book.coverImage?.url
+    typeof book.coverImage === 'object' &&
+    book.coverImage !== null &&
+    'url' in book.coverImage &&
+    book.coverImage.url
       ? book.coverImage.url
       : book.externalCoverUrl || '/placeholder-book.png'
 
@@ -23,7 +26,7 @@ export function BookCard({ book }: BookCardProps) {
     <Link href={`/shop/${book.id}`}>
       <Card className="group h-full overflow-hidden transition-shadow hover:shadow-lg">
         <div className="relative aspect-[2/3] overflow-hidden bg-muted">
-          <Image
+          <BookCoverImage
             src={coverUrl}
             alt={book.title}
             fill

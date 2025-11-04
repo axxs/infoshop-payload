@@ -79,19 +79,21 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
         <div className="mt-8 flex justify-center gap-2">
           {page > 1 && (
             <a
-              href={`/shop?page=${page - 1}${params.search ? `&search=${params.search}` : ''}${params.sort ? `&sort=${params.sort}` : ''}`}
+              href={`/shop?page=${page - 1}${params.search ? `&search=${encodeURIComponent(params.search)}` : ''}${params.sort ? `&sort=${params.sort}` : ''}`}
               className="rounded-md border px-4 py-2 hover:bg-accent"
+              aria-label="Go to previous page"
             >
               Previous
             </a>
           )}
-          <span className="flex items-center px-4 py-2">
+          <span className="flex items-center px-4 py-2" aria-current="page">
             Page {page} of {totalPages}
           </span>
           {page < totalPages && (
             <a
-              href={`/shop?page=${page + 1}${params.search ? `&search=${params.search}` : ''}${params.sort ? `&sort=${params.sort}` : ''}`}
+              href={`/shop?page=${page + 1}${params.search ? `&search=${encodeURIComponent(params.search)}` : ''}${params.sort ? `&sort=${params.sort}` : ''}`}
               className="rounded-md border px-4 py-2 hover:bg-accent"
+              aria-label="Go to next page"
             >
               Next
             </a>

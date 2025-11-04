@@ -30,6 +30,24 @@ export default async function HomePage() {
     depth: 0,
   })
 
+  /**
+   * NOTE: Potential N+1 Query Pattern
+   *
+   * This creates 6 separate database queries to count books per category.
+   * Current impact: Minimal (only 6 queries on homepage)
+   *
+   * Future Optimization Options:
+   * 1. Add `bookCount` field to categories collection, updated via hooks
+   * 2. Use aggregation query to fetch counts in single query
+   * 3. Cache category counts with TTL
+   *
+   * Acceptable for now given:
+   * - Only affects homepage (not repeated on every page)
+   * - Small number of queries (6)
+   * - Categories change infrequently
+   *
+   * See: CLAUDE.md - Performance & Security section
+   */
   const categoriesWithCounts = await Promise.all(
     allCategories.slice(0, 6).map(async (category) => {
       const { totalDocs } = await payload.find({
