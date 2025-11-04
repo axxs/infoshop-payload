@@ -156,8 +156,7 @@ export async function GET(request: NextRequest) {
     // Calculate summary statistics
     const totalRevenue = revenueData.reduce((sum, point) => sum + point.revenue, 0)
     const totalTransactions = revenueData.reduce((sum, point) => sum + point.transactions, 0)
-    const averageRevenuePerPeriod =
-      revenueData.length > 0 ? totalRevenue / revenueData.length : 0
+    const averageRevenuePerPeriod = revenueData.length > 0 ? totalRevenue / revenueData.length : 0
 
     // Calculate growth (compare last period to previous)
     let growthRate: number | null = null

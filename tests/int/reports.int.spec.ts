@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 /**
  * Integration tests for Reports APIs
  */
@@ -226,5 +227,4 @@ describe('Reports API Integration Tests', () => {
       expect(response.headers.get('Content-Disposition')).toContain('product-sales-export')
     })
   })
-
 })
