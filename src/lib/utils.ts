@@ -53,3 +53,36 @@ export function getStockStatusLabel(status: string, quantity?: number): string {
       return 'Unknown'
   }
 }
+
+/**
+ * Sanitizes user search input to prevent injection and ensure safe queries
+ *
+ * @param input - Raw search input from user
+ * @returns Sanitized search string, or null if invalid
+ *
+ * @example
+ * sanitizeSearchInput('Marx & Engels') // 'Marx & Engels'
+ * sanitizeSearchInput('  test  ') // 'test'
+ * sanitizeSearchInput('<script>alert("xss")</script>') // 'scriptalertxssscript'
+ * sanitizeSearchInput('a'.repeat(200)) // null (too long)
+ */
+export function sanitizeSearchInput(input: string | null | undefined): string | null {
+  if (!input) return null
+
+  // Trim whitespace
+  let sanitized = input.trim()
+
+  // Check length (max 100 characters)
+  if (sanitized.length === 0 || sanitized.length > 100) {
+    return null
+  }
+
+  // Remove potentially dangerous characters but keep common search characters
+  // Allow: letters, numbers, spaces, ampersand, dash, apostrophe, comma, period
+  sanitized = sanitized.replace(/[^a-zA-Z0-9\s&\-',\.]/g, '')
+
+  // Collapse multiple spaces
+  sanitized = sanitized.replace(/\s+/g, ' ').trim()
+
+  return sanitized.length > 0 ? sanitized : null
+}

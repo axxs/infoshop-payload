@@ -5,6 +5,7 @@ import config from '@payload-config'
 import { BookGrid } from '../components/books/BookGrid'
 import { SearchBar } from '../components/shop/SearchBar'
 import { SortSelect } from '../components/shop/SortSelect'
+import { sanitizeSearchInput } from '@/lib/utils'
 
 interface ShopPageProps {
   searchParams: Promise<{
@@ -28,12 +29,13 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
     },
   }
 
-  // Add search query
-  if (params.search) {
+  // Add search query (sanitized)
+  const sanitizedSearch = sanitizeSearchInput(params.search)
+  if (sanitizedSearch) {
     where.or = [
-      { title: { contains: params.search } },
-      { author: { contains: params.search } },
-      { isbn: { contains: params.search } },
+      { title: { contains: sanitizedSearch } },
+      { author: { contains: sanitizedSearch } },
+      { isbn: { contains: sanitizedSearch } },
     ]
   }
 
