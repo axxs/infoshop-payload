@@ -1,0 +1,114 @@
+/**
+ * Cart Cookie Management
+ * Handles encrypted cookie storage for shopping cart
+ */
+
+import { cookies } from 'next/headers'
+import { SignJWT, jwtVerify } from 'jose'
+import type { Cart } from './types'
+import { validateCart, createEmptyCart, isCartExpired } from './validation'
+
+/** Cookie name for cart storage */
+const CART_COOKIE_NAME = 'infoshop_cart'
+
+/** Cookie max age (7 days in seconds) */
+const CART_COOKIE_MAX_AGE = 7 * 24 * 60 * 60
+
+/** JWT secret key (from environment or fallback) */
+function getSecretKey(): Uint8Array {
+  const secret = process.env.CART_ENCRYPTION_SECRET || 'fallback-secret-key-change-in-production'
+  return new TextEncoder().encode(secret)
+}
+
+/**
+ * Encrypt cart data into JWT
+ */
+async function encryptCart(cart: Cart): Promise<string> {
+  const secret = getSecretKey()
+
+  const jwt = await new SignJWT({ cart })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('7d')
+    .sign(secret)
+
+  return jwt
+}
+
+/**
+ * Decrypt cart data from JWT
+ */
+async function decryptCart(token: string): Promise<Cart | null> {
+  try {
+    const secret = getSecretKey()
+    const { payload } = await jwtVerify(token, secret)
+
+    if (!payload.cart) {
+      return null
+    }
+
+    return payload.cart as Cart
+  } catch (_error) {
+    // Token invalid or expired
+    return null
+  }
+}
+
+/**
+ * Get cart from cookies
+ */
+export async function getCartFromCookies(): Promise<Cart> {
+  const cookieStore = await cookies()
+  const cartCookie = cookieStore.get(CART_COOKIE_NAME)
+
+  if (!cartCookie?.value) {
+    return createEmptyCart()
+  }
+
+  // Decrypt cart
+  const cart = await decryptCart(cartCookie.value)
+
+  if (!cart) {
+    return createEmptyCart()
+  }
+
+  // Validate cart structure
+  const validation = validateCart(cart)
+  if (!validation.success || !validation.data) {
+    return createEmptyCart()
+  }
+
+  // Check if cart expired
+  if (isCartExpired(validation.data)) {
+    return createEmptyCart()
+  }
+
+  return validation.data
+}
+
+/**
+ * Save cart to cookies
+ */
+export async function saveCartToCookies(cart: Cart): Promise<void> {
+  const cookieStore = await cookies()
+
+  // Encrypt cart
+  const encrypted = await encryptCart(cart)
+
+  // Set cookie with httpOnly and secure flags
+  cookieStore.set(CART_COOKIE_NAME, encrypted, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: CART_COOKIE_MAX_AGE,
+    path: '/',
+  })
+}
+
+/**
+ * Clear cart cookie
+ */
+export async function clearCartCookie(): Promise<void> {
+  const cookieStore = await cookies()
+  cookieStore.delete(CART_COOKIE_NAME)
+}

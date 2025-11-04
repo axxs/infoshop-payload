@@ -3,11 +3,11 @@ import config from '@payload-config'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Badge } from '../../components/ui/badge'
-import { Button } from '../../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
 import { formatPrice, getStockStatusLabel } from '@/lib/utils'
-import { ArrowLeft, ShoppingCart } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { BookCoverImage } from '../../components/books/BookCoverImage'
+import { AddToCartButton } from '../../components/cart/AddToCartButton'
 
 interface BookPageProps {
   params: Promise<{ id: string }>
@@ -123,10 +123,15 @@ export default async function BookPage({ params }: BookPageProps) {
                 )}
               </div>
 
-              <Button className="mt-4 w-full" size="lg" disabled={!canPurchase}>
-                <ShoppingCart className="mr-2 h-5 w-5" />
-                {canPurchase ? 'Add to Cart' : getStockStatusLabel(book.stockStatus)}
-              </Button>
+              <div className="mt-4">
+                <AddToCartButton
+                  bookId={book.id}
+                  title={book.title}
+                  stockQuantity={book.stockQuantity || 0}
+                  size="lg"
+                  className="w-full"
+                />
+              </div>
 
               {canPurchase && book.stockQuantity !== undefined && book.stockQuantity > 0 && (
                 <p className="mt-2 text-center text-sm text-muted-foreground">
