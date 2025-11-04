@@ -6,6 +6,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import {
+  DEFAULT_DATE_RANGE_DAYS,
+  DEFAULT_MONTH_RANGE_MONTHS,
+  DEFAULT_WEEK_RANGE_DAYS,
+  MAX_SALES_QUERY_LIMIT,
+} from '@/lib/reports/constants'
 
 type GroupBy = 'day' | 'week' | 'month'
 
@@ -25,11 +31,18 @@ function getGroupKey(date: Date, groupBy: GroupBy): string {
     case 'day':
       return `${year}-${month}-${day}`
     case 'week': {
-      // Get ISO week number
-      const firstDayOfYear = new Date(year, 0, 1)
-      const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000
-      const weekNumber = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7)
-      return `${year}-W${String(weekNumber).padStart(2, '0')}`
+      // ISO 8601 week date calculation
+      // Week 1 is the week with the first Thursday of the year
+      const target = new Date(date.valueOf())
+      // Set to nearest Thursday: current date + 4 - current day number
+      // Make Sunday's day number 7 instead of 0
+      const dayNum = date.getDay() || 7
+      target.setDate(date.getDate() + 4 - dayNum)
+      // Get first day of year
+      const yearStart = new Date(target.getFullYear(), 0, 1)
+      // Calculate full weeks to nearest Thursday
+      const weekNum = Math.ceil(((target.valueOf() - yearStart.valueOf()) / 86400000 + 1) / 7)
+      return `${target.getFullYear()}-W${String(weekNum).padStart(2, '0')}`
     }
     case 'month':
       return `${year}-${month}`
@@ -43,26 +56,54 @@ export async function GET(request: NextRequest) {
     const payload = await getPayload({ config })
     const { searchParams } = new URL(request.url)
 
-    // Parse query parameters
-    const groupBy = (searchParams.get('groupBy') || 'day') as GroupBy
+    // Parse and validate query parameters
+    const groupByParam = searchParams.get('groupBy') || 'day'
+    const validGroupByOptions: GroupBy[] = ['day', 'week', 'month']
+
+    if (!validGroupByOptions.includes(groupByParam as GroupBy)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid groupBy parameter. Use "day", "week", or "month"' },
+        { status: 400 },
+      )
+    }
+
+    const groupBy = groupByParam as GroupBy
     const endDate = new Date()
     const startDate = new Date(endDate)
 
     // Default date ranges based on groupBy
     switch (groupBy) {
       case 'day':
-        startDate.setDate(startDate.getDate() - 30) // Last 30 days
+        startDate.setDate(startDate.getDate() - DEFAULT_DATE_RANGE_DAYS)
         break
       case 'week':
-        startDate.setDate(startDate.getDate() - 84) // Last 12 weeks
+        startDate.setDate(startDate.getDate() - DEFAULT_WEEK_RANGE_DAYS)
         break
       case 'month':
-        startDate.setMonth(startDate.getMonth() - 12) // Last 12 months
+        startDate.setMonth(startDate.getMonth() - DEFAULT_MONTH_RANGE_MONTHS)
         break
     }
 
     const startDateParam = searchParams.get('startDate') || startDate.toISOString().split('T')[0]
     const endDateParam = searchParams.get('endDate') || endDate.toISOString().split('T')[0]
+
+    // Input validation
+    const startDateObj = new Date(startDateParam)
+    const endDateObj = new Date(endDateParam)
+
+    if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid date format. Use YYYY-MM-DD' },
+        { status: 400 },
+      )
+    }
+
+    if (startDateObj > endDateObj) {
+      return NextResponse.json(
+        { success: false, error: 'startDate cannot be after endDate' },
+        { status: 400 },
+      )
+    }
 
     // Query sales within date range
     const { docs: sales } = await payload.find({
@@ -73,7 +114,7 @@ export async function GET(request: NextRequest) {
           less_than_equal: new Date(`${endDateParam}T23:59:59.999Z`).toISOString(),
         },
       },
-      limit: 10000,
+      limit: MAX_SALES_QUERY_LIMIT,
     })
 
     // Group revenue by time period

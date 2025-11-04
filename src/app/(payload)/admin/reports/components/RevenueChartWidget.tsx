@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import { CHART_MAX_VISIBLE_POINTS } from '@/lib/reports/constants'
 
 interface RevenueDataPoint {
   period: string
@@ -15,9 +16,11 @@ export function RevenueChartWidget() {
   const [groupBy, setGroupBy] = useState<'day' | 'week' | 'month'>('day')
 
   useEffect(() => {
+    let isMounted = true
+
     async function fetchData() {
       try {
-        setLoading(true)
+        if (isMounted) setLoading(true)
         const response = await fetch(`/api/reports/revenue?groupBy=${groupBy}`)
 
         if (!response.ok) {
@@ -25,19 +28,27 @@ export function RevenueChartWidget() {
         }
 
         const result = await response.json()
-        if (result.success) {
-          setData(result.data.revenueData)
-        } else {
-          throw new Error(result.error || 'Unknown error')
+        if (isMounted) {
+          if (result.success) {
+            setData(result.data.revenueData)
+          } else {
+            throw new Error(result.error || 'Unknown error')
+          }
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load revenue data')
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Failed to load revenue data')
+        }
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     }
 
     fetchData()
+
+    return () => {
+      isMounted = false
+    }
   }, [groupBy])
 
   if (loading) {
@@ -94,7 +105,7 @@ export function RevenueChartWidget() {
 
       <div style={styles.chart}>
         <div style={styles.bars}>
-          {data.slice(-20).map((point, index) => (
+          {data.slice(-CHART_MAX_VISIBLE_POINTS).map((point, index) => (
             <div key={point.period} style={styles.barContainer}>
               <div
                 style={{

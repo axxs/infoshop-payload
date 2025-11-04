@@ -14,9 +14,11 @@ export function SalesSummaryWidget() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    let isMounted = true
+
     async function fetchData() {
       try {
-        setLoading(true)
+        if (isMounted) setLoading(true)
         const today = new Date().toISOString().split('T')[0]
         const response = await fetch(`/api/reports/daily-sales?startDate=${today}&endDate=${today}`)
 
@@ -25,19 +27,27 @@ export function SalesSummaryWidget() {
         }
 
         const data = await response.json()
-        if (data.success) {
-          setSummary(data.data.summary)
-        } else {
-          throw new Error(data.error || 'Unknown error')
+        if (isMounted) {
+          if (data.success) {
+            setSummary(data.data.summary)
+          } else {
+            throw new Error(data.error || 'Unknown error')
+          }
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load sales data')
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Failed to load sales data')
+        }
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     }
 
     fetchData()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   if (loading) {

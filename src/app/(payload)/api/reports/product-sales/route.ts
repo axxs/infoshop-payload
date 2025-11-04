@@ -6,6 +6,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import {
+  DEFAULT_DATE_RANGE_DAYS,
+  DEFAULT_TOP_PRODUCTS_LIMIT,
+  MAX_SALES_QUERY_LIMIT,
+  MAX_TOP_PRODUCTS_LIMIT,
+} from '@/lib/reports/constants'
 
 interface BookSalesData {
   bookId: string
@@ -25,45 +31,51 @@ export async function GET(request: NextRequest) {
     // Parse date range from query params (defaults to last 30 days)
     const endDate = new Date()
     const startDate = new Date(endDate)
-    startDate.setDate(startDate.getDate() - 30)
+    startDate.setDate(startDate.getDate() - DEFAULT_DATE_RANGE_DAYS)
 
     const startDateParam = searchParams.get('startDate') || startDate.toISOString().split('T')[0]
     const endDateParam = searchParams.get('endDate') || endDate.toISOString().split('T')[0]
-    const limit = parseInt(searchParams.get('limit') || '20', 10)
+    const limitParam = searchParams.get('limit') || String(DEFAULT_TOP_PRODUCTS_LIMIT)
 
-    // Query all sale items within date range
-    const { docs: saleItems } = await payload.find({
-      collection: 'sale-items',
-      depth: 2, // Include book details
-      limit: 10000, // High limit for aggregation
-    })
+    // Input validation
+    const limit = Math.min(Math.max(parseInt(limitParam, 10), 1), MAX_TOP_PRODUCTS_LIMIT)
 
-    // Get sales to filter by date
+    // Validate dates
+    const startDateObj = new Date(startDateParam)
+    const endDateObj = new Date(endDateParam)
+
+    if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid date format. Use YYYY-MM-DD' },
+        { status: 400 },
+      )
+    }
+
+    if (startDateObj > endDateObj) {
+      return NextResponse.json(
+        { success: false, error: 'startDate cannot be after endDate' },
+        { status: 400 },
+      )
+    }
+
+    // Fetch sales with items included (depth: 2 gets items -> books)
+    // This avoids N+1 query by fetching everything in one go
     const { docs: sales } = await payload.find({
       collection: 'sales',
       where: {
         saleDate: {
-          greater_than_equal: new Date(startDateParam).toISOString(),
+          greater_than_equal: startDateObj.toISOString(),
           less_than_equal: new Date(`${endDateParam}T23:59:59.999Z`).toISOString(),
         },
       },
-      limit: 10000,
+      depth: 2, // Include items with book details
+      limit: MAX_SALES_QUERY_LIMIT,
     })
 
-    // Filter sale items to only those within our date range
-    // Note: This is a workaround since sale-items doesn't have direct date field
-    const filteredSaleItems = saleItems.filter((item) => {
-      // Check if this item belongs to a sale in our date range
-      // This requires checking all sales to find which one contains this item
-      return sales.some((sale) => {
-        const saleItemIds = Array.isArray(sale.items)
-          ? sale.items.map((i) => {
-              if (typeof i === 'string' || typeof i === 'number') return String(i)
-              return i.id
-            })
-          : []
-        return saleItemIds.includes(item.id)
-      })
+    // Extract sale items from sales (avoiding separate query)
+    const filteredSaleItems = sales.flatMap((sale) => {
+      if (!Array.isArray(sale.items)) return []
+      return sale.items.filter((item) => typeof item === 'object' && item !== null)
     })
 
     // Aggregate sales by book

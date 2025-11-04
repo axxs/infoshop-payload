@@ -6,10 +6,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { DEFAULT_DATE_RANGE_DAYS, MAX_SALES_QUERY_LIMIT } from '@/lib/reports/constants'
 
 function escapeCSV(value: unknown): string {
   if (value === null || value === undefined) return ''
-  const str = String(value)
+  let str = String(value)
+
+  // Prevent CSV injection by prefixing formulas with a single quote
+  // This prevents Excel/Google Sheets from interpreting them as formulas
+  const dangerousChars = ['=', '+', '-', '@', '\t', '\r']
+  if (dangerousChars.some((char) => str.startsWith(char))) {
+    str = `'${str}`
+  }
+
   // Escape double quotes and wrap in quotes if contains comma, newline, or quote
   if (str.includes(',') || str.includes('\n') || str.includes('"')) {
     return `"${str.replace(/"/g, '""')}"`
@@ -43,11 +52,29 @@ export async function GET(request: NextRequest) {
     // Parse date range from query params (defaults to last 30 days)
     const endDate = new Date()
     const startDate = new Date(endDate)
-    startDate.setDate(startDate.getDate() - 30)
+    startDate.setDate(startDate.getDate() - DEFAULT_DATE_RANGE_DAYS)
 
     const startDateParam = searchParams.get('startDate') || startDate.toISOString().split('T')[0]
     const endDateParam = searchParams.get('endDate') || endDate.toISOString().split('T')[0]
     const exportType = searchParams.get('type') || 'sales' // 'sales' or 'products'
+
+    // Input validation
+    const startDateObj = new Date(startDateParam)
+    const endDateObj = new Date(endDateParam)
+
+    if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid date format. Use YYYY-MM-DD' },
+        { status: 400 },
+      )
+    }
+
+    if (startDateObj > endDateObj) {
+      return NextResponse.json(
+        { success: false, error: 'startDate cannot be after endDate' },
+        { status: 400 },
+      )
+    }
 
     if (exportType === 'sales') {
       // Export individual sales transactions
@@ -55,12 +82,12 @@ export async function GET(request: NextRequest) {
         collection: 'sales',
         where: {
           saleDate: {
-            greater_than_equal: new Date(startDateParam).toISOString(),
+            greater_than_equal: startDateObj.toISOString(),
             less_than_equal: new Date(`${endDateParam}T23:59:59.999Z`).toISOString(),
           },
         },
         depth: 2, // Include customer and items
-        limit: 10000,
+        limit: MAX_SALES_QUERY_LIMIT,
       })
 
       // Flatten sales data for CSV
@@ -99,35 +126,23 @@ export async function GET(request: NextRequest) {
       })
     } else if (exportType === 'products') {
       // Export product sales summary
-      const { docs: saleItems } = await payload.find({
-        collection: 'sale-items',
-        depth: 2,
-        limit: 10000,
-      })
-
-      // Get sales to filter by date
+      // Fetch sales with items included (avoids N+1 query)
       const { docs: sales } = await payload.find({
         collection: 'sales',
         where: {
           saleDate: {
-            greater_than_equal: new Date(startDateParam).toISOString(),
+            greater_than_equal: startDateObj.toISOString(),
             less_than_equal: new Date(`${endDateParam}T23:59:59.999Z`).toISOString(),
           },
         },
-        limit: 10000,
+        depth: 2, // Include items with book details
+        limit: MAX_SALES_QUERY_LIMIT,
       })
 
-      // Filter sale items by date range
-      const filteredSaleItems = saleItems.filter((item) => {
-        return sales.some((sale) => {
-          const saleItemIds = Array.isArray(sale.items)
-            ? sale.items.map((i) => {
-                if (typeof i === 'string' || typeof i === 'number') return String(i)
-                return i.id
-              })
-            : []
-          return saleItemIds.includes(item.id)
-        })
+      // Extract sale items from sales (avoiding separate query)
+      const filteredSaleItems = sales.flatMap((sale) => {
+        if (!Array.isArray(sale.items)) return []
+        return sale.items.filter((item) => typeof item === 'object' && item !== null)
       })
 
       // Aggregate by book

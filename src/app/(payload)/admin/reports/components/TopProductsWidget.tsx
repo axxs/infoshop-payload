@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import { TOP_PRODUCTS_DAYS, TOP_PRODUCTS_WIDGET_LIMIT } from '@/lib/reports/constants'
 
 interface ProductSales {
   bookId: string
@@ -16,16 +17,18 @@ export function TopProductsWidget() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    let isMounted = true
+
     async function fetchData() {
       try {
-        setLoading(true)
+        if (isMounted) setLoading(true)
         // Get last 7 days of data
         const endDate = new Date()
         const startDate = new Date(endDate)
-        startDate.setDate(startDate.getDate() - 7)
+        startDate.setDate(startDate.getDate() - TOP_PRODUCTS_DAYS)
 
         const response = await fetch(
-          `/api/reports/product-sales?startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}&limit=5`,
+          `/api/reports/product-sales?startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}&limit=${TOP_PRODUCTS_WIDGET_LIMIT}`,
         )
 
         if (!response.ok) {
@@ -33,19 +36,27 @@ export function TopProductsWidget() {
         }
 
         const data = await response.json()
-        if (data.success) {
-          setProducts(data.data.topProducts)
-        } else {
-          throw new Error(data.error || 'Unknown error')
+        if (isMounted) {
+          if (data.success) {
+            setProducts(data.data.topProducts)
+          } else {
+            throw new Error(data.error || 'Unknown error')
+          }
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load product data')
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Failed to load product data')
+        }
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     }
 
     fetchData()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   if (loading) {

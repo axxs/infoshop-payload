@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { MAX_SALES_QUERY_LIMIT } from '@/lib/reports/constants'
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,6 +16,24 @@ export async function GET(request: NextRequest) {
     // Parse date range from query params (defaults to today)
     const startDate = searchParams.get('startDate') || new Date().toISOString().split('T')[0]
     const endDate = searchParams.get('endDate') || new Date().toISOString().split('T')[0]
+
+    // Input validation
+    const startDateObj = new Date(startDate)
+    const endDateObj = new Date(endDate)
+
+    if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid date format. Use YYYY-MM-DD' },
+        { status: 400 },
+      )
+    }
+
+    if (startDateObj > endDateObj) {
+      return NextResponse.json(
+        { success: false, error: 'startDate cannot be after endDate' },
+        { status: 400 },
+      )
+    }
 
     // Query sales within date range
     const { docs: sales } = await payload.find({
@@ -26,7 +45,7 @@ export async function GET(request: NextRequest) {
         },
       },
       depth: 1, // Include customer relationship
-      limit: 1000, // Reasonable limit for daily reports
+      limit: MAX_SALES_QUERY_LIMIT,
     })
 
     // Aggregate data

@@ -4,13 +4,14 @@ import React from 'react'
 import { SalesSummaryWidget } from './components/SalesSummaryWidget'
 import { TopProductsWidget } from './components/TopProductsWidget'
 import { RevenueChartWidget } from './components/RevenueChartWidget'
+import { DEFAULT_DATE_RANGE_DAYS, TOP_PRODUCTS_DAYS } from '@/lib/reports/constants'
 
 export default function ReportsPage() {
   const handleExport = async (type: 'sales' | 'products') => {
     try {
       const endDate = new Date()
       const startDate = new Date(endDate)
-      startDate.setDate(startDate.getDate() - 30) // Last 30 days
+      startDate.setDate(startDate.getDate() - DEFAULT_DATE_RANGE_DAYS)
 
       const response = await fetch(
         `/api/reports/export?type=${type}&startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}`,
@@ -58,9 +59,17 @@ export default function ReportsPage() {
           <h3 style={styles.infoTitle}>About Reports</h3>
           <ul style={styles.infoList}>
             <li>Sales Summary shows today&apos;s sales data</li>
-            <li>Revenue Trend displays historical revenue patterns (last 30 days by default)</li>
-            <li>Top Selling Books shows the best performers from the last 7 days</li>
-            <li>Export functionality provides last 30 days of data in CSV format</li>
+            <li>
+              Revenue Trend displays historical revenue patterns (last {DEFAULT_DATE_RANGE_DAYS}{' '}
+              days by default)
+            </li>
+            <li>
+              Top Selling Books shows the best performers from the last {TOP_PRODUCTS_DAYS} days
+            </li>
+            <li>
+              Export functionality provides last {DEFAULT_DATE_RANGE_DAYS} days of data in CSV
+              format
+            </li>
           </ul>
         </div>
       </div>
