@@ -3,7 +3,7 @@
 ## From Express/Prisma/React to Payload CMS/Next.js
 
 **Last Updated**: 2025-11-05
-**Current Status**: Phase 4 (Sales System) - 75% Complete
+**Current Status**: Phase 4 (Sales System) - 85% Complete
 
 ---
 
@@ -30,7 +30,7 @@
 | Phase 1: Foundation         | ✅ Complete    | 100%       |
 | Phase 2: Data Migration     | ✅ Complete    | 100% (N/A) |
 | Phase 3: Core Integrations  | ✅ Complete    | 100%       |
-| Phase 4: Sales System       | 🔄 In Progress | 75%        |
+| Phase 4: Sales System       | 🔄 In Progress | 85%        |
 | Phase 5: Community Features | 📅 Planned     | 0%         |
 | Phase 6: CMS/Website        | 📅 Planned     | 0%         |
 | Phase 7: Advanced Features  | 📅 Planned     | 0%         |
@@ -198,18 +198,22 @@
 - [x] Tax calculation (10% GST for AUD)
 - [x] Integration and E2E tests
 
-#### 📋 Remaining (Phase 4.7-4.8)
+**4.7 Order Management** ✅
 
-**4.7 Order Management** 📅
+- [x] Customer order history page (`/account/orders`)
+- [x] Order detail page with full information
+- [x] Order status tracking (PENDING, PROCESSING, COMPLETED, CANCELLED, REFUNDED)
+- [x] Status history audit trail with timestamps
+- [x] Order cancellation workflow with reason capture
+- [x] Automatic stock restoration on cancellation
+- [x] Server actions for order management
 
-- [ ] Customer order history page
-- [ ] Order tracking and status updates
-- [ ] Email notifications for orders
-- [ ] Order cancellation workflow
-- [ ] Admin order management interface
+#### 📋 Remaining (Phase 4.8)
 
 **4.8 Advanced Features** 📅
 
+- [ ] Email notifications for order status changes
+- [ ] Admin bulk order actions
 - [ ] Abandoned cart recovery
 - [ ] Gift cards and discount codes
 - [ ] Shipping address collection
