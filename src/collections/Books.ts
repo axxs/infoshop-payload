@@ -34,6 +34,9 @@ export const Books: CollectionConfig = {
       index: true,
       admin: {
         description: 'ISBN-10 or ISBN-13',
+        components: {
+          Field: '@/collections/Books/ISBNLookupField#ISBNLookupField',
+        },
       },
     },
     {
@@ -118,6 +121,9 @@ export const Books: CollectionConfig = {
       min: 0,
       admin: {
         description: 'Current stock quantity',
+        components: {
+          Cell: '@/collections/Books/StockStatusCell#StockStatusCell',
+        },
       },
     },
     {
