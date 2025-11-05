@@ -7,6 +7,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { headers as getHeaders } from 'next/headers'
+import { getPayload } from 'payload'
+import config from '@payload-config'
 import { getCart, clearCart } from '@/lib/cart'
 import { createOrder } from '@/lib/checkout/createOrder'
 import { verifySquarePayment } from '@/lib/square/paymentVerification'
@@ -15,6 +18,11 @@ import { calculateTax } from '@/lib/tax/taxCalculation'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+
+    // Get authenticated user if available
+    const payload = await getPayload({ config })
+    const headersList = await getHeaders()
+    const { user } = await payload.auth({ headers: headersList as Headers })
 
     // Validate required fields
     if (!body.squareTransactionId) {
@@ -69,14 +77,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create order
+    // Create order with PENDING status for online orders
     const orderResult = await createOrder({
       cart: cartResult.cart,
       squareTransactionId: body.squareTransactionId,
       squareReceiptUrl: body.squareReceiptUrl,
       paymentMethod: body.paymentMethod,
-      customerEmail: body.customerEmail,
-      customerName: body.customerName,
+      customerEmail: body.customerEmail || user?.email,
+      customerName: body.customerName || user?.name,
+      customerId: user?.id,
+      status: 'PENDING', // Online orders start as PENDING
     })
 
     if (!orderResult.success) {

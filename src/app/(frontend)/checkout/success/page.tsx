@@ -38,7 +38,12 @@ export default async function CheckoutSuccessPage({ searchParams }: SuccessPageP
             </p>
 
             <div className="flex flex-col gap-2 pt-4">
-              <Button asChild>
+              {orderId && (
+                <Button asChild>
+                  <Link href={`/account/orders/${orderId}`}>View Order Details</Link>
+                </Button>
+              )}
+              <Button asChild variant={orderId ? 'outline' : 'default'}>
                 <Link href="/shop">Continue Shopping</Link>
               </Button>
               <Button asChild variant="outline">

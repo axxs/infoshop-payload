@@ -18,6 +18,8 @@ export interface CreateOrderParams {
   paymentMethod: 'CARD' | 'CASH' | 'OTHER'
   customerEmail?: string
   customerName?: string
+  customerId?: number // User ID if authenticated
+  status?: 'PENDING' | 'PROCESSING' | 'COMPLETED'
 }
 
 export interface CreateOrderResult {
@@ -32,7 +34,16 @@ export interface CreateOrderResult {
  * Handles atomic stock updates and validates cart integrity
  */
 export async function createOrder(params: CreateOrderParams): Promise<CreateOrderResult> {
-  const { cart, squareTransactionId, squareReceiptUrl, paymentMethod } = params
+  const {
+    cart,
+    squareTransactionId,
+    squareReceiptUrl,
+    paymentMethod,
+    customerEmail,
+    customerName,
+    customerId,
+    status = 'COMPLETED',
+  } = params
 
   try {
     const payload = await getPayload({ config })
@@ -172,17 +183,29 @@ export async function createOrder(params: CreateOrderParams): Promise<CreateOrde
       }),
     )
 
-    // 8. Create Sale record with SaleItem IDs
+    // 8. Create Sale record with SaleItem IDs and initial status
+    const now = new Date().toISOString()
     const sale = await payload.create({
       collection: 'sales',
       draft: false,
       data: {
-        saleDate: new Date().toISOString(),
+        saleDate: now,
         totalAmount,
         paymentMethod,
         squareTransactionId,
         squareReceiptUrl,
         items: saleItemIds,
+        status,
+        statusHistory: [
+          {
+            status,
+            timestamp: now,
+            note: 'Order created',
+          },
+        ],
+        customer: customerId,
+        customerEmail,
+        customerName,
       },
     })
 
