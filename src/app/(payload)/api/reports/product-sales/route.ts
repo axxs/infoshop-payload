@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 
     // After validation, dates are guaranteed to be defined
     const startDateObj = validation.startDate!
-    const endDateObj = validation.endDate!
+    const _endDateObj = validation.endDate!
 
     // Fetch sales with items included (depth: 2 gets items -> books)
     // This avoids N+1 query by fetching everything in one go

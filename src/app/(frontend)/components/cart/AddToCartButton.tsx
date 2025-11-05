@@ -18,7 +18,7 @@ interface AddToCartButtonProps {
 
 export function AddToCartButton({
   bookId,
-  title,
+  title: _title,
   stockQuantity,
   isMemberPrice = false,
   variant = 'default',

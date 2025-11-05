@@ -79,6 +79,7 @@ export function POSSearch({ onAddToCart }: POSSearchProps) {
         clearTimeout(debounceTimerRef.current)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery])
 
   const handleManualSearch = () => {

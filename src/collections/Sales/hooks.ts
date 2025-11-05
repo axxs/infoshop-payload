@@ -19,7 +19,7 @@ import config from '@payload-config'
  * @param req - Payload request object
  * @returns Updated sale data with calculated totalAmount
  */
-export const calculateTotalAmount: CollectionBeforeChangeHook = async ({ data, req }) => {
+export const calculateTotalAmount: CollectionBeforeChangeHook = async ({ data, req: _req }) => {
   if (!data) return data
 
   // Need items to calculate total
@@ -60,7 +60,7 @@ export const calculateTotalAmount: CollectionBeforeChangeHook = async ({ data, r
 export const generateReceiptNumber: CollectionBeforeChangeHook = async ({
   data,
   operation,
-  req,
+  req: _req,
 }) => {
   if (!data) return data
 

@@ -17,7 +17,7 @@ import type {
   PopulatedCartItem,
 } from './types'
 import { getCartFromCookies, saveCartToCookies, clearCartCookie } from './cookies'
-import { validateQuantityAgainstStock, createEmptyCart } from './validation'
+import { validateQuantityAgainstStock } from './validation'
 
 /**
  * Populate cart with book details from database
