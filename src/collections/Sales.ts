@@ -9,9 +9,9 @@ import {
 export const Sales: CollectionConfig = {
   slug: 'sales',
   admin: {
-    useAsTitle: 'id',
-    defaultColumns: ['saleDate', 'totalAmount', 'paymentMethod', 'customer'],
-    description: 'Point of sale transactions',
+    useAsTitle: 'receiptNumber',
+    defaultColumns: ['receiptNumber', 'saleDate', 'status', 'totalAmount', 'customer'],
+    description: 'Point of sale transactions and online orders',
   },
   access: {
     read: ({ req: { user } }) => !!user, // Only authenticated users can view sales
@@ -20,6 +20,15 @@ export const Sales: CollectionConfig = {
     delete: ({ req: { user } }) => !!user,
   },
   fields: [
+    {
+      name: 'receiptNumber',
+      type: 'text',
+      unique: true,
+      admin: {
+        description: 'Receipt/invoice number',
+        readOnly: true,
+      },
+    },
     {
       name: 'saleDate',
       type: 'date',
@@ -31,6 +40,65 @@ export const Sales: CollectionConfig = {
           pickerAppearance: 'dayAndTime',
         },
       },
+    },
+    // Order Status Tracking
+    {
+      name: 'status',
+      type: 'select',
+      required: true,
+      options: [
+        { label: 'Pending', value: 'PENDING' },
+        { label: 'Processing', value: 'PROCESSING' },
+        { label: 'Completed', value: 'COMPLETED' },
+        { label: 'Cancelled', value: 'CANCELLED' },
+        { label: 'Refunded', value: 'REFUNDED' },
+      ],
+      defaultValue: 'COMPLETED',
+      admin: {
+        description: 'Current order status',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'statusHistory',
+      type: 'array',
+      admin: {
+        description: 'Status change history for audit trail',
+        readOnly: true,
+      },
+      fields: [
+        {
+          name: 'status',
+          type: 'select',
+          required: true,
+          options: [
+            { label: 'Pending', value: 'PENDING' },
+            { label: 'Processing', value: 'PROCESSING' },
+            { label: 'Completed', value: 'COMPLETED' },
+            { label: 'Cancelled', value: 'CANCELLED' },
+            { label: 'Refunded', value: 'REFUNDED' },
+          ],
+        },
+        {
+          name: 'timestamp',
+          type: 'date',
+          required: true,
+          admin: {
+            date: {
+              pickerAppearance: 'dayAndTime',
+            },
+          },
+        },
+        {
+          name: 'note',
+          type: 'text',
+        },
+        {
+          name: 'changedBy',
+          type: 'relationship',
+          relationTo: 'users',
+        },
+      ],
     },
     {
       name: 'totalAmount',
@@ -75,13 +143,30 @@ export const Sales: CollectionConfig = {
         condition: (data) => data.paymentMethod === 'SQUARE',
       },
     },
-    // Customer/User relationship (optional - for registered customers)
+    // Customer Information
     {
       name: 'customer',
       type: 'relationship',
       relationTo: 'users',
       admin: {
-        description: 'Customer who made the purchase (if registered)',
+        description: 'Customer account (if registered)',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'customerEmail',
+      type: 'email',
+      admin: {
+        description: 'Customer email (for order notifications)',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'customerName',
+      type: 'text',
+      admin: {
+        description: 'Customer name (for guest orders)',
+        position: 'sidebar',
       },
     },
     // Sale items (line items)
@@ -95,21 +180,43 @@ export const Sales: CollectionConfig = {
         description: 'Items included in this sale',
       },
     },
+    // Cancellation Details
+    {
+      name: 'cancelledAt',
+      type: 'date',
+      admin: {
+        description: 'Date and time order was cancelled',
+        readOnly: true,
+        condition: (data) => data.status === 'CANCELLED',
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
+      },
+    },
+    {
+      name: 'cancelledBy',
+      type: 'relationship',
+      relationTo: 'users',
+      admin: {
+        description: 'User who cancelled the order',
+        readOnly: true,
+        condition: (data) => data.status === 'CANCELLED',
+      },
+    },
+    {
+      name: 'cancellationReason',
+      type: 'textarea',
+      admin: {
+        description: 'Reason for cancellation',
+        condition: (data) => data.status === 'CANCELLED',
+      },
+    },
     // Additional metadata
     {
       name: 'notes',
       type: 'textarea',
       admin: {
-        description: 'Internal notes about this sale',
-      },
-    },
-    {
-      name: 'receiptNumber',
-      type: 'text',
-      unique: true,
-      admin: {
-        description: 'Receipt/invoice number',
-        readOnly: true,
+        description: 'Internal notes about this order',
       },
     },
   ],
