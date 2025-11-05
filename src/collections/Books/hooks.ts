@@ -49,7 +49,7 @@ export const validateStock: CollectionBeforeChangeHook = async ({
  * Price Validation Hook
  * Ensures pricing logic: cost ≤ member ≤ sell
  */
-export const validatePricing: CollectionBeforeChangeHook = async ({ data }) => {
+export const validatePricing: CollectionBeforeChangeHook = async ({ data, req }) => {
   if (!data) return data
 
   const { costPrice, memberPrice, sellPrice } = data
@@ -81,9 +81,13 @@ export const validatePricing: CollectionBeforeChangeHook = async ({ data }) => {
 
   // Warn if selling below cost (allow but warn)
   if (sellPrice < costPrice) {
-    console.warn(
-      `Warning: Book "${data.title || 'Unknown'}" has sell price (${sellPrice}) below cost price (${costPrice}). This results in a loss.`,
-    )
+    req.payload.logger.warn({
+      msg: 'Book price below cost - negative margin',
+      book: data.title || 'Unknown',
+      sellPrice,
+      costPrice,
+      margin: sellPrice - costPrice,
+    })
   }
 
   return data
@@ -135,7 +139,7 @@ export const calculateStockStatus: CollectionBeforeChangeHook = async ({ data })
  * Low Stock Warning Hook
  * Logs warnings for low stock items (could send notifications in future)
  */
-export const checkLowStock: CollectionAfterChangeHook = async ({ doc, operation }) => {
+export const checkLowStock: CollectionAfterChangeHook = async ({ doc, operation, req }) => {
   // Only check on update operations
   if (operation !== 'update') return doc
 
@@ -143,7 +147,10 @@ export const checkLowStock: CollectionAfterChangeHook = async ({ doc, operation 
   const reorderLevel = doc.reorderLevel ?? 5
 
   if (quantity > 0 && quantity <= reorderLevel) {
-    console.warn(`⚠️  LOW STOCK ALERT: "${doc.title}" (ISBN: ${doc.isbn || 'N/A'})`, {
+    req.payload.logger.warn({
+      msg: 'Low stock alert',
+      book: doc.title,
+      isbn: doc.isbn || 'N/A',
       current: quantity,
       reorderLevel,
       bookId: doc.id,
@@ -153,7 +160,10 @@ export const checkLowStock: CollectionAfterChangeHook = async ({ doc, operation 
   }
 
   if (quantity === 0) {
-    console.error(`❌ OUT OF STOCK: "${doc.title}" (ISBN: ${doc.isbn || 'N/A'})`, {
+    req.payload.logger.error({
+      msg: 'Out of stock',
+      book: doc.title,
+      isbn: doc.isbn || 'N/A',
       bookId: doc.id,
     })
     // TODO: Send urgent notification
