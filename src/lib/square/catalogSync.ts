@@ -81,6 +81,7 @@ function bookToCatalogItem(book: Book): SquareCatalogObject {
   const sellPriceCents = Math.round(sellPrice * 100)
 
   // Validate and use book currency or default to USD
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const currencyCode = SUPPORTED_CURRENCIES.includes(book.currency as any) ? book.currency : 'USD'
 
   // Build item data
@@ -253,6 +254,7 @@ export async function pushBooksToSquare(
       // Batch upsert all items (creates and updates together)
       const upsertResult = await squareClient.catalog.batchUpsert({
         idempotencyKey,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         batches: [{ objects: catalogObjects as any }],
       })
 
@@ -275,6 +277,7 @@ export async function pushBooksToSquare(
 
           // If no match found, fail explicitly to prevent data corruption
           if (!book) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const itemData = (squareObject as any).itemData
             console.error('CRITICAL: Could not match Square object to book', {
               squareObjectId: squareObject.id,

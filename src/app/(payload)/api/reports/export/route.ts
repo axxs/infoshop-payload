@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
 
     // After validation, dates are guaranteed to be defined
     const startDateObj = validation.startDate!
-    const endDateObj = validation.endDate!
+    const _endDateObj = validation.endDate!
 
     if (exportType === 'sales') {
       // Export individual sales transactions

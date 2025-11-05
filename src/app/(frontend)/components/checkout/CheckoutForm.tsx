@@ -14,7 +14,11 @@ interface CheckoutFormProps {
   locationId: string
 }
 
-export function CheckoutForm({ cart, applicationId, locationId }: CheckoutFormProps) {
+export function CheckoutForm({
+  cart,
+  applicationId: _applicationId,
+  locationId: _locationId,
+}: CheckoutFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -30,9 +34,9 @@ export function CheckoutForm({ cart, applicationId, locationId }: CheckoutFormPr
       // Calculate total with tax
       const taxRate = cart.currency === 'AUD' ? 0.1 : 0
       const tax = cart.subtotal * taxRate
-      const total = cart.subtotal + tax
+      const _total = cart.subtotal + tax
 
-      // TODO: Initialize Square Web Payments SDK and get payment token
+      // TODO: Initialize Square Web Payments SDK and get payment token (will use _total)
       // For now, create a mock payment for development
       const mockPaymentResult = {
         success: true,

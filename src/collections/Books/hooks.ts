@@ -26,7 +26,10 @@ function validateISBN(isbn: string | null | undefined): boolean {
  * Stock Validation Hook
  * Prevents negative stock and validates stock changes
  */
-export const validateStock: CollectionBeforeChangeHook = async ({ data, operation }) => {
+export const validateStock: CollectionBeforeChangeHook = async ({
+  data,
+  operation: _operation,
+}) => {
   if (!data) return data
 
   // Ensure stock quantity is never negative
