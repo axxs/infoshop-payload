@@ -3,19 +3,72 @@
 /**
  * Custom ISBN Lookup Field Component
  * Provides an ISBN input with a lookup button that auto-populates book data from Open Library
+ *
+ * @remarks
+ * This component integrates with the Open Library API to fetch book metadata.
+ * It provides real-time validation and user feedback during the lookup process.
+ *
+ * @example
+ * ```typescript
+ * // In collection config:
+ * {
+ *   name: 'isbn',
+ *   type: 'text',
+ *   admin: {
+ *     components: {
+ *       Field: '@/collections/Books/ISBNLookupField#ISBNLookupField',
+ *     },
+ *   },
+ * }
+ * ```
  */
 
 import React, { useState } from 'react'
 import { TextInput, useField, useForm, Button } from '@payloadcms/ui'
 
-export const ISBNLookupField = ({ path }: { path: string }) => {
+/**
+ * API response structure from ISBN lookup endpoint
+ */
+interface ISBNLookupResponse {
+  success: boolean
+  error?: string
+  data?: {
+    title?: string
+    author?: string
+    publisher?: string
+    publishedDate?: string
+    pages?: number
+    description?: string
+    externalCoverUrl?: string
+  }
+  source?: string
+}
+
+/**
+ * Props for ISBNLookupField component
+ */
+interface ISBNLookupFieldProps {
+  /** The field path in the Payload form */
+  path: string
+}
+
+/**
+ * Custom field component for ISBN lookup with auto-population
+ *
+ * @param props - Component props
+ * @returns React component
+ */
+export const ISBNLookupField = ({ path }: ISBNLookupFieldProps): React.JSX.Element => {
   const { value, setValue } = useField<string>({ path })
   const { dispatchFields } = useForm()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  const handleLookup = async () => {
+  /**
+   * Handles the ISBN lookup and form field population
+   */
+  const handleLookup = async (): Promise<void> => {
     if (!value || value.trim().length === 0) {
       setError('Please enter an ISBN first')
       return
@@ -27,7 +80,17 @@ export const ISBNLookupField = ({ path }: { path: string }) => {
 
     try {
       const response = await fetch(`/api/books/lookup-isbn?isbn=${encodeURIComponent(value)}`)
-      const result = await response.json()
+
+      // Check HTTP status before parsing
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({
+          error: `HTTP ${response.status}: ${response.statusText}`,
+        }))
+        setError(errorData.error || `Server error: ${response.status}`)
+        return
+      }
+
+      const result: ISBNLookupResponse = await response.json()
 
       if (!result.success) {
         setError(result.error || 'Book not found')
@@ -36,7 +99,12 @@ export const ISBNLookupField = ({ path }: { path: string }) => {
 
       const bookData = result.data
 
-      // Update form fields with fetched data
+      if (!bookData) {
+        setError('No book data returned from API')
+        return
+      }
+
+      // Build field updates object
       const fieldsToUpdate: Record<string, unknown> = {}
 
       if (bookData.title) fieldsToUpdate.title = bookData.title
@@ -47,29 +115,35 @@ export const ISBNLookupField = ({ path }: { path: string }) => {
       if (bookData.description) fieldsToUpdate.description = bookData.description
       if (bookData.externalCoverUrl) fieldsToUpdate.externalCoverUrl = bookData.externalCoverUrl
 
-      // Dispatch all field updates
-      Object.entries(fieldsToUpdate).forEach(([fieldPath, fieldValue]) => {
-        dispatchFields({
-          type: 'UPDATE',
-          path: fieldPath,
-          value: fieldValue,
+      // Dispatch all field updates with error handling
+      try {
+        Object.entries(fieldsToUpdate).forEach(([fieldPath, fieldValue]) => {
+          dispatchFields({
+            type: 'UPDATE',
+            path: fieldPath,
+            value: fieldValue,
+          })
         })
-      })
 
-      setSuccess(
-        `Found: ${bookData.title || 'Unknown'} by ${bookData.author || 'Unknown'} - Auto-populated ${Object.keys(fieldsToUpdate).length} fields`,
-      )
+        setSuccess(
+          `Found: ${bookData.title || 'Unknown'} by ${bookData.author || 'Unknown'} - Auto-populated ${Object.keys(fieldsToUpdate).length} fields`,
+        )
+      } catch (dispatchError) {
+        setError(
+          `Failed to update form fields: ${dispatchError instanceof Error ? dispatchError.message : 'Unknown error'}`,
+        )
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to lookup ISBN')
+      setError(`Network error: ${err instanceof Error ? err.message : 'Failed to connect to API'}`)
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div style={{ marginBottom: '20px' }}>
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
-        <div style={{ flex: 1 }}>
+    <div className="mb-5">
+      <div className="flex gap-2 items-end">
+        <div className="flex-1">
           <TextInput
             path={path}
             label="ISBN"
@@ -90,31 +164,13 @@ export const ISBNLookupField = ({ path }: { path: string }) => {
       </div>
 
       {error && (
-        <div
-          style={{
-            marginTop: '10px',
-            padding: '10px',
-            backgroundColor: '#fee',
-            border: '1px solid #fcc',
-            borderRadius: '4px',
-            color: '#c33',
-          }}
-        >
+        <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm">
           {error}
         </div>
       )}
 
       {success && (
-        <div
-          style={{
-            marginTop: '10px',
-            padding: '10px',
-            backgroundColor: '#efe',
-            border: '1px solid #cfc',
-            borderRadius: '4px',
-            color: '#363',
-          }}
-        >
+        <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-green-600 text-sm">
           ✓ {success}
         </div>
       )}
