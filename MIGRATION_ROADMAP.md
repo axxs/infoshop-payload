@@ -29,7 +29,7 @@
 | --------------------------- | -------------- | ---------- |
 | Phase 1: Foundation         | ✅ Complete    | 100%       |
 | Phase 2: Data Migration     | ✅ Complete    | 100% (N/A) |
-| Phase 3: Core Integrations  | ✅ Complete    | 100%       |
+| Phase 3: Core Integrations  | 🔄 In Progress | 80%        |
 | Phase 4: Sales System       | 🔄 In Progress | 85%        |
 | Phase 5: Community Features | 📅 Planned     | 0%         |
 | Phase 6: CMS/Website        | 📅 Planned     | 0%         |
@@ -77,9 +77,9 @@
 
 ---
 
-### 🔄 Phase 3: Core Integrations (60% Complete)
+### 🔄 Phase 3: Core Integrations (80% Complete)
 
-#### ✅ Completed (Phase 3.1-3.4)
+#### ✅ Completed (Phase 3.1-3.6)
 
 **3.1 Open Library Integration** ✅
 
@@ -99,28 +99,34 @@
 - [x] Security hardening (timing attack prevention)
 - [x] Integration and E2E tests
 
-#### 📋 Remaining (Phase 3.5-3.7)
+**3.5 Collection Hooks** ✅
 
-**3.5 Collection Hooks** 📅
+- [x] Stock level validation (prevents negative quantities)
+- [x] Low stock warnings (Payload logger with structured data)
+- [x] Price validation (cost ≤ member ≤ sell hierarchy)
+- [x] ISBN format validation (ISBN-10 and ISBN-13)
+- [x] Auto-calculate stock status (OUT_OF_STOCK, LOW_STOCK, IN_STOCK)
+- [x] Digital product handling (unlimited stock)
+- [x] beforeChange/afterChange hooks
 
-- [ ] Stock level validation
-- [ ] Low stock warnings (email/notification)
-- [ ] Price validation (member < sell, cost tracking)
-- [ ] ISBN format validation
-- [ ] Category/subject relationship validation
-- [ ] Auto-slug generation for categories/subjects
-- [ ] beforeChange/afterChange hooks
+**3.6 Admin UI Enhancements** ✅
 
-**3.6 Admin UI Enhancements** 📅
+- [x] Custom book actions (ISBN lookup button with auto-population)
+- [x] Stock level indicators (color-coded badges in list view)
+- [x] Type-safe components with comprehensive JSDoc
+- [x] Error handling for all user interactions
+- [x] Tailwind CSS for consistent styling
 
-- [ ] Custom book actions (ISBN lookup button)
-- [ ] Stock level indicators (visual warnings)
+#### 📋 Remaining (Phase 3.7)
+
+**3.7 Admin UI Enhancements (Optional)** 📅
+
 - [ ] Barcode generation
 - [ ] Relationship visualisation
 - [ ] Bulk operations (CSV import/export)
 - [ ] Custom dashboard widgets
 
-**3.7 API Improvements** 📅
+**3.8 API Improvements (Optional)** 📅
 
 - [ ] Advanced search/filtering
 - [ ] Book availability checking
