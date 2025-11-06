@@ -70,8 +70,11 @@ Payload CMS collections define the data schema. Drizzle ORM (used internally by 
   - `supplier` → Suppliers (has one)
 - `description` (rich text)
 - `coverImage` → Media (has one)
+- `_subjectNames` (hidden, temporary) - Staging field for ISBN lookup subject processing
 
 **Validation**: Cost < Member < Sell pricing
+
+**Hooks**: `validateStock`, `validatePricing`, `validateISBNFormat`, `calculateStockStatus`, `validateDigitalProduct`, `checkLowStock`, `processSubjectsFromISBN`
 
 **Location**: `src/collections/Books.ts`
 
@@ -102,6 +105,10 @@ Payload CMS collections define the data schema. Drizzle ORM (used internally by 
 
 - `name` (required, unique)
 - `slug` (auto-generated)
+- `normalizedName` (required, indexed, auto-generated) - For O(1) case-insensitive lookups
+- `description` (optional)
+
+**Performance**: Indexed `normalizedName` field enables efficient case-insensitive searches
 
 **Usage**: Multiple subjects per book
 
@@ -197,16 +204,24 @@ Categories ──has-one──→ Categories (parent, for hierarchy)
 - Supplier full details
 - System configuration
 
-## Hooks (Planned for Phase 3)
+## Hooks
 
-### Books Collection
+### Books Collection (Implemented)
 
-- **beforeChange**: Validate pricing (cost < member < sell)
-- **beforeChange**: Check stock levels, warn if low
-- **afterChange**: Sync with Square POS
-- **beforeRead**: Apply member pricing if applicable
+- **beforeChange**: `validateStock` - Ensure stock quantity never negative
+- **beforeChange**: `validatePricing` - Validate pricing hierarchy (cost < member < sell)
+- **beforeChange**: `validateISBNFormat` - Validate ISBN-10 or ISBN-13 format
+- **beforeChange**: `calculateStockStatus` - Auto-update stock status based on quantity
+- **beforeChange**: `validateDigitalProduct` - Ensure digital products don't track inventory
+- **afterChange**: `checkLowStock` - Log warnings for low stock items
+- **afterChange**: `processSubjectsFromISBN` - Process staged subjects from ISBN lookup
 
-### Events Collection
+### Future Hooks
+
+- **afterChange**: Sync with Square POS (planned)
+- **beforeRead**: Apply member pricing if applicable (planned)
+
+### Events Collection (Planned)
 
 - **beforeChange**: Validate capacity
 - **afterChange**: Update attendee count
