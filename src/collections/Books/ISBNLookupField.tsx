@@ -40,7 +40,7 @@ interface ISBNLookupResponse {
     publishedDate?: string
     pages?: number
     description?: string
-    externalCoverUrl?: string
+    coverImageUrl?: string // Cover image URL from Open Library
     subjects?: string[]
   }
   source?: string
@@ -117,7 +117,6 @@ export const ISBNLookupField = ({ path }: ISBNLookupFieldProps): React.JSX.Eleme
       if (bookData.publishedDate) fieldsToUpdate.publishedDate = bookData.publishedDate
       if (bookData.pages) fieldsToUpdate.pages = bookData.pages
       if (bookData.description) fieldsToUpdate.description = bookData.description
-      if (bookData.externalCoverUrl) fieldsToUpdate.externalCoverUrl = bookData.externalCoverUrl
 
       // Dispatch all field updates with error handling
       try {
@@ -132,10 +131,10 @@ export const ISBNLookupField = ({ path }: ISBNLookupFieldProps): React.JSX.Eleme
         let successMessage = `Found: ${bookData.title || 'Unknown'} by ${bookData.author || 'Unknown'} - Auto-populated ${Object.keys(fieldsToUpdate).length} fields`
 
         // Download cover image if URL is present
-        if (bookData.externalCoverUrl && bookData.title) {
+        if (bookData.coverImageUrl && bookData.title) {
           setProgress('Downloading cover image...')
           try {
-            const coverResult = await downloadBookCover(bookData.externalCoverUrl, bookData.title)
+            const coverResult = await downloadBookCover(bookData.coverImageUrl, bookData.title)
 
             if (coverResult.success && coverResult.mediaId) {
               // Update coverImage field with Media ID

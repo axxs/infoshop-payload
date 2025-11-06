@@ -17,7 +17,7 @@ export interface OpenLibraryBook {
   publishers?: Array<{ name: string }>
   publishDate?: string
   numberOfPages?: number
-  subjects?: string[]
+  subjects?: Array<string | { name: string }> // Can be strings or objects with name property
   cover?: {
     small?: string
     medium?: string
@@ -185,6 +185,22 @@ function transformOpenLibraryData(olBook: OpenLibraryBook, isbn: string): BookLo
     description = (olBook.description as { value: string }).value
   }
 
+  // Extract subjects (can be string array or object array with name property)
+  let subjects: string[] | undefined
+  if (olBook.subjects && Array.isArray(olBook.subjects)) {
+    subjects = olBook.subjects
+      .map((subject) => {
+        // Handle both string and object formats
+        if (typeof subject === 'string') {
+          return subject
+        } else if (subject && typeof subject === 'object' && 'name' in subject) {
+          return (subject as { name: string }).name
+        }
+        return null
+      })
+      .filter((s): s is string => s !== null && s.trim().length > 0)
+  }
+
   return {
     title: olBook.title,
     author,
@@ -195,7 +211,7 @@ function transformOpenLibraryData(olBook: OpenLibraryBook, isbn: string): BookLo
     isbn: cleanISBN(isbn),
     oclcNumber,
     pages: olBook.numberOfPages,
-    subjects: olBook.subjects,
+    subjects,
   }
 }
 
