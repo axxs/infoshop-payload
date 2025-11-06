@@ -19,62 +19,111 @@ interface DuplicateDetectionResult {
 }
 
 /**
- * Detects if a book operation is a duplicate
+ * Batch lookup structure for duplicate detection
+ */
+interface DuplicateLookup {
+  byIsbn: Map<string, number> // ISBN -> bookId
+  byTitleAuthor: Map<string, number> // "title|author" -> bookId
+}
+
+/**
+ * Builds a batch lookup for duplicate detection (fixes N+1 query issue)
  *
  * @param payload - Payload instance
- * @param operation - Book operation to check
- * @returns Detection result with existing book ID if found
+ * @param operations - All book operations to check
+ * @returns Lookup maps for ISBN and title+author
  */
-async function detectDuplicate(
+async function buildDuplicateLookup(
   payload: Payload,
-  operation: BookOperation,
-): Promise<DuplicateDetectionResult> {
-  // 1. Check by ISBN (if provided)
-  if (operation.isbn) {
+  operations: BookOperation[],
+): Promise<DuplicateLookup> {
+  const lookup: DuplicateLookup = {
+    byIsbn: new Map(),
+    byTitleAuthor: new Map(),
+  }
+
+  // 1. Batch query: Find all books by ISBNs (single query)
+  const isbnsToCheck = operations.map((op) => op.isbn).filter((isbn): isbn is string => !!isbn)
+
+  if (isbnsToCheck.length > 0) {
     const existingByIsbn = await payload.find({
       collection: 'books',
       where: {
         isbn: {
-          equals: operation.isbn,
+          in: isbnsToCheck,
         },
       },
-      limit: 1,
+      limit: isbnsToCheck.length,
     })
 
-    if (existingByIsbn.docs.length > 0) {
-      return {
-        isDuplicate: true,
-        existingBookId: existingByIsbn.docs[0].id,
-        matchedBy: 'isbn',
+    for (const book of existingByIsbn.docs) {
+      if (book.isbn) {
+        lookup.byIsbn.set(book.isbn, book.id)
       }
+    }
+  }
+
+  // 2. Batch query: Find all books by Title+Author (single query)
+  // Only check operations that didn't match by ISBN
+  const titleAuthorPairs = operations
+    .filter((op) => op.author && (!op.isbn || !lookup.byIsbn.has(op.isbn)))
+    .map((op) => ({
+      title: op.title,
+      author: op.author!,
+    }))
+
+  if (titleAuthorPairs.length > 0) {
+    // Build OR conditions for all title+author pairs
+    const orConditions = titleAuthorPairs.map((pair) => ({
+      and: [{ title: { equals: pair.title } }, { author: { equals: pair.author } }],
+    }))
+
+    const existingByTitleAuthor = await payload.find({
+      collection: 'books',
+      where: {
+        or: orConditions as any, // Type assertion needed for complex Where conditions
+      },
+      limit: titleAuthorPairs.length,
+    })
+
+    for (const book of existingByTitleAuthor.docs) {
+      if (book.title && book.author) {
+        const key = `${book.title}|${book.author}`
+        lookup.byTitleAuthor.set(key, book.id)
+      }
+    }
+  }
+
+  return lookup
+}
+
+/**
+ * Detects if a book operation is a duplicate using pre-built lookup
+ *
+ * @param operation - Book operation to check
+ * @param lookup - Pre-built duplicate lookup
+ * @returns Detection result with existing book ID if found
+ */
+function detectDuplicate(
+  operation: BookOperation,
+  lookup: DuplicateLookup,
+): DuplicateDetectionResult {
+  // 1. Check by ISBN (if provided)
+  if (operation.isbn && lookup.byIsbn.has(operation.isbn)) {
+    return {
+      isDuplicate: true,
+      existingBookId: lookup.byIsbn.get(operation.isbn)!,
+      matchedBy: 'isbn',
     }
   }
 
   // 2. Fallback: Check by Title + Author (if author provided)
   if (operation.author) {
-    const existingByTitleAuthor = await payload.find({
-      collection: 'books',
-      where: {
-        and: [
-          {
-            title: {
-              equals: operation.title,
-            },
-          },
-          {
-            author: {
-              equals: operation.author,
-            },
-          },
-        ],
-      },
-      limit: 1,
-    })
-
-    if (existingByTitleAuthor.docs.length > 0) {
+    const key = `${operation.title}|${operation.author}`
+    if (lookup.byTitleAuthor.has(key)) {
       return {
         isDuplicate: true,
-        existingBookId: existingByTitleAuthor.docs[0].id,
+        existingBookId: lookup.byTitleAuthor.get(key)!,
         matchedBy: 'title-author',
       }
     }
@@ -178,6 +227,7 @@ function applyDuplicateStrategy(
 
 /**
  * Detects duplicates and applies strategy to all operations
+ * Uses batch queries (2 queries total) instead of N+1 queries
  *
  * @param payload - Payload instance
  * @param operations - Array of book operations
@@ -192,9 +242,12 @@ export async function detectAndHandleDuplicates(
   const updatedOperations: BookOperation[] = []
   const allIssues: ValidationIssue[] = []
 
+  // Build lookup maps with batch queries (fixes N+1 query issue)
+  const lookup = await buildDuplicateLookup(payload, operations)
+
   for (const operation of operations) {
-    // Detect duplicate
-    const detectionResult = await detectDuplicate(payload, operation)
+    // Detect duplicate using pre-built lookup (no queries here)
+    const detectionResult = detectDuplicate(operation, lookup)
 
     // Apply strategy
     const { operation: updatedOperation, issues } = applyDuplicateStrategy(

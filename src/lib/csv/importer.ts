@@ -12,6 +12,7 @@ import { detectAndHandleDuplicates } from './duplicateDetector'
 import { processAndLinkSubjects } from '../openLibrary/subjectManager'
 import { downloadCoverImageIfPresent } from '../openLibrary/imageDownloader'
 import { lookupBookByISBN } from '../openLibrary'
+import { validateImageURL } from '../urlValidator'
 import type {
   BookOperation,
   BookOperationResult,
@@ -161,8 +162,14 @@ export async function previewCSVImport(
 async function findOrCreateCategory(
   payload: Payload,
   categoryName: string,
+  cache: Map<string, number>,
 ): Promise<number | null> {
   if (!categoryName) return null
+
+  // Check cache first (prevents race conditions)
+  if (cache.has(categoryName)) {
+    return cache.get(categoryName)!
+  }
 
   try {
     // Try to find existing
@@ -177,7 +184,9 @@ async function findOrCreateCategory(
     })
 
     if (existing.docs.length > 0) {
-      return existing.docs[0].id
+      const categoryId = existing.docs[0].id
+      cache.set(categoryName, categoryId)
+      return categoryId
     }
 
     // Create new
@@ -189,8 +198,29 @@ async function findOrCreateCategory(
       },
     })
 
+    cache.set(categoryName, category.id)
     return category.id
   } catch (error) {
+    // Handle duplicate key error (race condition on create)
+    if (error instanceof Error && error.message.includes('duplicate')) {
+      // Retry find
+      const existing = await payload.find({
+        collection: 'categories',
+        where: {
+          name: {
+            equals: categoryName,
+          },
+        },
+        limit: 1,
+      })
+
+      if (existing.docs.length > 0) {
+        const categoryId = existing.docs[0].id
+        cache.set(categoryName, categoryId)
+        return categoryId
+      }
+    }
+
     payload.logger.error({
       msg: 'Failed to find or create category',
       categoryName,
@@ -206,73 +236,82 @@ async function findOrCreateCategory(
  * @param payload - Payload instance
  * @param operation - Book operation to execute
  * @param options - Import options
+ * @param categoryCache - Cache for category IDs to prevent race conditions
  * @returns Created or updated book ID
  */
 async function executeBookOperation(
   payload: Payload,
   operation: BookOperation,
   options: Required<CSVImportOptions>,
+  categoryCache: Map<string, number>,
 ): Promise<number> {
   // 1. Handle category
   let categoryId: number | null = null
   if (operation.categoryName && options.autoCreateCategories) {
-    categoryId = await findOrCreateCategory(payload, operation.categoryName)
+    categoryId = await findOrCreateCategory(payload, operation.categoryName, categoryCache)
   }
 
-  // 2. Download cover image if URL provided
+  // 2. Download cover image if URL provided (with SSRF protection)
   let coverImageId: number | null = null
   if (operation.coverImageUrl && options.downloadCoverImages) {
-    coverImageId = await downloadCoverImageIfPresent(payload, operation.coverImageUrl, {
-      bookTitle: operation.title,
-      alt: `Cover of ${operation.title}`,
-    })
+    const validatedUrl = validateImageURL(operation.coverImageUrl)
+    if (validatedUrl) {
+      coverImageId = await downloadCoverImageIfPresent(payload, validatedUrl, {
+        bookTitle: operation.title,
+        alt: `Cover of ${operation.title}`,
+      })
+    } else {
+      payload.logger.warn({
+        msg: 'Invalid cover image URL blocked',
+        url: operation.coverImageUrl,
+        title: operation.title,
+      })
+    }
   }
 
-  // 3. Prepare book data
-  const bookData: Record<string, unknown> = {
+  // 3. Prepare book data (using type-safe Partial approach)
+  const bookData = {
     title: operation.title,
     author: operation.author,
     isbn: operation.isbn,
-    oclc: operation.oclc,
+    oclcNumber: operation.oclc,
     publisher: operation.publisher,
     publishedDate: operation.publishedDate,
-    description: operation.description,
+    // Note: description is richText (Lexical), not supported in CSV import
     costPrice: operation.costPrice,
     sellPrice: operation.sellPrice,
     memberPrice: operation.memberPrice,
-    currency: operation.currency || options.defaultCurrency,
+    currency: (operation.currency || options.defaultCurrency) as 'USD' | 'EUR' | 'GBP',
     stockQuantity: operation.stockQuantity ?? 0,
     reorderLevel: operation.reorderLevel ?? 5,
-    stockStatus: operation.stockStatus || 'IN_STOCK',
+    stockStatus: (operation.stockStatus || 'IN_STOCK') as
+      | 'IN_STOCK'
+      | 'LOW_STOCK'
+      | 'OUT_OF_STOCK'
+      | 'DISCONTINUED',
     isDigital: operation.isDigital ?? false,
     downloadUrl: operation.downloadUrl,
     fileSize: operation.fileSize,
-  }
-
-  if (categoryId) {
-    bookData.category = categoryId
-  }
-
-  if (coverImageId) {
-    bookData.coverImage = coverImageId
-  }
+    ...(categoryId && { categories: [categoryId] }),
+    ...(coverImageId && { coverImage: coverImageId }),
+  } as any // Type assertion needed for complex Payload types
 
   // 4. Create or update book
   let bookId: number
 
   if (operation.operationType === BookOperationType.UPDATE && operation.existingBookId) {
     // Update existing book
-    const updated = await payload.update({
+    await payload.update({
       collection: 'books',
       id: operation.existingBookId,
-      data: bookData as any,
+      data: bookData,
     })
-    bookId = updated.id
+    bookId = operation.existingBookId
   } else {
     // Create new book
     const created = await payload.create({
       collection: 'books',
-      data: bookData as any,
+      data: bookData,
       draft: false,
     })
     bookId = created.id
@@ -321,6 +360,9 @@ export async function executeCSVImport(
     errors: [],
   }
 
+  // Create category cache to prevent race conditions during parallel processing
+  const categoryCache = new Map<string, number>()
+
   // Process in batches
   const batchSize = opts.batchSize
 
@@ -331,7 +373,7 @@ export async function executeCSVImport(
       result.totalProcessed++
 
       try {
-        const bookId = await executeBookOperation(payload, operation, opts)
+        const bookId = await executeBookOperation(payload, operation, opts, categoryCache)
 
         result.successful++
 

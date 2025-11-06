@@ -11,8 +11,30 @@ import config from '@payload-config'
 import { previewCSVImport } from '@/lib/csv/importer'
 import type { CSVImportOptions } from '@/lib/csv/types'
 import { DuplicateStrategy } from '@/lib/csv/types'
+import { checkRateLimit, getRateLimitHeaders } from '@/lib/rateLimit'
 
 export async function POST(request: NextRequest) {
+  // Rate limiting: 10 requests per minute
+  const rateLimit = checkRateLimit(request, {
+    maxRequests: 10,
+    windowSeconds: 60,
+  })
+
+  const rateLimitHeaders = getRateLimitHeaders(10, rateLimit.remaining, rateLimit.resetAt)
+
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Rate limit exceeded. Please try again later.',
+      },
+      {
+        status: 429,
+        headers: rateLimitHeaders,
+      },
+    )
+  }
+
   try {
     const payload = await getPayload({ config })
 
@@ -86,10 +108,15 @@ export async function POST(request: NextRequest) {
     // Preview import
     const result = await previewCSVImport(csvContent, options, payload)
 
-    return NextResponse.json({
-      success: true,
-      preview: result,
-    })
+    return NextResponse.json(
+      {
+        success: true,
+        preview: result,
+      },
+      {
+        headers: rateLimitHeaders,
+      },
+    )
   } catch (error) {
     // Log error
     try {

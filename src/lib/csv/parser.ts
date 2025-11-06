@@ -108,7 +108,7 @@ export function parseCSV(csvContent: string): BookOperation[] {
       // Inventory
       stockQuantity: parseNumber(row.stockquantity),
       reorderLevel: parseNumber(row.reorderlevel),
-      stockStatus: row.stockstatus?.trim() || undefined,
+      stockStatus: row.stockstatus?.trim().toUpperCase() || undefined,
 
       // Categorisation
       categoryName: categoryValue?.trim() || undefined,
