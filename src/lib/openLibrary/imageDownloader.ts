@@ -6,7 +6,6 @@
  */
 
 import type { Payload } from 'payload'
-import type { Media } from '@/payload-types'
 
 /**
  * Result of downloading and storing a cover image
@@ -65,15 +64,18 @@ function generateFilename(bookTitle: string | undefined, isbn: string | undefine
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024
 
 /**
- * Downloads an image from a URL and returns the buffer
+ * Downloads an image from a URL and returns the buffer with metadata
  *
  * Validates image size before and after download to prevent resource exhaustion
  *
  * @param url - Image URL to download
  * @param timeout - Download timeout in milliseconds
- * @returns Image buffer
+ * @returns Object with image buffer and content-type
  */
-async function downloadImageBuffer(url: string, timeout: number = 30000): Promise<Buffer> {
+async function downloadImageBuffer(
+  url: string,
+  timeout: number = 30000,
+): Promise<{ buffer: Buffer; contentType: string }> {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), timeout)
 
@@ -115,7 +117,10 @@ async function downloadImageBuffer(url: string, timeout: number = 30000): Promis
       )
     }
 
-    return Buffer.from(arrayBuffer)
+    return {
+      buffer: Buffer.from(arrayBuffer),
+      contentType,
+    }
   } finally {
     clearTimeout(timeoutId)
   }
@@ -181,7 +186,7 @@ export async function downloadCoverImage(
       bookTitle,
     })
 
-    const imageBuffer = await downloadImageBuffer(imageUrl, timeout)
+    const { buffer: imageBuffer, contentType } = await downloadImageBuffer(imageUrl, timeout)
 
     // Generate filename
     const filename = generateFilename(bookTitle, undefined)
@@ -194,7 +199,7 @@ export async function downloadCoverImage(
       },
       file: {
         data: imageBuffer,
-        mimetype: 'image/jpeg',
+        mimetype: contentType,
         name: filename,
         size: imageBuffer.length,
       },
@@ -205,6 +210,7 @@ export async function downloadCoverImage(
       mediaId: media.id,
       filename: media.filename,
       size: imageBuffer.length,
+      contentType,
     })
 
     return {

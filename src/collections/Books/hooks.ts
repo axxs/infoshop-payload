@@ -196,16 +196,26 @@ export const validateDigitalProduct: CollectionBeforeChangeHook = async ({ data 
 /**
  * Process Subjects from ISBN Lookup
  * After a book is created/updated, process any temporary subject names from ISBN lookup
+ *
+ * @remarks
+ * Recursion-safe: The cleanup update passes skipHooks context to prevent re-triggering
  */
 export const processSubjectsFromISBN: CollectionAfterChangeHook = async ({
   doc,
   operation,
   req,
+  context,
 }) => {
+  // Skip if this update is from our cleanup operation (prevent recursion)
+  if (context?.skipSubjectProcessing) {
+    return doc
+  }
+
   // Only process on create and update operations (skip delete)
   if (operation !== 'create' && operation !== 'update') return doc
 
   // Check if we have temporary subject names from ISBN lookup
+  // This also guards against recursion if _subjectNames is cleared
   const subjectNames = doc._subjectNames as string[] | undefined
 
   if (!subjectNames || !Array.isArray(subjectNames) || subjectNames.length === 0) {
@@ -234,11 +244,15 @@ export const processSubjectsFromISBN: CollectionAfterChangeHook = async ({
     })
 
     // Clear the temporary field after successful processing
+    // Pass context flag to prevent recursion (this update won't trigger the hook again)
     await req.payload.update({
       collection: 'books',
       id: doc.id,
       data: {
         _subjectNames: null,
+      },
+      context: {
+        skipSubjectProcessing: true,
       },
     })
 

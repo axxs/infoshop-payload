@@ -322,8 +322,23 @@ export async function linkSubjectsToBook(
   bookId: number,
   subjectIds: number[],
 ): Promise<void> {
+  // Validate inputs
+  if (!bookId || typeof bookId !== 'number' || bookId <= 0) {
+    throw new Error(`Invalid book ID: ${bookId}`)
+  }
+
+  if (!Array.isArray(subjectIds)) {
+    throw new Error('subjectIds must be an array')
+  }
+
   if (subjectIds.length === 0) {
     return
+  }
+
+  // Validate all subject IDs are numbers
+  const invalidIds = subjectIds.filter((id) => typeof id !== 'number' || id <= 0)
+  if (invalidIds.length > 0) {
+    throw new Error(`Invalid subject IDs: ${invalidIds.join(', ')}`)
   }
 
   try {

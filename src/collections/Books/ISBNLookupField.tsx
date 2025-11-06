@@ -147,8 +147,6 @@ export const ISBNLookupField = ({ path }: ISBNLookupFieldProps): React.JSX.Eleme
               successMessage += ', downloaded cover'
             }
           } catch (coverError) {
-            // Log error for debugging
-            console.error('Cover download failed:', coverError)
             // Don't fail the whole operation if cover download fails
             const errorMsg = coverError instanceof Error ? coverError.message : 'Unknown error'
             successMessage += ` (cover download failed: ${errorMsg})`
