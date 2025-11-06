@@ -87,6 +87,8 @@ function isGenericSubject(name: string): boolean {
 /**
  * Finds an existing subject by name (case-insensitive)
  *
+ * Uses indexed normalizedName field for efficient case-insensitive lookups
+ *
  * @param payload - Payload instance
  * @param name - Subject name to search for
  * @returns Subject if found, null otherwise
@@ -95,11 +97,12 @@ async function findExistingSubject(payload: Payload, name: string): Promise<Subj
   const normalized = normalizeSubjectName(name)
 
   try {
+    // Use indexed normalizedName field for efficient case-insensitive search
     const result = await payload.find({
       collection: 'subjects',
       where: {
-        name: {
-          equals: name,
+        normalizedName: {
+          equals: normalized,
         },
       },
       limit: 1,
@@ -109,21 +112,12 @@ async function findExistingSubject(payload: Payload, name: string): Promise<Subj
       return result.docs[0]
     }
 
-    // Try case-insensitive search if exact match fails
-    const allSubjects = await payload.find({
-      collection: 'subjects',
-      limit: 1000, // Reasonable limit for subject count
-    })
-
-    const match = allSubjects.docs.find(
-      (subject) => normalizeSubjectName(subject.name) === normalized,
-    )
-
-    return match || null
+    return null
   } catch (error) {
     payload.logger.error({
       msg: 'Failed to search for existing subject',
       name,
+      normalized,
       error: error instanceof Error ? error.message : 'Unknown error',
     })
     throw error
@@ -139,13 +133,16 @@ async function findExistingSubject(payload: Payload, name: string): Promise<Subj
  */
 async function createSubject(payload: Payload, name: string): Promise<Subject> {
   const slug = generateSlug(name)
+  const normalized = normalizeSubjectName(name)
 
   try {
     const subject = await payload.create({
       collection: 'subjects',
+      draft: false,
       data: {
         name: name.trim(),
         slug,
+        normalizedName: normalized,
       },
     })
 
@@ -171,6 +168,8 @@ async function createSubject(payload: Payload, name: string): Promise<Subject> {
 /**
  * Finds or creates a subject by name
  *
+ * Handles race conditions by catching duplicate key errors and retrying find
+ *
  * @param payload - Payload instance
  * @param name - Subject name
  * @returns Subject result with ID and creation status
@@ -194,14 +193,38 @@ export async function findOrCreateSubject(payload: Payload, name: string): Promi
     }
   }
 
-  // Create new subject
-  const newSubject = await createSubject(payload, trimmedName)
+  // Try to create new subject
+  try {
+    const newSubject = await createSubject(payload, trimmedName)
 
-  return {
-    id: newSubject.id,
-    name: newSubject.name,
-    slug: newSubject.slug,
-    created: true,
+    return {
+      id: newSubject.id,
+      name: newSubject.name,
+      slug: newSubject.slug,
+      created: true,
+    }
+  } catch (error) {
+    // If duplicate key error (race condition), retry finding the subject
+    const errorMessage = error instanceof Error ? error.message : ''
+    if (errorMessage.includes('duplicate') || errorMessage.includes('unique constraint')) {
+      payload.logger.warn({
+        msg: 'Race condition detected in subject creation, retrying find',
+        name: trimmedName,
+      })
+
+      const retryExisting = await findExistingSubject(payload, trimmedName)
+      if (retryExisting) {
+        return {
+          id: retryExisting.id,
+          name: retryExisting.name,
+          slug: retryExisting.slug,
+          created: false,
+        }
+      }
+    }
+
+    // Re-throw if not a duplicate error or retry failed
+    throw error
   }
 }
 

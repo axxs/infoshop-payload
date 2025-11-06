@@ -202,8 +202,8 @@ export const processSubjectsFromISBN: CollectionAfterChangeHook = async ({
   operation,
   req,
 }) => {
-  // Only process on create operations when we have subject names
-  if (operation !== 'create') return doc
+  // Only process on create and update operations (skip delete)
+  if (operation !== 'create' && operation !== 'update') return doc
 
   // Check if we have temporary subject names from ISBN lookup
   const subjectNames = doc._subjectNames as string[] | undefined
@@ -216,6 +216,7 @@ export const processSubjectsFromISBN: CollectionAfterChangeHook = async ({
     req.payload.logger.info({
       msg: 'Processing subjects from ISBN lookup',
       bookId: doc.id,
+      operation,
       subjectCount: subjectNames.length,
     })
 
@@ -228,15 +229,31 @@ export const processSubjectsFromISBN: CollectionAfterChangeHook = async ({
     req.payload.logger.info({
       msg: 'Successfully processed subjects from ISBN lookup',
       bookId: doc.id,
+      operation,
       linkedCount,
+    })
+
+    // Clear the temporary field after successful processing
+    await req.payload.update({
+      collection: 'books',
+      id: doc.id,
+      data: {
+        _subjectNames: null,
+      },
+    })
+
+    req.payload.logger.info({
+      msg: 'Cleared temporary subject names field',
+      bookId: doc.id,
     })
   } catch (error) {
     req.payload.logger.error({
       msg: 'Failed to process subjects from ISBN lookup',
       bookId: doc.id,
+      operation,
       error: error instanceof Error ? error.message : 'Unknown error',
     })
-    // Don't throw - allow book creation to succeed even if subject processing fails
+    // Don't throw - allow book creation/update to succeed even if subject processing fails
   }
 
   return doc

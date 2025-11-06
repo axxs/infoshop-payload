@@ -60,7 +60,14 @@ function generateFilename(bookTitle: string | undefined, isbn: string | undefine
 }
 
 /**
+ * Maximum allowed image size in bytes (10MB)
+ */
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024
+
+/**
  * Downloads an image from a URL and returns the buffer
+ *
+ * Validates image size before and after download to prevent resource exhaustion
  *
  * @param url - Image URL to download
  * @param timeout - Download timeout in milliseconds
@@ -82,12 +89,32 @@ async function downloadImageBuffer(url: string, timeout: number = 30000): Promis
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
+    // Validate content type
     const contentType = response.headers.get('content-type')
     if (!contentType || !contentType.startsWith('image/')) {
       throw new Error(`Invalid content type: ${contentType}. Expected an image.`)
     }
 
+    // Check content length before downloading (if provided)
+    const contentLength = response.headers.get('content-length')
+    if (contentLength) {
+      const sizeBytes = parseInt(contentLength, 10)
+      if (sizeBytes > MAX_IMAGE_SIZE) {
+        throw new Error(
+          `Image too large: ${(sizeBytes / 1024 / 1024).toFixed(2)}MB (max ${MAX_IMAGE_SIZE / 1024 / 1024}MB)`,
+        )
+      }
+    }
+
     const arrayBuffer = await response.arrayBuffer()
+
+    // Validate actual size after download
+    if (arrayBuffer.byteLength > MAX_IMAGE_SIZE) {
+      throw new Error(
+        `Downloaded image exceeds size limit: ${(arrayBuffer.byteLength / 1024 / 1024).toFixed(2)}MB`,
+      )
+    }
+
     return Buffer.from(arrayBuffer)
   } finally {
     clearTimeout(timeoutId)

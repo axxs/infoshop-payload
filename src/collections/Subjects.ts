@@ -29,6 +29,16 @@ export const Subjects: CollectionConfig = {
       },
     },
     {
+      name: 'normalizedName',
+      type: 'text',
+      required: true,
+      index: true,
+      admin: {
+        hidden: true,
+        description: 'Normalized name for case-insensitive lookups (auto-generated)',
+      },
+    },
+    {
       name: 'description',
       type: 'textarea',
     },
@@ -36,10 +46,22 @@ export const Subjects: CollectionConfig = {
   hooks: {
     beforeChange: [
       async ({ data, operation }) => {
+        if (!data) return data
+
         // Auto-generate slug from name if not provided
-        if (data?.name && (!data.slug || operation === 'create')) {
+        if (data.name && (!data.slug || operation === 'create')) {
           data.slug = slugify(data.name)
         }
+
+        // Auto-generate normalizedName for case-insensitive lookups
+        if (data.name) {
+          data.normalizedName = data.name
+            .trim()
+            .toLowerCase()
+            .replace(/[^\w\s-]/g, '')
+            .replace(/\s+/g, ' ')
+        }
+
         return data
       },
     ],
