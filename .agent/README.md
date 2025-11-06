@@ -81,17 +81,44 @@ This directory contains token-optimised documentation for Claude Code to quickly
 
 ## Current Status
 
-✅ **Initial system documentation created**
+✅ **System documentation complete**
 
 - Project architecture documented
-- Collection schemas defined
+- Collection schemas defined (including Phase 3.7 enhancements)
 - API structure outlined
-- Key components identified
+- Key components identified (including Open Library integration)
 
-⏳ **Task documentation**: Will grow as features are built
-⏳ **SOPs**: Will be added as processes are defined
+✅ **Task documentation**: Growing with each feature
+
+- Phase 2: Database setup and initial collections
+- Phase 3: Open Library ISBN lookup integration
+- Phase 3.7: ISBN lookup enhancements (subjects, cover images)
+- Phase 4.6: Shopping cart functionality
+
+✅ **SOPs**: Standard operating procedures documented
+
+- Adding collections
+- Troubleshooting guide
+
+## Recent Updates (2025-11-06)
+
+**Phase 3.7 Documentation Added**:
+
+- `task/phase-3-7-isbn-enhancements.md` - Complete implementation guide (708 lines)
+- Updated `system/database-schema.md` with `normalizedName` field and Books hooks
+- Updated `system/key-components.md` with Open Library integration modules
+- Added recursion prevention pattern for hooks
+- Added custom component documentation (ISBN Lookup Field)
+
+**Key Features Documented**:
+
+- Subject auto-creation with O(1) indexed lookups
+- Secure cover image download with DoS prevention
+- Hook context guards for recursion prevention
+- Server actions for client integration
+- Comprehensive integration tests (15 tests)
 
 ---
 
-Last Updated: 2025-11-01
+Last Updated: 2025-11-06
 Project: Infoshop Payload CMS Migration
