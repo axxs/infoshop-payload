@@ -4,6 +4,7 @@
  */
 
 import type { CollectionBeforeChangeHook, CollectionAfterChangeHook } from 'payload'
+import { processAndLinkSubjects } from '@/lib/openLibrary/subjectManager'
 
 /**
  * Validate ISBN format (ISBN-10 or ISBN-13)
@@ -190,4 +191,84 @@ export const validateDigitalProduct: CollectionBeforeChangeHook = async ({ data 
   }
 
   return data
+}
+
+/**
+ * Process Subjects from ISBN Lookup
+ * After a book is created/updated, process any temporary subject names from ISBN lookup
+ *
+ * @remarks
+ * Recursion-safe: The cleanup update passes skipHooks context to prevent re-triggering
+ */
+export const processSubjectsFromISBN: CollectionAfterChangeHook = async ({
+  doc,
+  operation,
+  req,
+  context,
+}) => {
+  // Skip if this update is from our cleanup operation (prevent recursion)
+  if (context?.skipSubjectProcessing) {
+    return doc
+  }
+
+  // Only process on create and update operations (skip delete)
+  if (operation !== 'create' && operation !== 'update') return doc
+
+  // Check if we have temporary subject names from ISBN lookup
+  // This also guards against recursion if _subjectNames is cleared
+  const subjectNames = doc._subjectNames as string[] | undefined
+
+  if (!subjectNames || !Array.isArray(subjectNames) || subjectNames.length === 0) {
+    return doc
+  }
+
+  try {
+    req.payload.logger.info({
+      msg: 'Processing subjects from ISBN lookup',
+      bookId: doc.id,
+      operation,
+      subjectCount: subjectNames.length,
+    })
+
+    // Process and link subjects
+    const linkedCount = await processAndLinkSubjects(req.payload, doc.id, subjectNames, {
+      maxSubjects: 10,
+      skipGeneric: true,
+    })
+
+    req.payload.logger.info({
+      msg: 'Successfully processed subjects from ISBN lookup',
+      bookId: doc.id,
+      operation,
+      linkedCount,
+    })
+
+    // Clear the temporary field after successful processing
+    // Pass context flag to prevent recursion (this update won't trigger the hook again)
+    await req.payload.update({
+      collection: 'books',
+      id: doc.id,
+      data: {
+        _subjectNames: null,
+      },
+      context: {
+        skipSubjectProcessing: true,
+      },
+    })
+
+    req.payload.logger.info({
+      msg: 'Cleared temporary subject names field',
+      bookId: doc.id,
+    })
+  } catch (error) {
+    req.payload.logger.error({
+      msg: 'Failed to process subjects from ISBN lookup',
+      bookId: doc.id,
+      operation,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    })
+    // Don't throw - allow book creation/update to succeed even if subject processing fails
+  }
+
+  return doc
 }

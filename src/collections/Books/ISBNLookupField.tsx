@@ -25,6 +25,7 @@
 
 import React, { useState } from 'react'
 import { TextInput, useField, useForm, Button } from '@payloadcms/ui'
+import { downloadBookCover } from '@/lib/openLibrary/actions'
 
 /**
  * API response structure from ISBN lookup endpoint
@@ -40,6 +41,7 @@ interface ISBNLookupResponse {
     pages?: number
     description?: string
     externalCoverUrl?: string
+    subjects?: string[]
   }
   source?: string
 }
@@ -60,10 +62,11 @@ interface ISBNLookupFieldProps {
  */
 export const ISBNLookupField = ({ path }: ISBNLookupFieldProps): React.JSX.Element => {
   const { value, setValue } = useField<string>({ path })
-  const { dispatchFields } = useForm()
+  const { dispatchFields, getData } = useForm()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [progress, setProgress] = useState<string>('')
 
   /**
    * Handles the ISBN lookup and form field population
@@ -77,6 +80,7 @@ export const ISBNLookupField = ({ path }: ISBNLookupFieldProps): React.JSX.Eleme
     setIsLoading(true)
     setError(null)
     setSuccess(null)
+    setProgress('Looking up book...')
 
     try {
       const response = await fetch(`/api/books/lookup-isbn?isbn=${encodeURIComponent(value)}`)
@@ -125,9 +129,42 @@ export const ISBNLookupField = ({ path }: ISBNLookupFieldProps): React.JSX.Eleme
           })
         })
 
-        setSuccess(
-          `Found: ${bookData.title || 'Unknown'} by ${bookData.author || 'Unknown'} - Auto-populated ${Object.keys(fieldsToUpdate).length} fields`,
-        )
+        let successMessage = `Found: ${bookData.title || 'Unknown'} by ${bookData.author || 'Unknown'} - Auto-populated ${Object.keys(fieldsToUpdate).length} fields`
+
+        // Download cover image if URL is present
+        if (bookData.externalCoverUrl && bookData.title) {
+          setProgress('Downloading cover image...')
+          try {
+            const coverResult = await downloadBookCover(bookData.externalCoverUrl, bookData.title)
+
+            if (coverResult.success && coverResult.mediaId) {
+              // Update coverImage field with Media ID
+              dispatchFields({
+                type: 'UPDATE',
+                path: 'coverImage',
+                value: coverResult.mediaId,
+              })
+              successMessage += ', downloaded cover'
+            }
+          } catch (coverError) {
+            // Don't fail the whole operation if cover download fails
+            const errorMsg = coverError instanceof Error ? coverError.message : 'Unknown error'
+            successMessage += ` (cover download failed: ${errorMsg})`
+          }
+        }
+
+        // Store subjects in temporary field for afterChange hook to process
+        if (bookData.subjects && bookData.subjects.length > 0) {
+          dispatchFields({
+            type: 'UPDATE',
+            path: '_subjectNames',
+            value: bookData.subjects,
+          })
+          successMessage += `, ${bookData.subjects.length} subjects will be linked on save`
+        }
+
+        setProgress('')
+        setSuccess(successMessage)
       } catch (dispatchError) {
         setError(
           `Failed to update form fields: ${dispatchError instanceof Error ? dispatchError.message : 'Unknown error'}`,
@@ -162,6 +199,12 @@ export const ISBNLookupField = ({ path }: ISBNLookupFieldProps): React.JSX.Eleme
           {isLoading ? 'Looking up...' : 'Look up Book'}
         </Button>
       </div>
+
+      {progress && !error && !success && (
+        <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-blue-600 text-sm">
+          ⏳ {progress}
+        </div>
+      )}
 
       {error && (
         <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm">

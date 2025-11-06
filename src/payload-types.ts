@@ -255,6 +255,18 @@ export interface Book {
    */
   subjects?: (number | Subject)[] | null;
   /**
+   * Temporary storage for subject names from ISBN lookup
+   */
+  _subjectNames?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
    * Book cover image
    */
   coverImage?: (number | null) | Media;
@@ -317,6 +329,10 @@ export interface Subject {
    * URL-friendly identifier (auto-generated from name if empty)
    */
   slug: string;
+  /**
+   * Normalized name for case-insensitive lookups (auto-generated)
+   */
+  normalizedName: string;
   description?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -665,6 +681,7 @@ export interface BooksSelect<T extends boolean = true> {
   stockStatus?: T;
   categories?: T;
   subjects?: T;
+  _subjectNames?: T;
   coverImage?: T;
   externalCoverUrl?: T;
   isDigital?: T;
@@ -696,6 +713,7 @@ export interface CategoriesSelect<T extends boolean = true> {
 export interface SubjectsSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
+  normalizedName?: T;
   description?: T;
   updatedAt?: T;
   createdAt?: T;
