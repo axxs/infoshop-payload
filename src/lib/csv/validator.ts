@@ -19,14 +19,81 @@ const VALID_CURRENCIES = ['USD', 'EUR', 'GBP', 'AUD', 'CAD']
 const VALID_STOCK_STATUSES = ['IN_STOCK', 'LOW_STOCK', 'OUT_OF_STOCK', 'DISCONTINUED']
 
 /**
- * Validates ISBN format (10 or 13 digits after cleaning)
+ * Validates ISBN-10 checksum using modulo 11 algorithm
+ *
+ * @param isbn - Cleaned 10-character ISBN string
+ * @returns True if checksum is valid
+ */
+function validateISBN10Checksum(isbn: string): boolean {
+  let sum = 0
+
+  // Calculate weighted sum of first 9 digits
+  for (let i = 0; i < 9; i++) {
+    const digit = parseInt(isbn[i], 10)
+    if (isNaN(digit)) return false
+    sum += digit * (10 - i)
+  }
+
+  // Check digit can be 0-9 or X (representing 10)
+  const checkChar = isbn[9]
+  const checkDigit = checkChar === 'X' || checkChar === 'x' ? 10 : parseInt(checkChar, 10)
+
+  if (isNaN(checkDigit)) return false
+
+  sum += checkDigit
+
+  // Valid if sum is divisible by 11
+  return sum % 11 === 0
+}
+
+/**
+ * Validates ISBN-13 checksum using modulo 10 algorithm
+ *
+ * @param isbn - Cleaned 13-digit ISBN string
+ * @returns True if checksum is valid
+ */
+function validateISBN13Checksum(isbn: string): boolean {
+  let sum = 0
+
+  // Calculate weighted sum of first 12 digits
+  // Alternating weight: 1, 3, 1, 3...
+  for (let i = 0; i < 12; i++) {
+    const digit = parseInt(isbn[i], 10)
+    if (isNaN(digit)) return false
+
+    const weight = i % 2 === 0 ? 1 : 3
+    sum += digit * weight
+  }
+
+  // Check digit calculation
+  const checkDigit = parseInt(isbn[12], 10)
+  if (isNaN(checkDigit)) return false
+
+  const calculatedCheck = (10 - (sum % 10)) % 10
+
+  return calculatedCheck === checkDigit
+}
+
+/**
+ * Validates ISBN format and checksum (10 or 13 digits after cleaning)
  *
  * @param isbn - ISBN string
- * @returns True if valid format
+ * @returns True if valid format and checksum
  */
 function validateISBNFormat(isbn: string): boolean {
-  const cleaned = isbn.replace(/[-\s]/g, '')
-  return /^\d{10}$/.test(cleaned) || /^\d{13}$/.test(cleaned)
+  const cleaned = isbn.replace(/[-\s]/g, '').toUpperCase()
+
+  // Validate ISBN-10 (9 digits + check character)
+  if (/^\d{9}[\dX]$/.test(cleaned)) {
+    return validateISBN10Checksum(cleaned)
+  }
+
+  // Validate ISBN-13 (13 digits)
+  if (/^\d{13}$/.test(cleaned)) {
+    return validateISBN13Checksum(cleaned)
+  }
+
+  return false
 }
 
 /**

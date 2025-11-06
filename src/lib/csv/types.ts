@@ -199,8 +199,23 @@ export interface CSVImportOptions {
   /** Default currency if not specified */
   defaultCurrency?: string
 
-  /** Number of books to process per transaction */
+  /** Number of books to process per batch */
   batchSize?: number
+
+  /**
+   * Stop import on first error to prevent partial imports
+   *
+   * ⚠️ WARNING: This is NOT a true database transaction. If an error occurs:
+   * - With stopOnError=true: Import stops immediately, but previous operations remain committed
+   * - With stopOnError=false: Import continues, accumulating errors
+   *
+   * For true transactional safety with automatic rollback:
+   * - PostgreSQL/SQLite: Use database backup/restore or manual transaction management
+   * - MongoDB: Requires replica set configuration for multi-document transactions
+   *
+   * @default false
+   */
+  stopOnError?: boolean
 }
 
 /**

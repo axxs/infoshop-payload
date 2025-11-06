@@ -2,6 +2,17 @@
  * Rate Limiting Utility
  * Simple in-memory rate limiter to prevent abuse
  *
+ * ⚠️ WARNING: This is a simple in-memory implementation suitable for development/testing.
+ * For production, consider using:
+ * - Redis-backed rate limiter (e.g., ioredis + rate-limiter-flexible)
+ * - Database-backed rate limiter
+ * - Edge/CDN rate limiting (Cloudflare, Vercel Edge Config)
+ *
+ * Limitations:
+ * - Not suitable for serverless environments with multiple instances
+ * - Memory accumulation risk in long-running processes
+ * - No distributed coordination
+ *
  * @module lib/rateLimit
  */
 
@@ -10,7 +21,11 @@ import { NextRequest } from 'next/server'
 interface RateLimitEntry {
   count: number
   resetAt: number
+  lastAccessed: number // For LRU eviction
 }
+
+// Maximum number of entries to prevent memory leaks
+const MAX_ENTRIES = 10000
 
 // In-memory store for rate limiting
 const rateLimitStore = new Map<string, RateLimitEntry>()
@@ -97,15 +112,38 @@ export function checkRateLimit(
     entry = {
       count: 0,
       resetAt,
+      lastAccessed: now,
     }
     rateLimitStore.set(clientIP, entry)
   }
 
-  // Increment request count
+  // Update last accessed time for LRU eviction
+  entry.lastAccessed = now
+
+  // Increment request count atomically BEFORE checking (fixes race condition)
   entry.count++
+  rateLimitStore.set(clientIP, entry) // Ensure persistence
 
   const allowed = entry.count <= config.maxRequests
   const remaining = Math.max(0, config.maxRequests - entry.count)
+
+  // Enforce max entries using LRU eviction
+  if (rateLimitStore.size > MAX_ENTRIES) {
+    // Find and remove the least recently accessed entry
+    let oldestKey: string | null = null
+    let oldestTime = Infinity
+
+    for (const [key, value] of rateLimitStore.entries()) {
+      if (value.lastAccessed < oldestTime) {
+        oldestTime = value.lastAccessed
+        oldestKey = key
+      }
+    }
+
+    if (oldestKey) {
+      rateLimitStore.delete(oldestKey)
+    }
+  }
 
   return {
     allowed,

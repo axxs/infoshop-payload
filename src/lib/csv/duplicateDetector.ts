@@ -78,10 +78,12 @@ async function buildDuplicateLookup(
       and: [{ title: { equals: pair.title } }, { author: { equals: pair.author } }],
     }))
 
+    // Note: Type assertion required because Payload's Where type doesn't support
+    // dynamically generated nested OR/AND conditions. Runtime validation ensures correctness.
     const existingByTitleAuthor = await payload.find({
       collection: 'books',
       where: {
-        or: orConditions as any, // Type assertion needed for complex Where conditions
+        or: orConditions as any,
       },
       limit: titleAuthorPairs.length,
     })

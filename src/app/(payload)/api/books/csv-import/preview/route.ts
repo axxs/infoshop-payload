@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       try {
         const parsedOptions = JSON.parse(optionsJson)
         options = { ...options, ...parsedOptions }
-      } catch (error) {
+      } catch (_error) {
         return NextResponse.json(
           {
             success: false,

@@ -75,7 +75,7 @@ export function validateURL(url: string): { valid: boolean; error?: string } {
     }
 
     return { valid: true }
-  } catch (error) {
+  } catch (_error) {
     return {
       valid: false,
       error: 'Invalid URL format',

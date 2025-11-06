@@ -34,6 +34,7 @@ const DEFAULT_OPTIONS: Required<CSVImportOptions> = {
   downloadCoverImages: true,
   defaultCurrency: 'USD',
   batchSize: 10,
+  stopOnError: false,
 }
 
 /**
@@ -66,7 +67,7 @@ async function enrichFromISBN(operation: BookOperation): Promise<BookOperation> 
             : result.data.subjects,
       }
     }
-  } catch (error) {
+  } catch (_error) {
     // Silently fail - lookup is optional enrichment
   }
 
@@ -269,7 +270,9 @@ async function executeBookOperation(
     }
   }
 
-  // 3. Prepare book data (using type-safe Partial approach)
+  // 3. Prepare book data
+  // Note: Type assertion required due to Payload's complex type system with optional fields,
+  // conditional spreads, and dynamically generated types. All fields are validated at runtime.
   const bookData = {
     title: operation.title,
     author: operation.author,
@@ -294,7 +297,7 @@ async function executeBookOperation(
     fileSize: operation.fileSize,
     ...(categoryId && { categories: [categoryId] }),
     ...(coverImageId && { coverImage: coverImageId }),
-  } as any // Type assertion needed for complex Payload types
+  } as any
 
   // 4. Create or update book
   let bookId: number
@@ -402,6 +405,17 @@ export async function executeCSVImport(
           rowIndex: operation.rowIndex,
           error: error instanceof Error ? error.message : 'Unknown error',
         })
+
+        // Stop immediately on first error if stopOnError is enabled
+        if (opts.stopOnError) {
+          payload.logger.warn({
+            msg: 'Import stopped due to error (stopOnError=true)',
+            processedCount: result.totalProcessed,
+            successfulCount: result.successful,
+            failedCount: result.failed,
+          })
+          return result
+        }
       }
     }
   }

@@ -62,6 +62,38 @@ function parseArray(value: string | undefined): string[] | undefined {
 }
 
 /**
+ * Sanitises CSV values to prevent CSV injection attacks
+ * Prefixes dangerous characters with a single quote to prevent formula execution
+ *
+ * @param value - String value from CSV
+ * @returns Sanitised string or undefined
+ */
+function sanitiseCSVValue(value: string | undefined): string | undefined {
+  if (!value) return value
+
+  const trimmed = value.trim()
+  const dangerousChars = ['=', '+', '-', '@', '|', '\t', '\r']
+
+  if (dangerousChars.some((char) => trimmed.startsWith(char))) {
+    // Prefix with single quote to prevent formula execution
+    return `'${trimmed}`
+  }
+
+  return value
+}
+
+/**
+ * Sanitises array of CSV values
+ *
+ * @param values - Array of strings
+ * @returns Array of sanitised strings
+ */
+function sanitiseArray(values: string[] | undefined): string[] | undefined {
+  if (!values) return values
+  return values.map((value) => sanitiseCSVValue(value) || '')
+}
+
+/**
  * Parses CSV content into book operations
  *
  * @param csvContent - Raw CSV file content
@@ -91,39 +123,39 @@ export function parseCSV(csvContent: string): BookOperation[] {
       operationType: BookOperationType.CREATE, // Will be updated by duplicate detector
       rowIndex: index + 2, // +2 because: 0-indexed + header row + 1-indexed display
 
-      // Required
-      title: row.title?.trim() || '',
+      // Required (sanitised to prevent CSV injection)
+      title: sanitiseCSVValue(row.title?.trim()) || '',
 
-      // Optional identification
-      author: row.author?.trim() || undefined,
-      isbn: row.isbn?.trim() || undefined,
-      oclc: oclcValue?.trim() || undefined,
+      // Optional identification (sanitised)
+      author: sanitiseCSVValue(row.author?.trim()),
+      isbn: sanitiseCSVValue(row.isbn?.trim()),
+      oclc: sanitiseCSVValue(oclcValue?.trim()),
 
-      // Pricing
+      // Pricing (numbers don't need sanitisation)
       costPrice: parseNumber(row.costprice),
       sellPrice: parseNumber(row.sellprice),
       memberPrice: parseNumber(row.memberprice),
       currency: row.currency?.trim().toUpperCase() || undefined,
 
-      // Inventory
+      // Inventory (numbers and enum values don't need sanitisation)
       stockQuantity: parseNumber(row.stockquantity),
       reorderLevel: parseNumber(row.reorderlevel),
       stockStatus: row.stockstatus?.trim().toUpperCase() || undefined,
 
-      // Categorisation
-      categoryName: categoryValue?.trim() || undefined,
-      subjectNames: parseArray(subjectsValue),
+      // Categorisation (sanitised)
+      categoryName: sanitiseCSVValue(categoryValue?.trim()),
+      subjectNames: sanitiseArray(parseArray(subjectsValue)),
 
-      // Metadata
-      publisher: row.publisher?.trim() || undefined,
-      publishedDate: row.publisheddate?.trim() || undefined,
-      description: row.description?.trim() || undefined,
-      coverImageUrl: coverImageValue?.trim() || undefined,
+      // Metadata (sanitised)
+      publisher: sanitiseCSVValue(row.publisher?.trim()),
+      publishedDate: sanitiseCSVValue(row.publisheddate?.trim()),
+      description: sanitiseCSVValue(row.description?.trim()),
+      coverImageUrl: coverImageValue?.trim() || undefined, // URLs validated separately by SSRF protection
 
-      // Digital products
+      // Digital products (sanitised)
       isDigital: parseBoolean(row.isdigital),
-      downloadUrl: row.downloadurl?.trim() || undefined,
-      fileSize: row.filesize?.trim() || undefined,
+      downloadUrl: row.downloadurl?.trim() || undefined, // URLs validated separately
+      fileSize: sanitiseCSVValue(row.filesize?.trim()),
     }
   })
 
