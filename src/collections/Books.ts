@@ -14,6 +14,9 @@ export const Books: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'isbn', 'costPrice', 'sellPrice', 'memberPrice', 'stockQuantity'],
+    components: {
+      beforeListTable: ['@/collections/Books/CSVImportButton#CSVImportButton'],
+    },
   },
   access: {
     read: () => true, // Public read access for storefront

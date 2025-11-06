@@ -94,6 +94,7 @@ This directory contains token-optimised documentation for Claude Code to quickly
 - Phase 3: Open Library ISBN lookup integration
 - Phase 3.7: ISBN lookup enhancements (subjects, cover images)
 - Phase 4.6: Shopping cart functionality
+- CSV Bulk Import: Comprehensive book import system (2,467 lines)
 
 ✅ **SOPs**: Standard operating procedures documented
 
@@ -102,21 +103,36 @@ This directory contains token-optimised documentation for Claude Code to quickly
 
 ## Recent Updates (2025-11-06)
 
-**Phase 3.7 Documentation Added**:
+**CSV Bulk Import Documentation Added**:
 
-- `task/phase-3-7-isbn-enhancements.md` - Complete implementation guide (708 lines)
-- Updated `system/database-schema.md` with `normalizedName` field and Books hooks
-- Updated `system/key-components.md` with Open Library integration modules
-- Added recursion prevention pattern for hooks
-- Added custom component documentation (ISBN Lookup Field)
+- `task/csv-bulk-import.md` - Complete implementation guide (1,432 lines)
+- Comprehensive CSV import system with two-phase workflow
+- Validation engine with ERROR/WARNING/INFO severity levels
+- Duplicate detection (ISBN + Title/Author) with 4 strategies
+- Batch processing with configurable size (default 10)
+- Admin UI modal component with preview and statistics
+- Integration with Phase 3.7 infrastructure (subjects, cover images)
+- 21 integration tests (all passing ✅)
+- Total implementation: 2,467 lines
 
 **Key Features Documented**:
 
+- PapaParse CSV parsing with flexible column mapping
+- 10+ validation rules (pricing, stock, ISBN, digital products)
+- Find-or-create patterns for categories and subjects
+- Optional ISBN enrichment from Open Library
+- Secure cover image download with size limits
+- Granular error reporting per row
+- Preview before execute safety workflow
+
+**Previous: Phase 3.7 Documentation**:
+
+- `task/phase-3-7-isbn-enhancements.md` - Complete implementation guide (708 lines)
 - Subject auto-creation with O(1) indexed lookups
 - Secure cover image download with DoS prevention
 - Hook context guards for recursion prevention
 - Server actions for client integration
-- Comprehensive integration tests (15 tests)
+- 15 integration tests (all passing ✅)
 
 ---
 
