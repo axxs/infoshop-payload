@@ -26,8 +26,21 @@ export function BookCoverImage({
   const handleError = () => {
     if (!hasError) {
       setHasError(true)
-      setImgSrc('/placeholder-book.png')
+      setImgSrc('/placeholder-book.svg')
     }
+  }
+
+  // Use regular img tag for SVG fallback (best practice - no optimization needed for SVGs)
+  if (hasError && imgSrc.endsWith('.svg')) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={imgSrc}
+        alt={alt}
+        className={className}
+        style={fill ? { width: '100%', height: '100%', objectFit: 'cover' } : undefined}
+      />
+    )
   }
 
   return (
