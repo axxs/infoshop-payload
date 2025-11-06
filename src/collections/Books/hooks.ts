@@ -4,6 +4,7 @@
  */
 
 import type { CollectionBeforeChangeHook, CollectionAfterChangeHook } from 'payload'
+import { processAndLinkSubjects } from '@/lib/openLibrary/subjectManager'
 
 /**
  * Validate ISBN format (ISBN-10 or ISBN-13)
@@ -190,4 +191,53 @@ export const validateDigitalProduct: CollectionBeforeChangeHook = async ({ data 
   }
 
   return data
+}
+
+/**
+ * Process Subjects from ISBN Lookup
+ * After a book is created/updated, process any temporary subject names from ISBN lookup
+ */
+export const processSubjectsFromISBN: CollectionAfterChangeHook = async ({
+  doc,
+  operation,
+  req,
+}) => {
+  // Only process on create operations when we have subject names
+  if (operation !== 'create') return doc
+
+  // Check if we have temporary subject names from ISBN lookup
+  const subjectNames = doc._subjectNames as string[] | undefined
+
+  if (!subjectNames || !Array.isArray(subjectNames) || subjectNames.length === 0) {
+    return doc
+  }
+
+  try {
+    req.payload.logger.info({
+      msg: 'Processing subjects from ISBN lookup',
+      bookId: doc.id,
+      subjectCount: subjectNames.length,
+    })
+
+    // Process and link subjects
+    const linkedCount = await processAndLinkSubjects(req.payload, doc.id, subjectNames, {
+      maxSubjects: 10,
+      skipGeneric: true,
+    })
+
+    req.payload.logger.info({
+      msg: 'Successfully processed subjects from ISBN lookup',
+      bookId: doc.id,
+      linkedCount,
+    })
+  } catch (error) {
+    req.payload.logger.error({
+      msg: 'Failed to process subjects from ISBN lookup',
+      bookId: doc.id,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    })
+    // Don't throw - allow book creation to succeed even if subject processing fails
+  }
+
+  return doc
 }

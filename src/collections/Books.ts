@@ -6,6 +6,7 @@ import {
   calculateStockStatus,
   checkLowStock,
   validateDigitalProduct,
+  processSubjectsFromISBN,
 } from './Books/hooks'
 
 export const Books: CollectionConfig = {
@@ -169,6 +170,14 @@ export const Books: CollectionConfig = {
         description: 'Subject tags (flexible)',
       },
     },
+    {
+      name: '_subjectNames',
+      type: 'json',
+      admin: {
+        hidden: true,
+        description: 'Temporary storage for subject names from ISBN lookup',
+      },
+    },
     // Media
     {
       name: 'coverImage',
@@ -256,6 +265,6 @@ export const Books: CollectionConfig = {
       validateDigitalProduct,
       calculateStockStatus,
     ],
-    afterChange: [checkLowStock],
+    afterChange: [checkLowStock, processSubjectsFromISBN],
   },
 }

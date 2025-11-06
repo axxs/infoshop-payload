@@ -255,6 +255,18 @@ export interface Book {
    */
   subjects?: (number | Subject)[] | null;
   /**
+   * Temporary storage for subject names from ISBN lookup
+   */
+  _subjectNames?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
    * Book cover image
    */
   coverImage?: (number | null) | Media;
@@ -665,6 +677,7 @@ export interface BooksSelect<T extends boolean = true> {
   stockStatus?: T;
   categories?: T;
   subjects?: T;
+  _subjectNames?: T;
   coverImage?: T;
   externalCoverUrl?: T;
   isDigital?: T;
