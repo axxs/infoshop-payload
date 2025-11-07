@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState, useRef } from 'react'
+import { SQUARE_SANDBOX_PREFIX, SQUARE_SDK_URL } from './constants'
 
 /**
  * Square SDK Type Definitions
@@ -75,10 +76,8 @@ export function SquarePaymentForm({
 
         // Determine SDK URL based on environment (sandbox vs production)
         const applicationId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID
-        const isSandbox = applicationId?.startsWith('sandbox-')
-        const sdkUrl = isSandbox
-          ? 'https://sandbox.web.squarecdn.com/v1/square.js'
-          : 'https://web.squarecdn.com/v1/square.js'
+        const isSandbox = applicationId?.startsWith(SQUARE_SANDBOX_PREFIX)
+        const sdkUrl = isSandbox ? SQUARE_SDK_URL.SANDBOX : SQUARE_SDK_URL.PRODUCTION
 
         // Load Square Web Payments SDK
         const script = document.createElement('script')

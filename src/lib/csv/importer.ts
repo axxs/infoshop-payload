@@ -13,6 +13,7 @@ import { processAndLinkSubjects } from '../openLibrary/subjectManager'
 import { downloadCoverImageIfPresent } from '../openLibrary/imageDownloader'
 import { lookupBookByISBN } from '../openLibrary'
 import { validateImageURL } from '../urlValidator'
+import type { SupportedCurrency } from '../square/constants'
 import type {
   BookOperation,
   BookOperationResult,
@@ -284,7 +285,7 @@ async function executeBookOperation(
     costPrice: operation.costPrice,
     sellPrice: operation.sellPrice,
     memberPrice: operation.memberPrice,
-    currency: (operation.currency || options.defaultCurrency) as 'AUD' | 'USD' | 'EUR' | 'GBP',
+    currency: (operation.currency || options.defaultCurrency) as SupportedCurrency,
     stockQuantity: operation.stockQuantity ?? 0,
     reorderLevel: operation.reorderLevel ?? 5,
     stockStatus: (operation.stockStatus || 'IN_STOCK') as

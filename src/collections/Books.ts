@@ -8,6 +8,7 @@ import {
   validateDigitalProduct,
   processSubjectsFromISBN,
 } from './Books/hooks'
+import type { SupportedCurrency } from '@/lib/square/constants'
 
 export const Books: CollectionConfig = {
   slug: 'books',
@@ -109,12 +110,12 @@ export const Books: CollectionConfig = {
       name: 'currency',
       type: 'select',
       required: true,
-      defaultValue: 'AUD',
+      defaultValue: 'AUD' satisfies SupportedCurrency,
       options: [
-        { label: 'AUD - Australian Dollar', value: 'AUD' },
-        { label: 'USD - US Dollar', value: 'USD' },
-        { label: 'EUR - Euro', value: 'EUR' },
-        { label: 'GBP - British Pound', value: 'GBP' },
+        { label: 'AUD - Australian Dollar', value: 'AUD' satisfies SupportedCurrency },
+        { label: 'USD - US Dollar', value: 'USD' satisfies SupportedCurrency },
+        { label: 'EUR - Euro', value: 'EUR' satisfies SupportedCurrency },
+        { label: 'GBP - British Pound', value: 'GBP' satisfies SupportedCurrency },
       ],
     },
     // Inventory Management

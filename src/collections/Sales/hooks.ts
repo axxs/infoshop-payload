@@ -10,6 +10,7 @@ import type {
 } from 'payload'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { getRelationshipId } from '@/lib/utils/relationships'
 
 /**
  * Calculate Total Amount from Sale Items
@@ -34,13 +35,7 @@ export const calculateTotalAmount: CollectionBeforeChangeHook = async ({ data, r
   let totalAmount = 0
 
   for (const itemId of data.items) {
-    // Handle item ID as number, string, or object with id
-    let saleItemId: number | string
-    if (typeof itemId === 'number' || typeof itemId === 'string') {
-      saleItemId = itemId
-    } else {
-      saleItemId = itemId.id
-    }
+    const saleItemId = getRelationshipId(itemId, 'sale-items')
 
     const saleItem = await payload.findByID({
       collection: 'sale-items',
@@ -143,13 +138,7 @@ export const deductStock: CollectionAfterChangeHook = async ({ doc, operation, r
 
   for (const itemId of doc.items) {
     try {
-      // Handle item ID as number, string, or object with id
-      let saleItemId: number | string
-      if (typeof itemId === 'number' || typeof itemId === 'string') {
-        saleItemId = itemId
-      } else {
-        saleItemId = itemId.id
-      }
+      const saleItemId = getRelationshipId(itemId, 'sale-items')
 
       // Fetch sale item to get book and quantity
       const saleItem = await payload.findByID({
@@ -157,10 +146,7 @@ export const deductStock: CollectionAfterChangeHook = async ({ doc, operation, r
         id: saleItemId,
       })
 
-      const bookId =
-        typeof saleItem.book === 'string' || typeof saleItem.book === 'number'
-          ? String(saleItem.book)
-          : String(saleItem.book.id)
+      const bookId = String(getRelationshipId(saleItem.book, 'book'))
       const quantity = saleItem.quantity ?? 0
 
       // Fetch book current stock
