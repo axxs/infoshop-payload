@@ -43,7 +43,6 @@ export async function POST(request: NextRequest) {
         success: true,
         transactionId: result.transactionId,
         receiptUrl: result.receiptUrl,
-        payment: result.payment,
       })
     }
 

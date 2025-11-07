@@ -284,7 +284,7 @@ async function executeBookOperation(
     costPrice: operation.costPrice,
     sellPrice: operation.sellPrice,
     memberPrice: operation.memberPrice,
-    currency: (operation.currency || options.defaultCurrency) as 'USD' | 'EUR' | 'GBP',
+    currency: (operation.currency || options.defaultCurrency) as 'AUD' | 'USD' | 'EUR' | 'GBP',
     stockQuantity: operation.stockQuantity ?? 0,
     reorderLevel: operation.reorderLevel ?? 5,
     stockStatus: (operation.stockStatus || 'IN_STOCK') as

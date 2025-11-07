@@ -34,9 +34,17 @@ export const calculateTotalAmount: CollectionBeforeChangeHook = async ({ data, r
   let totalAmount = 0
 
   for (const itemId of data.items) {
+    // Handle item ID as number, string, or object with id
+    let saleItemId: number | string
+    if (typeof itemId === 'number' || typeof itemId === 'string') {
+      saleItemId = itemId
+    } else {
+      saleItemId = itemId.id
+    }
+
     const saleItem = await payload.findByID({
       collection: 'sale-items',
-      id: typeof itemId === 'string' ? itemId : itemId.id,
+      id: saleItemId,
     })
 
     totalAmount += saleItem.lineTotal ?? 0
@@ -135,10 +143,18 @@ export const deductStock: CollectionAfterChangeHook = async ({ doc, operation, r
 
   for (const itemId of doc.items) {
     try {
+      // Handle item ID as number, string, or object with id
+      let saleItemId: number | string
+      if (typeof itemId === 'number' || typeof itemId === 'string') {
+        saleItemId = itemId
+      } else {
+        saleItemId = itemId.id
+      }
+
       // Fetch sale item to get book and quantity
       const saleItem = await payload.findByID({
         collection: 'sale-items',
-        id: typeof itemId === 'string' ? itemId : itemId.id,
+        id: saleItemId,
       })
 
       const bookId =
