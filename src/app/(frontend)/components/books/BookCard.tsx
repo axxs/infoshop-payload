@@ -17,7 +17,7 @@ export function BookCard({ book }: BookCardProps) {
     'url' in book.coverImage &&
     book.coverImage.url
       ? book.coverImage.url
-      : book.externalCoverUrl || '/placeholder-book.png'
+      : book.externalCoverUrl || '/placeholder-book.svg'
 
   const isOutOfStock = book.stockStatus === 'OUT_OF_STOCK'
   const isDiscontinued = book.stockStatus === 'DISCONTINUED'

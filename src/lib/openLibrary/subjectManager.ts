@@ -348,6 +348,9 @@ export async function linkSubjectsToBook(
       data: {
         subjects: subjectIds,
       },
+      context: {
+        skipSubjectProcessing: true, // Prevent infinite loop in processSubjectsFromISBN hook
+      },
     })
 
     payload.logger.info({

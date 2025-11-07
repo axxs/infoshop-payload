@@ -44,7 +44,7 @@ export function CartItem({ item, onUpdate }: CartItemProps) {
       {/* Book Cover */}
       <Link href={`/shop/${item.bookId}`} className="relative h-24 w-16 flex-shrink-0">
         <BookCoverImage
-          src={item.book.externalCoverUrl || '/placeholder-book.png'}
+          src={item.book.externalCoverUrl || '/placeholder-book.svg'}
           alt={item.book.title}
           fill
           className="rounded object-cover"
