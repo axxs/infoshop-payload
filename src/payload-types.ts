@@ -233,7 +233,7 @@ export interface Book {
    * Discounted price for collective members
    */
   memberPrice: number;
-  currency: 'USD' | 'EUR' | 'GBP';
+  currency: 'AUD' | 'USD' | 'EUR' | 'GBP';
   /**
    * Current stock quantity
    */

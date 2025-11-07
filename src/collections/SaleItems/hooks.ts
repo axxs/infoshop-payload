@@ -6,6 +6,7 @@
 import type { CollectionBeforeChangeHook, CollectionBeforeValidateHook } from 'payload'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { getRelationshipId } from '@/lib/utils/relationships'
 
 /**
  * Calculate Line Total
@@ -57,9 +58,11 @@ export const validateStockAvailability: CollectionBeforeValidateHook = async ({ 
   const payload = await getPayload({ config })
 
   // Fetch book to check stock
+  const bookId = getRelationshipId(data.book, 'book')
+
   const book = await payload.findByID({
     collection: 'books',
-    id: typeof data.book === 'string' ? data.book : data.book.id,
+    id: bookId,
   })
 
   // Skip stock check for digital products
@@ -116,9 +119,11 @@ export const setUnitPriceFromBook: CollectionBeforeChangeHook = async ({ data, o
 
   const payload = await getPayload({ config })
 
+  const bookId = getRelationshipId(data.book, 'book')
+
   const book = await payload.findByID({
     collection: 'books',
-    id: typeof data.book === 'string' ? data.book : data.book.id,
+    id: bookId,
   })
 
   // Set price based on type
