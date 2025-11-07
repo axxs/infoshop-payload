@@ -57,9 +57,17 @@ export const validateStockAvailability: CollectionBeforeValidateHook = async ({ 
   const payload = await getPayload({ config })
 
   // Fetch book to check stock
+  // Handle book as number, string, or object with id
+  let bookId: number | string
+  if (typeof data.book === 'number' || typeof data.book === 'string') {
+    bookId = data.book
+  } else {
+    bookId = data.book.id
+  }
+
   const book = await payload.findByID({
     collection: 'books',
-    id: typeof data.book === 'string' ? data.book : data.book.id,
+    id: bookId,
   })
 
   // Skip stock check for digital products
@@ -116,9 +124,17 @@ export const setUnitPriceFromBook: CollectionBeforeChangeHook = async ({ data, o
 
   const payload = await getPayload({ config })
 
+  // Handle book as number, string, or object with id
+  let bookId: number | string
+  if (typeof data.book === 'number' || typeof data.book === 'string') {
+    bookId = data.book
+  } else {
+    bookId = data.book.id
+  }
+
   const book = await payload.findByID({
     collection: 'books',
-    id: typeof data.book === 'string' ? data.book : data.book.id,
+    id: bookId,
   })
 
   // Set price based on type

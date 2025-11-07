@@ -109,8 +109,9 @@ export const Books: CollectionConfig = {
       name: 'currency',
       type: 'select',
       required: true,
-      defaultValue: 'USD',
+      defaultValue: 'AUD',
       options: [
+        { label: 'AUD - Australian Dollar', value: 'AUD' },
         { label: 'USD - US Dollar', value: 'USD' },
         { label: 'EUR - Euro', value: 'EUR' },
         { label: 'GBP - British Pound', value: 'GBP' },

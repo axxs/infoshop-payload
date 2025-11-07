@@ -25,11 +25,11 @@ interface SquareSDK {
   payments: (appId: string, locationId: string) => SquarePayments
 }
 
-interface SquareWindow extends Window {
-  Square?: SquareSDK
+declare global {
+  interface Window {
+    Square?: SquareSDK
+  }
 }
-
-declare const window: SquareWindow
 
 /**
  * Component Props
@@ -73,9 +73,16 @@ export function SquarePaymentForm({
           return
         }
 
+        // Determine SDK URL based on environment (sandbox vs production)
+        const applicationId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID
+        const isSandbox = applicationId?.startsWith('sandbox-')
+        const sdkUrl = isSandbox
+          ? 'https://sandbox.web.squarecdn.com/v1/square.js'
+          : 'https://web.squarecdn.com/v1/square.js'
+
         // Load Square Web Payments SDK
         const script = document.createElement('script')
-        script.src = 'https://web.squarecdn.com/v1/square.js'
+        script.src = sdkUrl
         script.async = true
         script.onload = async () => {
           if (isMounted) {
