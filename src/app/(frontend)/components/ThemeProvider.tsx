@@ -9,8 +9,9 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children, initialTheme }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(initialTheme)
+  const [theme] = useState<Theme>(initialTheme)
   const [mounted, setMounted] = useState(false)
+  const [, forceUpdate] = useState(0)
 
   // Handle client-side mounting
   useEffect(() => {
@@ -33,8 +34,7 @@ export function ThemeProvider({ children, initialTheme }: ThemeProviderProps) {
     root.setAttribute('data-theme', activeTheme)
     root.classList.toggle('dark', useDarkMode)
 
-    // Get the appropriate theme configuration
-    const themeConfig = activeTheme === 'radical' ? theme : theme
+    // Build theme prefix for accessing color tokens
     const modePrefix = useDarkMode ? 'dark' : 'light'
     const themePrefix = `${activeTheme}_${modePrefix}`
 
@@ -65,7 +65,7 @@ export function ThemeProvider({ children, initialTheme }: ThemeProviderProps) {
 
     colorKeys.forEach((key) => {
       const themeKey = `${themePrefix}_${key}` as keyof Theme
-      const value = themeConfig[themeKey]
+      const value = theme[themeKey]
       if (value && typeof value === 'string') {
         // Use --color-* prefix for Tailwind v4 compatibility
         const cssVarName =
@@ -82,9 +82,9 @@ export function ThemeProvider({ children, initialTheme }: ThemeProviderProps) {
     const headingFontFamilyKey = `${activeTheme}_headingFontFamily` as keyof Theme
     const radiusKey = `${activeTheme}_radius` as keyof Theme
 
-    const fontFamily = themeConfig[fontFamilyKey]
-    const headingFontFamily = themeConfig[headingFontFamilyKey]
-    const radius = themeConfig[radiusKey]
+    const fontFamily = theme[fontFamilyKey]
+    const headingFontFamily = theme[headingFontFamilyKey]
+    const radius = theme[radiusKey]
 
     if (fontFamily && typeof fontFamily === 'string') {
       cssVars['--font-family'] = fontFamily
@@ -108,13 +108,13 @@ export function ThemeProvider({ children, initialTheme }: ThemeProviderProps) {
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     const handleChange = () => {
-      // Trigger re-render by updating theme reference
-      setTheme({ ...theme })
+      // Trigger re-render by incrementing counter (more efficient than object spreading)
+      forceUpdate((n) => n + 1)
     }
 
     mediaQuery.addEventListener('change', handleChange)
     return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [theme, mounted])
+  }, [theme.colorMode, mounted])
 
   // Prevent flash of unstyled content
   if (!mounted) {

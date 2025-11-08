@@ -12,6 +12,7 @@ import {
 interface NavigationItem {
   label: string
   href: string
+  id?: string | null
 }
 
 interface NavigationDropdownProps {
@@ -33,8 +34,8 @@ export function NavigationDropdown({ label, href, items }: NavigationDropdownPro
             View All {label}
           </Link>
         </DropdownMenuItem>
-        {items.map((item, index) => (
-          <DropdownMenuItem key={index} asChild>
+        {items.map((item) => (
+          <DropdownMenuItem key={item.id || item.href} asChild>
             <Link href={item.href} className="w-full">
               {item.label}
             </Link>
