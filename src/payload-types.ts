@@ -102,8 +102,14 @@ export interface Config {
   db: {
     defaultIDType: number;
   };
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    theme: Theme;
+    layout: Layout;
+  };
+  globalsSelect: {
+    theme: ThemeSelect<false> | ThemeSelect<true>;
+    layout: LayoutSelect<false> | LayoutSelect<true>;
+  };
   locale: null;
   user: User & {
     collection: 'users';
@@ -223,6 +229,10 @@ export interface Book {
     };
     [k: string]: unknown;
   } | null;
+  /**
+   * Display this book in featured sections on the homepage
+   */
+  featured?: boolean | null;
   /**
    * Wholesale cost price (what we paid)
    */
@@ -721,6 +731,7 @@ export interface BooksSelect<T extends boolean = true> {
   publisher?: T;
   publishedDate?: T;
   description?: T;
+  featured?: T;
   costPrice?: T;
   sellPrice?: T;
   memberPrice?: T;
@@ -901,6 +912,710 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "theme".
+ */
+export interface Theme {
+  id: number;
+  /**
+   * Select the currently active theme for the site
+   */
+  activeTheme: 'default' | 'radical';
+  /**
+   * Force light or dark mode, or use system preference
+   */
+  colorMode: 'auto' | 'light' | 'dark';
+  /**
+   * Primary brand colour (HSL format)
+   */
+  default_light_primary?: string | null;
+  /**
+   * Page background colour
+   */
+  default_light_background?: string | null;
+  /**
+   * Main text colour
+   */
+  default_light_foreground?: string | null;
+  /**
+   * Card background colour
+   */
+  default_light_card?: string | null;
+  /**
+   * Card text colour
+   */
+  default_light_card_foreground?: string | null;
+  /**
+   * Muted background colour
+   */
+  default_light_muted?: string | null;
+  /**
+   * Muted text colour
+   */
+  default_light_muted_foreground?: string | null;
+  /**
+   * Accent background colour
+   */
+  default_light_accent?: string | null;
+  /**
+   * Accent text colour
+   */
+  default_light_accent_foreground?: string | null;
+  /**
+   * Destructive/error colour
+   */
+  default_light_destructive?: string | null;
+  /**
+   * Border colour
+   */
+  default_light_border?: string | null;
+  /**
+   * Primary brand colour (HSL format)
+   */
+  default_dark_primary?: string | null;
+  /**
+   * Page background colour
+   */
+  default_dark_background?: string | null;
+  /**
+   * Main text colour
+   */
+  default_dark_foreground?: string | null;
+  default_dark_card?: string | null;
+  default_dark_card_foreground?: string | null;
+  default_dark_muted?: string | null;
+  default_dark_muted_foreground?: string | null;
+  default_dark_accent?: string | null;
+  default_dark_accent_foreground?: string | null;
+  default_dark_destructive?: string | null;
+  default_dark_border?: string | null;
+  /**
+   * Main font family
+   */
+  default_fontFamily?: string | null;
+  /**
+   * Heading font family
+   */
+  default_headingFontFamily?: string | null;
+  /**
+   * Border radius for components
+   */
+  default_radius?: string | null;
+  /**
+   * Bold red primary colour
+   */
+  radical_light_primary?: string | null;
+  /**
+   * Warm off-white background
+   */
+  radical_light_background?: string | null;
+  /**
+   * Near black text
+   */
+  radical_light_foreground?: string | null;
+  radical_light_card?: string | null;
+  radical_light_card_foreground?: string | null;
+  radical_light_muted?: string | null;
+  radical_light_muted_foreground?: string | null;
+  radical_light_accent?: string | null;
+  radical_light_accent_foreground?: string | null;
+  radical_light_destructive?: string | null;
+  radical_light_border?: string | null;
+  /**
+   * Brighter red for dark mode
+   */
+  radical_dark_primary?: string | null;
+  /**
+   * Very dark grey
+   */
+  radical_dark_background?: string | null;
+  /**
+   * Warm white
+   */
+  radical_dark_foreground?: string | null;
+  radical_dark_card?: string | null;
+  radical_dark_card_foreground?: string | null;
+  radical_dark_muted?: string | null;
+  radical_dark_muted_foreground?: string | null;
+  radical_dark_accent?: string | null;
+  radical_dark_accent_foreground?: string | null;
+  radical_dark_destructive?: string | null;
+  radical_dark_border?: string | null;
+  /**
+   * Serif font for radical aesthetic
+   */
+  radical_fontFamily?: string | null;
+  /**
+   * Bold sans-serif for headings
+   */
+  radical_headingFontFamily?: string | null;
+  /**
+   * Sharp corners for edgy look
+   */
+  radical_radius?: string | null;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "layout".
+ */
+export interface Layout {
+  id: number;
+  /**
+   * Site logo (recommended: SVG or PNG with transparency)
+   */
+  logo?: (number | null) | Media;
+  /**
+   * Main navigation links
+   */
+  navigation?:
+    | {
+        label: string;
+        href: string;
+        /**
+         * Optional dropdown menu items
+         */
+        children?:
+          | {
+              label: string;
+              href: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Optional call-to-action button in header
+   */
+  ctaButton?: {
+    label?: string | null;
+    href?: string | null;
+  };
+  /**
+   * Footer columns with links
+   */
+  columns?:
+    | {
+        title: string;
+        links?:
+          | {
+              label: string;
+              href: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Social media links
+   */
+  socialLinks?:
+    | {
+        platform: 'facebook' | 'twitter' | 'instagram' | 'linkedin' | 'github' | 'youtube';
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Copyright text
+   */
+  copyright?: string | null;
+  /**
+   * Build the homepage layout by adding, removing, and reordering blocks
+   */
+  blocks?:
+    | (
+        | {
+            /**
+             * Visual style of the hero section
+             */
+            variant: 'default' | 'minimal' | 'fullHeight';
+            /**
+             * Main heading
+             */
+            title: string;
+            /**
+             * Subtitle or description text
+             */
+            subtitle?: string | null;
+            /**
+             * Optional background image
+             */
+            backgroundImage?: (number | null) | Media;
+            /**
+             * Icon to display above the title
+             */
+            icon?: ('book-open' | 'library' | 'sparkles' | 'none') | null;
+            /**
+             * Call-to-action buttons (max 3)
+             */
+            ctaButtons?:
+              | {
+                  label: string;
+                  href: string;
+                  variant: 'default' | 'secondary' | 'outline';
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * Text alignment
+             */
+            alignment: 'left' | 'center' | 'right';
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'hero';
+          }
+        | {
+            /**
+             * Section heading
+             */
+            title: string;
+            /**
+             * Optional description text below heading
+             */
+            description?: string | null;
+            /**
+             * How to select books to display
+             */
+            displayMode: 'newest' | 'featured' | 'category' | 'subject' | 'manual';
+            /**
+             * Filter books by this category
+             */
+            category?: (number | null) | Category;
+            /**
+             * Filter books by this subject
+             */
+            subject?: (number | null) | Subject;
+            /**
+             * Manually select specific books
+             */
+            manualBooks?: (number | Book)[] | null;
+            /**
+             * Number of books to display
+             */
+            limit?: number | null;
+            /**
+             * Grid layout columns (desktop)
+             */
+            columns: '2' | '3' | '4';
+            /**
+             * Show "View All" link
+             */
+            showViewAllLink?: boolean | null;
+            /**
+             * Link destination for "View All" button
+             */
+            viewAllHref?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'bookShowcase';
+          }
+        | {
+            /**
+             * Number of columns in this content block
+             */
+            layout: 'oneColumn' | 'twoColumns' | 'threeColumns';
+            /**
+             * Add content columns (number should match layout)
+             */
+            columns?:
+              | {
+                  /**
+                   * Column content (supports headings, lists, links, etc.)
+                   */
+                  richText: {
+                    root: {
+                      type: string;
+                      children: {
+                        type: any;
+                        version: number;
+                        [k: string]: unknown;
+                      }[];
+                      direction: ('ltr' | 'rtl') | null;
+                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                      indent: number;
+                      version: number;
+                    };
+                    [k: string]: unknown;
+                  };
+                  align?: ('left' | 'center' | 'right') | null;
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * Background colour for this section
+             */
+            backgroundColor?: ('default' | 'muted' | 'primary') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'content';
+          }
+        | {
+            /**
+             * Icon to display
+             */
+            icon?: ('book-open' | 'tag' | 'grid-3x3' | 'calendar' | 'info' | 'custom') | null;
+            /**
+             * Upload a custom icon image
+             */
+            customIcon?: (number | null) | Media;
+            /**
+             * Main heading
+             */
+            title: string;
+            /**
+             * Description text
+             */
+            description: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            /**
+             * Call-to-action buttons (1-2 max)
+             */
+            buttons?:
+              | {
+                  label: string;
+                  href: string;
+                  variant: 'default' | 'outline';
+                  size: 'default' | 'lg';
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * Background style
+             */
+            backgroundColor: 'default' | 'muted' | 'gradient';
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'callToAction';
+          }
+        | {
+            /**
+             * Image or video to display
+             */
+            media: number | Media;
+            /**
+             * Optional caption below the media
+             */
+            caption?: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            } | null;
+            /**
+             * Display size of the media
+             */
+            size: 'small' | 'medium' | 'large' | 'fullWidth';
+            /**
+             * Aspect ratio (auto uses original dimensions)
+             */
+            aspectRatio?: ('auto' | '16:9' | '4:3' | '1:1') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'media';
+          }
+        | {
+            /**
+             * Optional section heading
+             */
+            title?: string | null;
+            /**
+             * Which collection to display
+             */
+            collection: 'books' | 'events';
+            /**
+             * Filter books by category
+             */
+            category?: (number | null) | Category;
+            /**
+             * Filter books by subject
+             */
+            subject?: (number | null) | Subject;
+            /**
+             * Date range for events
+             */
+            dateRange?: {
+              /**
+               * Filter events starting from this date
+               */
+              start?: string | null;
+              /**
+               * Filter events until this date
+               */
+              end?: string | null;
+            };
+            /**
+             * Display layout
+             */
+            layout: 'grid' | 'list';
+            /**
+             * Show search bar above archive
+             */
+            enableSearch?: boolean | null;
+            /**
+             * Show filter controls
+             */
+            enableFilters?: boolean | null;
+            /**
+             * Number of items per page
+             */
+            itemsPerPage: number;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'archive';
+          }
+      )[]
+    | null;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "theme_select".
+ */
+export interface ThemeSelect<T extends boolean = true> {
+  activeTheme?: T;
+  colorMode?: T;
+  default_light_primary?: T;
+  default_light_background?: T;
+  default_light_foreground?: T;
+  default_light_card?: T;
+  default_light_card_foreground?: T;
+  default_light_muted?: T;
+  default_light_muted_foreground?: T;
+  default_light_accent?: T;
+  default_light_accent_foreground?: T;
+  default_light_destructive?: T;
+  default_light_border?: T;
+  default_dark_primary?: T;
+  default_dark_background?: T;
+  default_dark_foreground?: T;
+  default_dark_card?: T;
+  default_dark_card_foreground?: T;
+  default_dark_muted?: T;
+  default_dark_muted_foreground?: T;
+  default_dark_accent?: T;
+  default_dark_accent_foreground?: T;
+  default_dark_destructive?: T;
+  default_dark_border?: T;
+  default_fontFamily?: T;
+  default_headingFontFamily?: T;
+  default_radius?: T;
+  radical_light_primary?: T;
+  radical_light_background?: T;
+  radical_light_foreground?: T;
+  radical_light_card?: T;
+  radical_light_card_foreground?: T;
+  radical_light_muted?: T;
+  radical_light_muted_foreground?: T;
+  radical_light_accent?: T;
+  radical_light_accent_foreground?: T;
+  radical_light_destructive?: T;
+  radical_light_border?: T;
+  radical_dark_primary?: T;
+  radical_dark_background?: T;
+  radical_dark_foreground?: T;
+  radical_dark_card?: T;
+  radical_dark_card_foreground?: T;
+  radical_dark_muted?: T;
+  radical_dark_muted_foreground?: T;
+  radical_dark_accent?: T;
+  radical_dark_accent_foreground?: T;
+  radical_dark_destructive?: T;
+  radical_dark_border?: T;
+  radical_fontFamily?: T;
+  radical_headingFontFamily?: T;
+  radical_radius?: T;
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "layout_select".
+ */
+export interface LayoutSelect<T extends boolean = true> {
+  logo?: T;
+  navigation?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        children?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  ctaButton?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+      };
+  columns?:
+    | T
+    | {
+        title?: T;
+        links?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  socialLinks?:
+    | T
+    | {
+        platform?: T;
+        url?: T;
+        id?: T;
+      };
+  copyright?: T;
+  blocks?:
+    | T
+    | {
+        hero?:
+          | T
+          | {
+              variant?: T;
+              title?: T;
+              subtitle?: T;
+              backgroundImage?: T;
+              icon?: T;
+              ctaButtons?:
+                | T
+                | {
+                    label?: T;
+                    href?: T;
+                    variant?: T;
+                    id?: T;
+                  };
+              alignment?: T;
+              id?: T;
+              blockName?: T;
+            };
+        bookShowcase?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              displayMode?: T;
+              category?: T;
+              subject?: T;
+              manualBooks?: T;
+              limit?: T;
+              columns?: T;
+              showViewAllLink?: T;
+              viewAllHref?: T;
+              id?: T;
+              blockName?: T;
+            };
+        content?:
+          | T
+          | {
+              layout?: T;
+              columns?:
+                | T
+                | {
+                    richText?: T;
+                    align?: T;
+                    id?: T;
+                  };
+              backgroundColor?: T;
+              id?: T;
+              blockName?: T;
+            };
+        callToAction?:
+          | T
+          | {
+              icon?: T;
+              customIcon?: T;
+              title?: T;
+              description?: T;
+              buttons?:
+                | T
+                | {
+                    label?: T;
+                    href?: T;
+                    variant?: T;
+                    size?: T;
+                    id?: T;
+                  };
+              backgroundColor?: T;
+              id?: T;
+              blockName?: T;
+            };
+        media?:
+          | T
+          | {
+              media?: T;
+              caption?: T;
+              size?: T;
+              aspectRatio?: T;
+              id?: T;
+              blockName?: T;
+            };
+        archive?:
+          | T
+          | {
+              title?: T;
+              collection?: T;
+              category?: T;
+              subject?: T;
+              dateRange?:
+                | T
+                | {
+                    start?: T;
+                    end?: T;
+                  };
+              layout?: T;
+              enableSearch?: T;
+              enableFilters?: T;
+              itemsPerPage?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

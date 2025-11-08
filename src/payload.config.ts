@@ -17,6 +17,8 @@ import { Events } from './collections/Events'
 import { EventAttendance } from './collections/EventAttendance'
 import { Sales } from './collections/Sales'
 import { SaleItems } from './collections/SaleItems'
+import { Theme } from './globals/Theme'
+import { Layout } from './globals/Layout'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -43,6 +45,7 @@ export default buildConfig({
     Sales,
     SaleItems,
   ],
+  globals: [Theme, Layout],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
