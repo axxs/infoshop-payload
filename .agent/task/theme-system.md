@@ -415,7 +415,40 @@ src/
 
 ## Technical Debt & Known Issues
 
-### Architectural Considerations
+### Resolved Issues (2025-01-09)
+
+#### ✅ 1. HSL Double-Wrapping (CRITICAL - FIXED)
+
+**Issue**: Theme.ts defaultValues contained `hsl()` wrapper, ThemeProvider added another wrapper.
+
+**Impact**: Resulted in invalid CSS like `hsl(hsl(221.2 83.2% 53.3%))`.
+
+**Resolution**:
+
+- Removed `hsl()` from all Theme.ts defaultValues and placeholders
+- Updated field descriptions to clarify raw HSL format
+- ThemeProvider now correctly wraps raw values once
+
+**Commit**: `52e58a1` - fix(frontend): resolve critical HSL format and missing field issues
+
+#### ✅ 2. Missing TypeScript Fields (HIGH - FIXED)
+
+**Issue**: ThemeProvider referenced fields not defined in Theme.ts schema.
+
+**Missing Fields**: popover, popoverForeground, secondary, secondaryForeground, destructiveForeground, input, ring
+
+**Impact**: TypeScript type errors, undefined runtime values.
+
+**Resolution**:
+
+- Added all 8 missing fields to both themes (default/radical) in both modes (light/dark)
+- Updated ThemeProvider to use snake_case field names matching schema
+- Simplified CSS variable name conversion logic
+- Regenerated Payload types
+
+**Commit**: `52e58a1` - fix(frontend): resolve critical HSL format and missing field issues
+
+### Current Architectural Considerations
 
 While the implementation follows best practices, there are some architectural considerations to be aware of:
 
@@ -433,17 +466,7 @@ While the implementation follows best practices, there are some architectural co
 
 **Risk Level**: Low - Color tokens rarely change once established
 
-#### 2. CSS Variable Naming Special Cases (ThemeProvider.tsx:71-74)
-
-**Current State**: Three color keys (`ring`, `border`, `input`) have special-casing for CSS variable names.
-
-**Rationale**: These tokens don't follow camelCase naming, so they don't need case conversion.
-
-**Implication**: Naming inconsistency in the data model requires conditional logic.
-
-**Mitigation**: Standardize all field naming in Theme.ts to follow the same convention (all camelCase or all kebab-case).
-
-**Risk Level**: Very Low - Logic is clear and well-commented
+**Note**: Field names now use snake*case consistently (e.g., `card_foreground`) matching the Theme.ts schema. CSS variable naming special cases were eliminated with simplified `key.replace(/*/g, '-')` logic.
 
 ### Code Quality Status
 
