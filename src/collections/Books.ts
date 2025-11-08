@@ -75,6 +75,16 @@ export const Books: CollectionConfig = {
       name: 'description',
       type: 'richText',
     },
+    // Visibility
+    {
+      name: 'featured',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description: 'Display this book in featured sections on the homepage',
+      },
+    },
     // Three-Tier Pricing Model
     {
       name: 'costPrice',
