@@ -415,15 +415,45 @@ src/
 
 ## Technical Debt & Known Issues
 
-### None Currently
+### Architectural Considerations
 
-All implementation follows best practices:
+While the implementation follows best practices, there are some architectural considerations to be aware of:
+
+#### 1. Hardcoded Color Token Keys (ThemeProvider.tsx:45-64)
+
+**Current State**: ThemeProvider maintains a hardcoded array of 18 color token keys.
+
+**Implication**: If new color tokens are added to `Theme.ts`, the array must be manually updated.
+
+**Mitigation Options**:
+
+- Document clearly in Theme.ts that changes require ThemeProvider updates
+- Consider extracting to a shared constant exported from Theme.ts
+- Future: Generate list dynamically from Theme type
+
+**Risk Level**: Low - Color tokens rarely change once established
+
+#### 2. CSS Variable Naming Special Cases (ThemeProvider.tsx:71-74)
+
+**Current State**: Three color keys (`ring`, `border`, `input`) have special-casing for CSS variable names.
+
+**Rationale**: These tokens don't follow camelCase naming, so they don't need case conversion.
+
+**Implication**: Naming inconsistency in the data model requires conditional logic.
+
+**Mitigation**: Standardize all field naming in Theme.ts to follow the same convention (all camelCase or all kebab-case).
+
+**Risk Level**: Very Low - Logic is clear and well-commented
+
+### Code Quality Status
 
 - ✅ Zero TypeScript errors
 - ✅ Zero linting warnings
 - ✅ XSS protection via safe Lexical serialization
 - ✅ Proper error handling with fallbacks
 - ✅ Type-safe throughout
+- ✅ React best practices (stable keys, efficient re-renders)
+- ✅ No memory leaks
 
 ---
 
