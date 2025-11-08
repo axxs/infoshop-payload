@@ -14,6 +14,7 @@ import { Categories } from './collections/Categories'
 import { Subjects } from './collections/Subjects'
 import { Suppliers } from './collections/Suppliers'
 import { Events } from './collections/Events'
+import { EventAttendance } from './collections/EventAttendance'
 import { Sales } from './collections/Sales'
 import { SaleItems } from './collections/SaleItems'
 
@@ -30,7 +31,18 @@ export default buildConfig({
       titleSuffix: '- Infoshop',
     },
   },
-  collections: [Users, Media, Books, Categories, Subjects, Suppliers, Events, Sales, SaleItems],
+  collections: [
+    Users,
+    Media,
+    Books,
+    Categories,
+    Subjects,
+    Suppliers,
+    Events,
+    EventAttendance,
+    Sales,
+    SaleItems,
+  ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

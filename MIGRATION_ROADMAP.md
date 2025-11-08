@@ -2,8 +2,8 @@
 
 ## From Express/Prisma/React to Payload CMS/Next.js
 
-**Last Updated**: 2025-11-05
-**Current Status**: Phase 4 (Sales System) - 85% Complete
+**Last Updated**: 2025-11-08
+**Current Status**: Phase 4 (Sales System) - 95% Complete
 
 ---
 
@@ -25,15 +25,16 @@
 
 ## Progress Summary
 
-| Phase                       | Status         | Completion |
-| --------------------------- | -------------- | ---------- |
-| Phase 1: Foundation         | ✅ Complete    | 100%       |
-| Phase 2: Data Migration     | ✅ Complete    | 100% (N/A) |
-| Phase 3: Core Integrations  | 🔄 In Progress | 80%        |
-| Phase 4: Sales System       | 🔄 In Progress | 85%        |
-| Phase 5: Community Features | 📅 Planned     | 0%         |
-| Phase 6: CMS/Website        | 📅 Planned     | 0%         |
-| Phase 7: Advanced Features  | 📅 Planned     | 0%         |
+| Phase                          | Status         | Completion |
+| ------------------------------ | -------------- | ---------- |
+| Phase 1: Foundation            | ✅ Complete    | 100%       |
+| Phase 2: Data Migration        | ✅ Complete    | 100% (N/A) |
+| Phase 3: Core Integrations     | ✅ Complete    | 100%       |
+| Phase 4: Sales System          | 🔄 In Progress | 95%        |
+| Phase 5: Events System         | 📅 Next        | 0%         |
+| Phase 6: Theme System Planning | 📅 Planned     | 0%         |
+| Phase 7: Public Storefront/CMS | 📅 Planned     | 0%         |
+| Phase 8: Advanced Features     | 📅 Planned     | 0%         |
 
 ---
 
@@ -77,9 +78,9 @@
 
 ---
 
-### 🔄 Phase 3: Core Integrations (80% Complete)
+### ✅ Phase 3: Core Integrations (Complete)
 
-#### ✅ Completed (Phase 3.1-3.6)
+#### Completed (Phase 3.1-3.7)
 
 **3.1 Open Library Integration** ✅
 
@@ -117,29 +118,23 @@
 - [x] Error handling for all user interactions
 - [x] Tailwind CSS for consistent styling
 
-#### 📋 Remaining (Phase 3.7)
+**3.7 CSV Bulk Import** ✅
 
-**3.7 Admin UI Enhancements (Optional)** 📅
-
-- [ ] Barcode generation
-- [ ] Relationship visualisation
-- [ ] Bulk operations (CSV import/export)
-- [ ] Custom dashboard widgets
-
-**3.8 API Improvements (Optional)** 📅
-
-- [ ] Advanced search/filtering
-- [ ] Book availability checking
-- [ ] Inventory reporting endpoints
-- [ ] Sales analytics endpoints
+- [x] CSV parsing and validation
+- [x] Book import with metadata
+- [x] Duplicate detection strategies
+- [x] Error handling and reporting
+- [x] Preview before import
+- [x] Subject auto-linking from ISBN lookup
+- [x] Integration tests
 
 ---
 
-### 🔄 Phase 4: Sales System (75% Complete)
+### 🔄 Phase 4: Sales System (95% Complete)
 
 **Priority**: HIGH - Core business functionality
 
-#### ✅ Completed (Phase 4.1-4.6)
+#### ✅ Completed (Phase 4.1-4.7)
 
 **4.1 Collections & Data Models** ✅
 
@@ -166,11 +161,14 @@
 
 **4.3 Square Payments Integration** ✅
 
-- [x] Square Payments API (separate from catalog sync)
-- [x] Payment processing flow
-- [x] Refund handling
-- [x] Receipt generation
+- [x] Square Web Payments SDK with sandbox/production detection
+- [x] Payment tokenization and processing
+- [x] Multi-currency support (AUD default)
+- [x] Complete checkout flow integration
+- [x] Receipt URL storage
 - [x] Transaction reconciliation
+- [x] Type-safe relationship handling utilities
+- [x] Comprehensive error handling
 
 **4.4 Reporting & Analytics** ✅
 
@@ -214,17 +212,20 @@
 - [x] Automatic stock restoration on cancellation
 - [x] Server actions for order management
 
-#### 📋 Remaining (Phase 4.8)
+#### 📋 Remaining (Phase 4.8) - Optional Enhancements
 
 **4.8 Advanced Features** 📅
 
-- [ ] Email notifications for order status changes
-- [ ] Admin bulk order actions
-- [ ] Abandoned cart recovery
-- [ ] Gift cards and discount codes
-- [ ] Shipping address collection
-- [ ] Guest checkout support
-- [ ] Wishlist functionality
+- [ ] Email notifications for order status changes (recommended)
+- [ ] Shipping address collection (if needed for online orders)
+- [ ] Guest checkout support (optional)
+
+**Deferred to Phase 8:**
+
+- Gift cards and discount codes
+- Abandoned cart recovery
+- Wishlist functionality
+- Admin bulk order actions
 
 **Old System Reference:**
 
@@ -252,43 +253,32 @@ model SaleItem {
 
 ---
 
-### 📅 Phase 5: Community Features (Not Started)
+### 📅 Phase 5: Events System (Not Started)
 
-**Priority**: MEDIUM - Important for infoshop community
+**Priority**: HIGH - Community engagement and events
 
-#### 5.1 Event Management (Partial)
+#### 5.1 Event Management Enhancement
 
 **Completed:**
 
-- [x] Basic Event collection
+- [x] Basic Event collection (title, description, dates, location)
+- [x] Event types (book signing, reading, discussion, workshop, screening, meeting, other)
+- [x] Capacity tracking (max attendees, current attendees)
+- [x] Event status (upcoming, ongoing, completed, cancelled)
+- [x] Pricing (free/paid events)
 
 **Remaining:**
 
 - [ ] EventAttendance collection (user registrations)
-- [ ] Attendance limits and waitlist
-- [ ] Event calendar view
-- [ ] Email notifications
-- [ ] Check-in system
-
-#### 5.2 Volunteer Management
-
-**VolunteerShift Collection**
-
-- [ ] Shift scheduling
-- [ ] User assignment
-- [ ] Shift notes
-- [ ] Shift calendar view
-- [ ] Volunteer hours tracking
-
-#### 5.3 Collective Decision Making
-
-**CollectiveDecision Collection**
-
-- [ ] Proposal creation
-- [ ] Status tracking (proposed, approved, rejected)
-- [ ] Discussion threads
-- [ ] Voting system (if applicable)
-- [ ] Decision history
+- [ ] Registration workflow (public + member)
+- [ ] Attendance limits and waitlist management
+- [ ] Event calendar view (monthly/weekly)
+- [ ] Email notifications (registration confirmation, reminders)
+- [ ] Check-in system for event day
+- [ ] Event series/recurring events
+- [ ] Event categories/tags
+- [ ] Public event listing page
+- [ ] Event search and filtering
 
 **Old System Reference:**
 
@@ -298,71 +288,141 @@ model EventAttendance {
   eventId      String
   userId       String
   registeredAt DateTime
-}
-
-model VolunteerShift {
-  id        String
-  startTime DateTime
-  endTime   DateTime
-  notes     String?
-  userId    String
-}
-
-model CollectiveDecision {
-  id           String
-  title        String
-  description  String
-  status       DecisionStatus
-  outcome      String?
-  proposedById String
-  proposedAt   DateTime
-  decidedAt    DateTime?
+  status       String  // registered, attended, cancelled, waitlist
 }
 ```
 
 ---
 
-### 📅 Phase 6: CMS/Website (Not Started)
+### 📅 Phase 6: Theme System Planning (Not Started)
 
-**Priority**: MEDIUM - Public-facing storefront
+**Priority**: HIGH - Foundation for customizable public website
 
-#### 6.1 Content Management
+**Note**: This phase focuses on planning and architectural design for the theme/template system before implementation in Phase 7.
 
-**Page Collection**
+#### 6.1 Research & Requirements
+
+- [ ] Analyze theme requirements (design flexibility, ease of customization)
+- [ ] Research Payload CMS theming best practices
+- [ ] Evaluate existing Next.js theme solutions
+- [ ] Define theme switching mechanism
+- [ ] Design template hierarchy
+- [ ] Plan component library structure
+
+#### 6.2 Architecture Design
+
+**Theme System Design:**
+
+- [ ] Theme configuration schema (colors, fonts, layouts)
+- [ ] Template structure (page layouts, components)
+- [ ] Asset management (images, fonts, CSS)
+- [ ] Theme preview system
+- [ ] Version control strategy
+- [ ] Migration path between themes
+
+**Technical Decisions:**
+
+- [ ] CSS-in-JS vs Tailwind vs CSS Modules
+- [ ] Component composition strategy
+- [ ] Dynamic vs static theming
+- [ ] Performance considerations
+- [ ] SEO implications
+- [ ] Accessibility requirements
+
+#### 6.3 Deliverables
+
+- [ ] Theme system architecture document
+- [ ] Component library specification
+- [ ] Implementation roadmap
+- [ ] Theme template examples
+- [ ] Developer documentation
+
+**Success Criteria:**
+
+- Clear, well-documented theme system architecture
+- Proof-of-concept theme implementation
+- Buy-in from team on approach
+- Ready to begin Phase 7 implementation
+
+---
+
+### 📅 Phase 7: Public Storefront/CMS (Not Started)
+
+**Priority**: HIGH - Public-facing website implementation
+
+**Note**: This phase implements the architecture designed in Phase 6.
+
+#### 7.1 Content Management System
+
+**Page Collection:**
 
 - [ ] Page creation and editing
-- [ ] Rich content blocks
-- [ ] SEO metadata
-- [ ] Publishing workflow
-- [ ] Template system
-- [ ] Scheduled publishing
+- [ ] Rich content blocks (Lexical editor integration)
+- [ ] SEO metadata (title, description, OG tags)
+- [ ] Publishing workflow (draft/published/scheduled)
+- [ ] Slug management and URL structure
+- [ ] Page templates (home, about, contact, etc.)
 
-**ContentBlock Collection**
+**Navigation System:**
 
-- [ ] Block types (text, image, code, embed)
-- [ ] Block ordering
-- [ ] Block configuration
-- [ ] CSS customisation
+- [ ] Menu management collection
+- [ ] Nested navigation support
+- [ ] Footer links
+- [ ] Dynamic menu generation
 
-#### 6.2 Theme System
+#### 7.2 Theme Implementation
 
-**Theme Collection**
+**Theme System:**
 
-- [ ] Theme configuration
-- [ ] Theme switching
-- [ ] Default theme
-- [ ] Custom CSS/styling
-- [ ] Preview images
+- [ ] Implement designed theme architecture
+- [ ] Default theme creation
+- [ ] Theme switching mechanism
+- [ ] Custom CSS/styling per theme
+- [ ] Theme configuration UI
+- [ ] Asset management for themes
 
-#### 6.3 Frontend Storefront
+**Component Library:**
 
-- [ ] Public book browsing
-- [ ] Search and filtering
-- [ ] Book detail pages
-- [ ] Shopping cart
-- [ ] Checkout flow
-- [ ] Customer accounts
-- [ ] Order history
+- [ ] Reusable layout components
+- [ ] Typography system
+- [ ] Color system
+- [ ] Responsive design utilities
+- [ ] Accessibility features
+
+#### 7.3 Public Website Features
+
+**Storefront:**
+
+- [ ] Enhanced public book browsing (already partially complete)
+- [ ] Advanced search and filtering
+- [ ] Category/subject landing pages
+- [ ] Featured books section
+- [ ] New arrivals showcase
+- [ ] Staff picks/recommendations
+
+**Content Pages:**
+
+- [ ] Home page (customizable)
+- [ ] About page
+- [ ] Contact page
+- [ ] Events listing page (integrate with Phase 5)
+- [ ] Blog/news section (optional)
+
+**User Features:**
+
+- [ ] Customer accounts (already partially complete)
+- [ ] Order history (already complete)
+- [ ] Wishlist functionality
+- [ ] Book reviews/ratings (optional)
+
+#### 7.4 Performance & SEO
+
+- [ ] Image optimization
+- [ ] Static site generation for content pages
+- [ ] SEO metadata management
+- [ ] Sitemap generation
+- [ ] Schema.org structured data
+- [ ] Performance monitoring
 
 **Old System Reference:**
 
@@ -377,51 +437,35 @@ model Page {
   metaDescription String?
   templateName    String
   publishedAt     DateTime?
-  contentBlocks   ContentBlock[]
-}
-
-model ContentBlock {
-  id          String
-  blockType   ContentBlockType
-  content     Json
-  order       Int
-  isVisible   Boolean
-  pageId      String
-}
-
-model Theme {
-  id           String
-  name         String
-  displayName  String
-  config       Json
-  isActive     Boolean
-  isDefault    Boolean
 }
 ```
 
 ---
 
-### 📅 Phase 7: Advanced Features (Not Started)
+### 📅 Phase 8: Advanced Features (Not Started)
 
-**Priority**: LOW - Nice to have
+**Priority**: LOW - Nice to have enhancements
 
-#### 7.1 Configuration System
+#### 8.1 Configuration System
 
-**Configuration Collection**
+**Configuration Collection:**
 
 - [ ] System-wide settings
 - [ ] Shop information
 - [ ] Email templates
 - [ ] Feature flags
-- [ ] Customisable business rules
+- [ ] Customizable business rules
 
-#### 7.2 Internationalization
+#### 8.2 Advanced Sales Features
 
-- [ ] Multi-language support (English, Spanish, French)
-- [ ] Translation management
-- [ ] Locale switching
+**Deferred from Phase 4:**
 
-#### 7.3 Advanced Inventory
+- [ ] Gift cards and discount codes
+- [ ] Abandoned cart recovery
+- [ ] Advanced wishlist functionality
+- [ ] Admin bulk order actions
+
+#### 8.3 Advanced Inventory
 
 - [ ] Consignment tracking
 - [ ] Reserve/hold system
@@ -429,13 +473,19 @@ model Theme {
 - [ ] Supplier ordering workflow
 - [ ] Automatic reorder suggestions
 
-#### 7.4 Advanced Reporting
+#### 8.4 Advanced Reporting
 
 - [ ] Custom report builder
 - [ ] Scheduled reports
 - [ ] Data export (CSV, PDF)
 - [ ] Financial reporting
 - [ ] Cooperative accounting integration
+
+#### 8.5 Internationalization (Optional)
+
+- [ ] Multi-language support
+- [ ] Translation management
+- [ ] Locale switching
 
 ---
 
@@ -444,167 +494,238 @@ model Theme {
 ### Critical Path
 
 ```
-Phase 1 (Foundation)
-  → Phase 3 (Integrations)
-    → Phase 4 (Sales System)
-      → Phase 6 (Public Storefront)
+Phase 1 (Foundation) ✅
+  → Phase 3 (Core Integrations) ✅
+    → Phase 4 (Sales System) 🔄 95%
+      → Phase 5 (Events System) 📅
+        → Phase 6 (Theme Planning) 📅
+          → Phase 7 (Public Storefront/CMS) 📅
 ```
 
 ### Parallel Work
 
-- Phase 5 (Community) can be developed alongside Phase 4
-- Phase 7 (Advanced) can be developed incrementally
+- Phase 5 (Events) can start once Phase 4 core is complete
+- Phase 8 (Advanced Features) can be developed incrementally alongside Phase 7
+- Email notifications (Phase 4.8) can be developed in parallel with Phase 5
 
 ---
 
 ## Feature Comparison Matrix
 
-| Feature            | Old System        | New System      | Status      |
-| ------------------ | ----------------- | --------------- | ----------- |
-| **Core Inventory** |
-| Book Management    | ✅ Express/Prisma | ✅ Payload      | ✅ Complete |
-| Categories         | ✅ Hierarchical   | ✅ Hierarchical | ✅ Complete |
-| Subjects           | ✅ Flat tags      | ✅ Flat tags    | ✅ Complete |
-| Suppliers          | ✅ Full CRUD      | ✅ Full CRUD    | ✅ Complete |
-| Media/Images       | ✅ Upload         | ✅ Upload       | ✅ Complete |
-| **Integrations**   |
-| Open Library       | ❌ None           | ✅ ISBN Lookup  | ✅ Complete |
-| Square Catalog     | ✅ Sync           | ✅ Sync         | ✅ Complete |
-| Square Payments    | ✅ Payment        | ❌ Not yet      | 📅 Phase 4  |
-| **Sales**          |
-| POS Interface      | ✅ React UI       | ❌ Not yet      | 📅 Phase 4  |
-| Sales Tracking     | ✅ Full system    | ❌ Not yet      | 📅 Phase 4  |
-| Receipts           | ✅ Generate       | ❌ Not yet      | 📅 Phase 4  |
-| Reporting          | ✅ Analytics      | ❌ Not yet      | 📅 Phase 4  |
-| **Community**      |
-| Events             | ✅ Basic          | ✅ Basic        | ✅ Complete |
-| Event Attendance   | ✅ Track          | ❌ Not yet      | 📅 Phase 5  |
-| Volunteer Shifts   | ✅ Schedule       | ❌ Not yet      | 📅 Phase 5  |
-| Decisions          | ✅ Track          | ❌ Not yet      | 📅 Phase 5  |
-| **Website/CMS**    |
-| Pages              | ✅ CMS            | ❌ Not yet      | 📅 Phase 6  |
-| Content Blocks     | ✅ Flexible       | ❌ Not yet      | 📅 Phase 6  |
-| Themes             | ✅ Custom         | ❌ Not yet      | 📅 Phase 6  |
-| Public Store       | ✅ React          | ❌ Not yet      | 📅 Phase 6  |
-| **Admin**          |
-| User Management    | ✅ Full           | ✅ Full         | ✅ Complete |
-| Permissions        | ✅ Roles          | ✅ Roles        | ✅ Complete |
-| Configuration      | ✅ Database       | ❌ Not yet      | 📅 Phase 7  |
+| Feature              | Old System        | New System          | Status         |
+| -------------------- | ----------------- | ------------------- | -------------- |
+| **Core Inventory**   |
+| Book Management      | ✅ Express/Prisma | ✅ Payload          | ✅ Complete    |
+| Categories           | ✅ Hierarchical   | ✅ Hierarchical     | ✅ Complete    |
+| Subjects             | ✅ Flat tags      | ✅ Flat tags        | ✅ Complete    |
+| Suppliers            | ✅ Full CRUD      | ✅ Full CRUD        | ✅ Complete    |
+| Media/Images         | ✅ Upload         | ✅ Upload           | ✅ Complete    |
+| CSV Import           | ❌ None           | ✅ Full system      | ✅ Complete    |
+| **Integrations**     |
+| Open Library         | ❌ None           | ✅ ISBN Lookup      | ✅ Complete    |
+| Square Catalog       | ✅ Sync           | ✅ Sync             | ✅ Complete    |
+| Square Payments      | ✅ Payment        | ✅ Web Payments SDK | ✅ Complete    |
+| **Sales**            |
+| Shopping Cart        | ✅ React UI       | ✅ Server-side      | ✅ Complete    |
+| Checkout Flow        | ✅ Full system    | ✅ Full system      | ✅ Complete    |
+| Payment Processing   | ✅ Square         | ✅ Square (AUD)     | ✅ Complete    |
+| Order Management     | ✅ Full           | ✅ Full             | ✅ Complete    |
+| Sales Tracking       | ✅ Full system    | ✅ Full system      | ✅ Complete    |
+| Receipts             | ✅ Generate       | ✅ Square receipts  | ✅ Complete    |
+| Reporting            | ✅ Analytics      | ✅ Basic reports    | ✅ Complete    |
+| Email Notifications  | ✅ Enabled        | ❌ Not yet          | 📅 Phase 4.8   |
+| **Community**        |
+| Events (Basic)       | ✅ Basic          | ✅ Basic            | ✅ Complete    |
+| Event Registration   | ✅ Track          | ❌ Not yet          | 📅 Phase 5     |
+| Event Calendar       | ✅ View           | ❌ Not yet          | 📅 Phase 5     |
+| Volunteer Shifts     | ✅ Schedule       | ❌ Not needed       | ⛔ Removed     |
+| Collective Decisions | ✅ Track          | ❌ Not needed       | ⛔ Removed     |
+| **Website/CMS**      |
+| Pages                | ✅ CMS            | ❌ Not yet          | 📅 Phase 7     |
+| Content Blocks       | ✅ Flexible       | ❌ Not yet          | 📅 Phase 7     |
+| Themes               | ✅ Custom         | ❌ Planning         | 📅 Phase 6     |
+| Public Storefront    | ✅ React          | ✅ Basic (partial)  | 🔄 In Progress |
+| **Admin**            |
+| User Management      | ✅ Full           | ✅ Full             | ✅ Complete    |
+| Permissions          | ✅ Roles          | ✅ Roles            | ✅ Complete    |
+| Configuration        | ✅ Database       | ❌ Not yet          | 📅 Phase 8     |
 
 ---
 
 ## Recommended Next Steps
 
-### Immediate Priorities (Phase 3 Completion)
+### Immediate Priorities (Complete Phase 4)
 
-**Week 1: Collection Hooks**
+**Option A: Complete Phase 4.8 (Optional Enhancements)**
 
-1. Stock validation and low-stock warnings
-2. Price validation business logic
-3. Auto-slug generation
-4. Relationship validation
+1. Email notifications for order status changes
+2. Shipping address collection (if needed)
+3. Guest checkout support
 
-**Week 2: Admin UI Enhancements**
+**Option B: Move to Phase 5 (Events System)**
 
-1. ISBN lookup button integration
-2. Stock level indicators
-3. Bulk CSV import/export
-4. Custom dashboard
+Proceed directly to events system development (recommended if email notifications aren't urgent)
 
-### Medium-Term (Phase 4 - Critical)
+### Phase 5: Events System (2-3 weeks)
 
-**Week 3-4: Sales System Foundation**
+**Week 1: Event Attendance Foundation**
 
-1. Create Sale and SaleItem collections
-2. Build POS interface in admin
-3. Square Payments API integration
-4. Receipt generation
+1. Create EventAttendance collection
+2. Registration workflow (authenticated users)
+3. Capacity tracking and limits
+4. Waitlist management
 
-**Week 5-6: Sales Completion**
+**Week 2: Event Features**
 
-1. Reporting and analytics
-2. Refund handling
-3. Sales history views
-4. Export functionality
+1. Event calendar view (monthly/weekly)
+2. Public event listing page
+3. Event search and filtering
+4. Check-in system
 
-### Long-Term (Phases 5-7)
+**Week 3: Polish & Integration**
 
-**Phase 5**: Community features (parallel to Phase 4 work)
-**Phase 6**: Public storefront and CMS
-**Phase 7**: Advanced features and polish
+1. Email notifications (registration confirmation, reminders)
+2. Event categories/tags
+3. Recurring events support
+4. Testing and documentation
+
+### Phase 6: Theme System Planning (1-2 weeks)
+
+**Research & Architecture Design**
+
+1. Research Payload CMS + Next.js theming approaches
+2. Define theme configuration schema
+3. Design component library structure
+4. Create proof-of-concept theme
+5. Document architecture decisions
+
+### Long-Term (Phases 7-8)
+
+**Phase 7**: Public Storefront/CMS implementation (3-4 weeks)
+**Phase 8**: Advanced features as needed (ongoing)
 
 ---
 
 ## Risk Assessment
 
-### High Risk
+### Completed & Mitigated
 
-- **Sales System Migration**: Critical business functionality, requires careful testing
-- **Square Payments**: Financial transactions must be reliable and secure
-- **Data Integrity**: Ensure no data loss during any future migrations
+- ✅ **Sales System Migration**: Successfully completed with comprehensive testing
+- ✅ **Square Payments**: Implemented with sandbox testing, production-ready
+- ✅ **Data Integrity**: No migration needed (clean slate implementation)
 
-### Medium Risk
+### Current Risks
 
-- **Community Features**: Requires user adoption and training
-- **Public Storefront**: SEO and performance critical
+**Medium Risk:**
 
-### Low Risk
+- **Events System**: Requires careful capacity/waitlist logic to prevent overbooking
+- **Theme System**: Architecture decisions will impact long-term maintainability
+- **Public Storefront**: SEO and performance critical for online presence
 
-- **Configuration System**: Can use Payload's native config initially
-- **Advanced Features**: Can be deferred if needed
+**Low Risk:**
+
+- **Email Notifications**: Standard functionality, well-documented patterns
+- **Content Management**: Payload's native Lexical editor reduces complexity
+- **Advanced Features**: Can be deferred or implemented incrementally
 
 ---
 
 ## Success Criteria
 
-### Phase 3 Complete When:
+### ✅ Phase 3 Complete (Achieved)
 
-- [ ] All collection hooks implemented and tested
-- [ ] Admin UI enhancements deployed
-- [ ] CSV import/export working
-- [ ] No regressions in existing features
+- [x] All collection hooks implemented and tested
+- [x] Admin UI enhancements deployed
+- [x] CSV import/export working
+- [x] No regressions in existing features
 
 ### Phase 4 Complete When:
 
-- [ ] POS interface fully functional
-- [ ] Sales can be processed end-to-end
-- [ ] Square Payments working reliably
-- [ ] Receipts generating correctly
-- [ ] Daily sales reports available
+- [x] Shopping cart and checkout working end-to-end
+- [x] Sales can be processed with Square Payments
+- [x] Square Payments working reliably (sandbox tested)
+- [x] Receipts generating correctly (Square receipt URLs)
+- [x] Order management system complete
+- [x] Stock deduction automated
+- [ ] Email notifications for order updates (optional)
+
+**Current Status**: 95% Complete (core functionality done)
+
+### Phase 5 Complete When:
+
+- [ ] EventAttendance collection implemented
+- [ ] Registration workflow functional
+- [ ] Capacity and waitlist management working
+- [ ] Event calendar view deployed
+- [ ] Public event listing page live
+- [ ] Email notifications for events working
+
+### Phase 6 Complete When:
+
+- [ ] Theme architecture documented
+- [ ] Component library specification complete
+- [ ] Proof-of-concept theme created
+- [ ] Team approves architecture approach
+- [ ] Ready to begin Phase 7 implementation
+
+### Phase 7 Complete When:
+
+- [ ] CMS pages collection working
+- [ ] Theme system implemented
+- [ ] Public storefront enhanced
+- [ ] Navigation system functional
+- [ ] SEO metadata in place
+- [ ] Performance targets met
 
 ### Migration Complete When:
 
-- [ ] All old system features migrated
-- [ ] Old system can be decommissioned
+- [ ] All essential features from old system implemented
+- [ ] Events system fully functional
+- [ ] Public website live with theme system
 - [ ] Team trained on new system
 - [ ] Documentation complete
 - [ ] Performance meets or exceeds old system
-
----
-
-## Timeline Estimate
-
-| Phase                 | Estimated Duration | Target Date    |
-| --------------------- | ------------------ | -------------- |
-| Phase 3 (remaining)   | 2 weeks            | Week of Nov 11 |
-| Phase 4 (Sales)       | 3-4 weeks          | Week of Dec 2  |
-| Phase 5 (Community)   | 2 weeks            | Week of Dec 16 |
-| Phase 6 (CMS/Website) | 3-4 weeks          | Week of Jan 6  |
-| Phase 7 (Advanced)    | 2-3 weeks          | Week of Jan 27 |
-
-**Total Estimated Timeline**: 12-15 weeks from now (complete by late January 2026)
+- [ ] Old system can be safely decommissioned
 
 ---
 
 ## Notes
 
-- Old database confirmed as development instance only - no production data to migrate
-- Clean slate allows modern best practices from the start
-- Payload's native features (auth, media, API) eliminate custom code
-- React Server Components provide better performance than old SPA
-- Documentation system (.agent/) accelerates development
+### Migration Achievements
+
+- ✅ Clean slate implementation (no legacy data migration needed)
+- ✅ Modern best practices from day one (TypeScript strict mode, ESLint, testing)
+- ✅ Payload's native features (auth, media, API) eliminated custom code
+- ✅ React Server Components provide better performance than old SPA
+- ✅ Documentation system (.agent/) accelerates development
+- ✅ Square sandbox integration working with proper environment detection
+- ✅ Multi-currency support (AUD default) with GST calculation
+- ✅ Type-safe relationship handling utilities
+- ✅ Comprehensive testing (integration + E2E)
+
+### Key Technical Decisions
+
+- **Database**: SQLite (dev) / PostgreSQL (prod) via Drizzle ORM
+- **Payments**: Square Web Payments SDK with sandbox/production auto-detection
+- **Cart Storage**: Server-side encrypted cookies (JWT)
+- **Currency**: AUD with 10% GST, multi-currency capable
+- **Testing**: Vitest (integration) + Playwright (E2E)
+- **Type Safety**: Centralized relationship ID utilities prevent runtime errors
+
+### Removed Features (Not Needed)
+
+- ❌ Volunteer shift management (scope reduction)
+- ❌ Collective decision tracking (scope reduction)
+- ❌ POS interface (online-only for now)
+
+### Next Priorities
+
+1. **Events System** (Phase 5) - Community engagement
+2. **Theme Planning** (Phase 6) - Architecture for customizable website
+3. **Public Storefront** (Phase 7) - Full public-facing website
 
 ---
 
-Last Updated: 2025-11-02
-Next Review: After Phase 3 completion
+**Last Updated**: 2025-11-08
+**Next Review**: After Phase 5 (Events System) completion
+**Current Focus**: Planning Phase 5 implementation
