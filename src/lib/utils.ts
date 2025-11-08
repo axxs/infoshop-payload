@@ -55,6 +55,19 @@ export function getStockStatusLabel(status: string, quantity?: number): string {
 }
 
 /**
+ * Format date to readable string
+ */
+export function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat('en-AU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+}
+
+/**
  * Sanitizes user search input to prevent injection and ensure safe queries
  *
  * @param input - Raw search input from user
