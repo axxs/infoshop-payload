@@ -928,7 +928,7 @@ export interface Theme {
    */
   colorMode: 'auto' | 'light' | 'dark';
   /**
-   * Primary brand colour (HSL format)
+   * Primary brand colour (raw HSL values without hsl() wrapper)
    */
   default_light_primary?: string | null;
   /**
@@ -972,6 +972,34 @@ export interface Theme {
    */
   default_light_border?: string | null;
   /**
+   * Input border colour
+   */
+  default_light_input?: string | null;
+  /**
+   * Focus ring colour
+   */
+  default_light_ring?: string | null;
+  /**
+   * Popover background colour
+   */
+  default_light_popover?: string | null;
+  /**
+   * Popover text colour
+   */
+  default_light_popover_foreground?: string | null;
+  /**
+   * Secondary background colour
+   */
+  default_light_secondary?: string | null;
+  /**
+   * Secondary text colour
+   */
+  default_light_secondary_foreground?: string | null;
+  /**
+   * Destructive/error text colour
+   */
+  default_light_destructive_foreground?: string | null;
+  /**
    * Primary brand colour (HSL format)
    */
   default_dark_primary?: string | null;
@@ -991,6 +1019,34 @@ export interface Theme {
   default_dark_accent_foreground?: string | null;
   default_dark_destructive?: string | null;
   default_dark_border?: string | null;
+  /**
+   * Input border colour
+   */
+  default_dark_input?: string | null;
+  /**
+   * Focus ring colour
+   */
+  default_dark_ring?: string | null;
+  /**
+   * Popover background colour
+   */
+  default_dark_popover?: string | null;
+  /**
+   * Popover text colour
+   */
+  default_dark_popover_foreground?: string | null;
+  /**
+   * Secondary background colour
+   */
+  default_dark_secondary?: string | null;
+  /**
+   * Secondary text colour
+   */
+  default_dark_secondary_foreground?: string | null;
+  /**
+   * Destructive/error text colour
+   */
+  default_dark_destructive_foreground?: string | null;
   /**
    * Main font family
    */
@@ -1024,6 +1080,34 @@ export interface Theme {
   radical_light_destructive?: string | null;
   radical_light_border?: string | null;
   /**
+   * Input border colour
+   */
+  radical_light_input?: string | null;
+  /**
+   * Focus ring colour
+   */
+  radical_light_ring?: string | null;
+  /**
+   * Popover background colour
+   */
+  radical_light_popover?: string | null;
+  /**
+   * Popover text colour
+   */
+  radical_light_popover_foreground?: string | null;
+  /**
+   * Secondary background colour
+   */
+  radical_light_secondary?: string | null;
+  /**
+   * Secondary text colour
+   */
+  radical_light_secondary_foreground?: string | null;
+  /**
+   * Destructive/error text colour
+   */
+  radical_light_destructive_foreground?: string | null;
+  /**
    * Brighter red for dark mode
    */
   radical_dark_primary?: string | null;
@@ -1043,6 +1127,34 @@ export interface Theme {
   radical_dark_accent_foreground?: string | null;
   radical_dark_destructive?: string | null;
   radical_dark_border?: string | null;
+  /**
+   * Input border colour
+   */
+  radical_dark_input?: string | null;
+  /**
+   * Focus ring colour
+   */
+  radical_dark_ring?: string | null;
+  /**
+   * Popover background colour
+   */
+  radical_dark_popover?: string | null;
+  /**
+   * Popover text colour
+   */
+  radical_dark_popover_foreground?: string | null;
+  /**
+   * Secondary background colour
+   */
+  radical_dark_secondary?: string | null;
+  /**
+   * Secondary text colour
+   */
+  radical_dark_secondary_foreground?: string | null;
+  /**
+   * Destructive/error text colour
+   */
+  radical_dark_destructive_foreground?: string | null;
   /**
    * Serif font for radical aesthetic
    */
@@ -1416,6 +1528,13 @@ export interface ThemeSelect<T extends boolean = true> {
   default_light_accent_foreground?: T;
   default_light_destructive?: T;
   default_light_border?: T;
+  default_light_input?: T;
+  default_light_ring?: T;
+  default_light_popover?: T;
+  default_light_popover_foreground?: T;
+  default_light_secondary?: T;
+  default_light_secondary_foreground?: T;
+  default_light_destructive_foreground?: T;
   default_dark_primary?: T;
   default_dark_background?: T;
   default_dark_foreground?: T;
@@ -1427,6 +1546,13 @@ export interface ThemeSelect<T extends boolean = true> {
   default_dark_accent_foreground?: T;
   default_dark_destructive?: T;
   default_dark_border?: T;
+  default_dark_input?: T;
+  default_dark_ring?: T;
+  default_dark_popover?: T;
+  default_dark_popover_foreground?: T;
+  default_dark_secondary?: T;
+  default_dark_secondary_foreground?: T;
+  default_dark_destructive_foreground?: T;
   default_fontFamily?: T;
   default_headingFontFamily?: T;
   default_radius?: T;
@@ -1441,6 +1567,13 @@ export interface ThemeSelect<T extends boolean = true> {
   radical_light_accent_foreground?: T;
   radical_light_destructive?: T;
   radical_light_border?: T;
+  radical_light_input?: T;
+  radical_light_ring?: T;
+  radical_light_popover?: T;
+  radical_light_popover_foreground?: T;
+  radical_light_secondary?: T;
+  radical_light_secondary_foreground?: T;
+  radical_light_destructive_foreground?: T;
   radical_dark_primary?: T;
   radical_dark_background?: T;
   radical_dark_foreground?: T;
@@ -1452,6 +1585,13 @@ export interface ThemeSelect<T extends boolean = true> {
   radical_dark_accent_foreground?: T;
   radical_dark_destructive?: T;
   radical_dark_border?: T;
+  radical_dark_input?: T;
+  radical_dark_ring?: T;
+  radical_dark_popover?: T;
+  radical_dark_popover_foreground?: T;
+  radical_dark_secondary?: T;
+  radical_dark_secondary_foreground?: T;
+  radical_dark_destructive_foreground?: T;
   radical_fontFamily?: T;
   radical_headingFontFamily?: T;
   radical_radius?: T;

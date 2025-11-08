@@ -65,34 +65,34 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'default_light_primary',
                   type: 'text',
-                  defaultValue: 'hsl(221.2 83.2% 53.3%)',
+                  defaultValue: '221.2 83.2% 53.3%',
                   admin: {
-                    description: 'Primary brand colour (HSL format)',
-                    placeholder: 'hsl(221.2 83.2% 53.3%)',
+                    description: 'Primary brand colour (raw HSL values without hsl() wrapper)',
+                    placeholder: '221.2 83.2% 53.3%',
                   },
                 },
                 {
                   name: 'default_light_background',
                   type: 'text',
-                  defaultValue: 'hsl(0 0% 100%)',
+                  defaultValue: '0 0% 100%',
                   admin: {
                     description: 'Page background colour',
-                    placeholder: 'hsl(0 0% 100%)',
+                    placeholder: '0 0% 100%',
                   },
                 },
                 {
                   name: 'default_light_foreground',
                   type: 'text',
-                  defaultValue: 'hsl(222.2 84% 4.9%)',
+                  defaultValue: '222.2 84% 4.9%',
                   admin: {
                     description: 'Main text colour',
-                    placeholder: 'hsl(222.2 84% 4.9%)',
+                    placeholder: '222.2 84% 4.9%',
                   },
                 },
                 {
                   name: 'default_light_card',
                   type: 'text',
-                  defaultValue: 'hsl(0 0% 100%)',
+                  defaultValue: '0 0% 100%',
                   admin: {
                     description: 'Card background colour',
                   },
@@ -100,7 +100,7 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'default_light_card_foreground',
                   type: 'text',
-                  defaultValue: 'hsl(222.2 84% 4.9%)',
+                  defaultValue: '222.2 84% 4.9%',
                   admin: {
                     description: 'Card text colour',
                   },
@@ -108,7 +108,7 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'default_light_muted',
                   type: 'text',
-                  defaultValue: 'hsl(210 40% 96.1%)',
+                  defaultValue: '210 40% 96.1%',
                   admin: {
                     description: 'Muted background colour',
                   },
@@ -116,7 +116,7 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'default_light_muted_foreground',
                   type: 'text',
-                  defaultValue: 'hsl(215.4 16.3% 46.9%)',
+                  defaultValue: '215.4 16.3% 46.9%',
                   admin: {
                     description: 'Muted text colour',
                   },
@@ -124,7 +124,7 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'default_light_accent',
                   type: 'text',
-                  defaultValue: 'hsl(210 40% 96.1%)',
+                  defaultValue: '210 40% 96.1%',
                   admin: {
                     description: 'Accent background colour',
                   },
@@ -132,7 +132,7 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'default_light_accent_foreground',
                   type: 'text',
-                  defaultValue: 'hsl(222.2 47.4% 11.2%)',
+                  defaultValue: '222.2 47.4% 11.2%',
                   admin: {
                     description: 'Accent text colour',
                   },
@@ -140,7 +140,7 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'default_light_destructive',
                   type: 'text',
-                  defaultValue: 'hsl(0 84.2% 60.2%)',
+                  defaultValue: '0 84.2% 60.2%',
                   admin: {
                     description: 'Destructive/error colour',
                   },
@@ -148,9 +148,65 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'default_light_border',
                   type: 'text',
-                  defaultValue: 'hsl(214.3 31.8% 91.4%)',
+                  defaultValue: '214.3 31.8% 91.4%',
                   admin: {
                     description: 'Border colour',
+                  },
+                },
+                {
+                  name: 'default_light_input',
+                  type: 'text',
+                  defaultValue: '214.3 31.8% 91.4%',
+                  admin: {
+                    description: 'Input border colour',
+                  },
+                },
+                {
+                  name: 'default_light_ring',
+                  type: 'text',
+                  defaultValue: '221.2 83.2% 53.3%',
+                  admin: {
+                    description: 'Focus ring colour',
+                  },
+                },
+                {
+                  name: 'default_light_popover',
+                  type: 'text',
+                  defaultValue: '0 0% 100%',
+                  admin: {
+                    description: 'Popover background colour',
+                  },
+                },
+                {
+                  name: 'default_light_popover_foreground',
+                  type: 'text',
+                  defaultValue: '222.2 84% 4.9%',
+                  admin: {
+                    description: 'Popover text colour',
+                  },
+                },
+                {
+                  name: 'default_light_secondary',
+                  type: 'text',
+                  defaultValue: '210 40% 96.1%',
+                  admin: {
+                    description: 'Secondary background colour',
+                  },
+                },
+                {
+                  name: 'default_light_secondary_foreground',
+                  type: 'text',
+                  defaultValue: '222.2 47.4% 11.2%',
+                  admin: {
+                    description: 'Secondary text colour',
+                  },
+                },
+                {
+                  name: 'default_light_destructive_foreground',
+                  type: 'text',
+                  defaultValue: '210 40% 98%',
+                  admin: {
+                    description: 'Destructive/error text colour',
                   },
                 },
               ],
@@ -165,7 +221,7 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'default_dark_primary',
                   type: 'text',
-                  defaultValue: 'hsl(217.2 91.2% 59.8%)',
+                  defaultValue: '217.2 91.2% 59.8%',
                   admin: {
                     description: 'Primary brand colour (HSL format)',
                   },
@@ -173,7 +229,7 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'default_dark_background',
                   type: 'text',
-                  defaultValue: 'hsl(222.2 84% 4.9%)',
+                  defaultValue: '222.2 84% 4.9%',
                   admin: {
                     description: 'Page background colour',
                   },
@@ -181,7 +237,7 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'default_dark_foreground',
                   type: 'text',
-                  defaultValue: 'hsl(210 40% 98%)',
+                  defaultValue: '210 40% 98%',
                   admin: {
                     description: 'Main text colour',
                   },
@@ -189,42 +245,98 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'default_dark_card',
                   type: 'text',
-                  defaultValue: 'hsl(222.2 84% 4.9%)',
+                  defaultValue: '222.2 84% 4.9%',
                 },
                 {
                   name: 'default_dark_card_foreground',
                   type: 'text',
-                  defaultValue: 'hsl(210 40% 98%)',
+                  defaultValue: '210 40% 98%',
                 },
                 {
                   name: 'default_dark_muted',
                   type: 'text',
-                  defaultValue: 'hsl(217.2 32.6% 17.5%)',
+                  defaultValue: '217.2 32.6% 17.5%',
                 },
                 {
                   name: 'default_dark_muted_foreground',
                   type: 'text',
-                  defaultValue: 'hsl(215 20.2% 65.1%)',
+                  defaultValue: '215 20.2% 65.1%',
                 },
                 {
                   name: 'default_dark_accent',
                   type: 'text',
-                  defaultValue: 'hsl(217.2 32.6% 17.5%)',
+                  defaultValue: '217.2 32.6% 17.5%',
                 },
                 {
                   name: 'default_dark_accent_foreground',
                   type: 'text',
-                  defaultValue: 'hsl(210 40% 98%)',
+                  defaultValue: '210 40% 98%',
                 },
                 {
                   name: 'default_dark_destructive',
                   type: 'text',
-                  defaultValue: 'hsl(0 62.8% 30.6%)',
+                  defaultValue: '0 62.8% 30.6%',
                 },
                 {
                   name: 'default_dark_border',
                   type: 'text',
-                  defaultValue: 'hsl(217.2 32.6% 17.5%)',
+                  defaultValue: '217.2 32.6% 17.5%',
+                },
+                {
+                  name: 'default_dark_input',
+                  type: 'text',
+                  defaultValue: '217.2 32.6% 17.5%',
+                  admin: {
+                    description: 'Input border colour',
+                  },
+                },
+                {
+                  name: 'default_dark_ring',
+                  type: 'text',
+                  defaultValue: '217.2 91.2% 59.8%',
+                  admin: {
+                    description: 'Focus ring colour',
+                  },
+                },
+                {
+                  name: 'default_dark_popover',
+                  type: 'text',
+                  defaultValue: '222.2 84% 4.9%',
+                  admin: {
+                    description: 'Popover background colour',
+                  },
+                },
+                {
+                  name: 'default_dark_popover_foreground',
+                  type: 'text',
+                  defaultValue: '210 40% 98%',
+                  admin: {
+                    description: 'Popover text colour',
+                  },
+                },
+                {
+                  name: 'default_dark_secondary',
+                  type: 'text',
+                  defaultValue: '217.2 32.6% 17.5%',
+                  admin: {
+                    description: 'Secondary background colour',
+                  },
+                },
+                {
+                  name: 'default_dark_secondary_foreground',
+                  type: 'text',
+                  defaultValue: '210 40% 98%',
+                  admin: {
+                    description: 'Secondary text colour',
+                  },
+                },
+                {
+                  name: 'default_dark_destructive_foreground',
+                  type: 'text',
+                  defaultValue: '210 40% 98%',
+                  admin: {
+                    description: 'Destructive/error text colour',
+                  },
                 },
               ],
             },
@@ -279,7 +391,7 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'radical_light_primary',
                   type: 'text',
-                  defaultValue: 'hsl(0 84% 60%)',
+                  defaultValue: '0 84% 60%',
                   admin: {
                     description: 'Bold red primary colour',
                   },
@@ -287,7 +399,7 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'radical_light_background',
                   type: 'text',
-                  defaultValue: 'hsl(43 100% 98%)',
+                  defaultValue: '43 100% 98%',
                   admin: {
                     description: 'Warm off-white background',
                   },
@@ -295,7 +407,7 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'radical_light_foreground',
                   type: 'text',
-                  defaultValue: 'hsl(0 0% 10%)',
+                  defaultValue: '0 0% 10%',
                   admin: {
                     description: 'Near black text',
                   },
@@ -303,42 +415,98 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'radical_light_card',
                   type: 'text',
-                  defaultValue: 'hsl(0 0% 100%)',
+                  defaultValue: '0 0% 100%',
                 },
                 {
                   name: 'radical_light_card_foreground',
                   type: 'text',
-                  defaultValue: 'hsl(0 0% 10%)',
+                  defaultValue: '0 0% 10%',
                 },
                 {
                   name: 'radical_light_muted',
                   type: 'text',
-                  defaultValue: 'hsl(43 30% 90%)',
+                  defaultValue: '43 30% 90%',
                 },
                 {
                   name: 'radical_light_muted_foreground',
                   type: 'text',
-                  defaultValue: 'hsl(0 0% 40%)',
+                  defaultValue: '0 0% 40%',
                 },
                 {
                   name: 'radical_light_accent',
                   type: 'text',
-                  defaultValue: 'hsl(43 100% 85%)',
+                  defaultValue: '43 100% 85%',
                 },
                 {
                   name: 'radical_light_accent_foreground',
                   type: 'text',
-                  defaultValue: 'hsl(0 0% 10%)',
+                  defaultValue: '0 0% 10%',
                 },
                 {
                   name: 'radical_light_destructive',
                   type: 'text',
-                  defaultValue: 'hsl(0 84% 60%)',
+                  defaultValue: '0 84% 60%',
                 },
                 {
                   name: 'radical_light_border',
                   type: 'text',
-                  defaultValue: 'hsl(0 0% 20%)',
+                  defaultValue: '0 0% 20%',
+                },
+                {
+                  name: 'radical_light_input',
+                  type: 'text',
+                  defaultValue: '0 0% 20%',
+                  admin: {
+                    description: 'Input border colour',
+                  },
+                },
+                {
+                  name: 'radical_light_ring',
+                  type: 'text',
+                  defaultValue: '0 84% 60%',
+                  admin: {
+                    description: 'Focus ring colour',
+                  },
+                },
+                {
+                  name: 'radical_light_popover',
+                  type: 'text',
+                  defaultValue: '0 0% 100%',
+                  admin: {
+                    description: 'Popover background colour',
+                  },
+                },
+                {
+                  name: 'radical_light_popover_foreground',
+                  type: 'text',
+                  defaultValue: '0 0% 10%',
+                  admin: {
+                    description: 'Popover text colour',
+                  },
+                },
+                {
+                  name: 'radical_light_secondary',
+                  type: 'text',
+                  defaultValue: '43 30% 90%',
+                  admin: {
+                    description: 'Secondary background colour',
+                  },
+                },
+                {
+                  name: 'radical_light_secondary_foreground',
+                  type: 'text',
+                  defaultValue: '0 0% 10%',
+                  admin: {
+                    description: 'Secondary text colour',
+                  },
+                },
+                {
+                  name: 'radical_light_destructive_foreground',
+                  type: 'text',
+                  defaultValue: '0 0% 100%',
+                  admin: {
+                    description: 'Destructive/error text colour',
+                  },
                 },
               ],
             },
@@ -352,7 +520,7 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'radical_dark_primary',
                   type: 'text',
-                  defaultValue: 'hsl(0 90% 65%)',
+                  defaultValue: '0 90% 65%',
                   admin: {
                     description: 'Brighter red for dark mode',
                   },
@@ -360,7 +528,7 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'radical_dark_background',
                   type: 'text',
-                  defaultValue: 'hsl(0 0% 8%)',
+                  defaultValue: '0 0% 8%',
                   admin: {
                     description: 'Very dark grey',
                   },
@@ -368,7 +536,7 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'radical_dark_foreground',
                   type: 'text',
-                  defaultValue: 'hsl(43 100% 95%)',
+                  defaultValue: '43 100% 95%',
                   admin: {
                     description: 'Warm white',
                   },
@@ -376,42 +544,98 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'radical_dark_card',
                   type: 'text',
-                  defaultValue: 'hsl(0 0% 12%)',
+                  defaultValue: '0 0% 12%',
                 },
                 {
                   name: 'radical_dark_card_foreground',
                   type: 'text',
-                  defaultValue: 'hsl(43 100% 95%)',
+                  defaultValue: '43 100% 95%',
                 },
                 {
                   name: 'radical_dark_muted',
                   type: 'text',
-                  defaultValue: 'hsl(0 5% 15%)',
+                  defaultValue: '0 5% 15%',
                 },
                 {
                   name: 'radical_dark_muted_foreground',
                   type: 'text',
-                  defaultValue: 'hsl(43 20% 70%)',
+                  defaultValue: '43 20% 70%',
                 },
                 {
                   name: 'radical_dark_accent',
                   type: 'text',
-                  defaultValue: 'hsl(0 10% 20%)',
+                  defaultValue: '0 10% 20%',
                 },
                 {
                   name: 'radical_dark_accent_foreground',
                   type: 'text',
-                  defaultValue: 'hsl(43 100% 95%)',
+                  defaultValue: '43 100% 95%',
                 },
                 {
                   name: 'radical_dark_destructive',
                   type: 'text',
-                  defaultValue: 'hsl(0 90% 65%)',
+                  defaultValue: '0 90% 65%',
                 },
                 {
                   name: 'radical_dark_border',
                   type: 'text',
-                  defaultValue: 'hsl(0 5% 25%)',
+                  defaultValue: '0 5% 25%',
+                },
+                {
+                  name: 'radical_dark_input',
+                  type: 'text',
+                  defaultValue: '0 5% 25%',
+                  admin: {
+                    description: 'Input border colour',
+                  },
+                },
+                {
+                  name: 'radical_dark_ring',
+                  type: 'text',
+                  defaultValue: '0 90% 65%',
+                  admin: {
+                    description: 'Focus ring colour',
+                  },
+                },
+                {
+                  name: 'radical_dark_popover',
+                  type: 'text',
+                  defaultValue: '0 0% 12%',
+                  admin: {
+                    description: 'Popover background colour',
+                  },
+                },
+                {
+                  name: 'radical_dark_popover_foreground',
+                  type: 'text',
+                  defaultValue: '43 100% 95%',
+                  admin: {
+                    description: 'Popover text colour',
+                  },
+                },
+                {
+                  name: 'radical_dark_secondary',
+                  type: 'text',
+                  defaultValue: '0 5% 15%',
+                  admin: {
+                    description: 'Secondary background colour',
+                  },
+                },
+                {
+                  name: 'radical_dark_secondary_foreground',
+                  type: 'text',
+                  defaultValue: '43 100% 95%',
+                  admin: {
+                    description: 'Secondary text colour',
+                  },
+                },
+                {
+                  name: 'radical_dark_destructive_foreground',
+                  type: 'text',
+                  defaultValue: '43 100% 95%',
+                  admin: {
+                    description: 'Destructive/error text colour',
+                  },
                 },
               ],
             },

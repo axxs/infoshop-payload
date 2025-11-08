@@ -41,23 +41,23 @@ export function ThemeProvider({ children, initialTheme }: ThemeProviderProps) {
     // Apply CSS variables based on active theme and mode
     const cssVars: Record<string, string> = {}
 
-    // Color tokens
+    // Color tokens (must match Theme.ts field names with underscores)
     const colorKeys = [
       'primary',
       'background',
       'foreground',
       'card',
-      'cardForeground',
+      'card_foreground',
       'popover',
-      'popoverForeground',
+      'popover_foreground',
       'secondary',
-      'secondaryForeground',
+      'secondary_foreground',
       'muted',
-      'mutedForeground',
+      'muted_foreground',
       'accent',
-      'accentForeground',
+      'accent_foreground',
       'destructive',
-      'destructiveForeground',
+      'destructive_foreground',
       'border',
       'input',
       'ring',
@@ -68,10 +68,8 @@ export function ThemeProvider({ children, initialTheme }: ThemeProviderProps) {
       const value = theme[themeKey]
       if (value && typeof value === 'string') {
         // Use --color-* prefix for Tailwind v4 compatibility
-        const cssVarName =
-          key === 'ring' || key === 'border' || key === 'input'
-            ? `--color-${key}`
-            : `--color-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`
+        // Convert snake_case to kebab-case for CSS variables
+        const cssVarName = `--color-${key.replace(/_/g, '-')}`
         // Wrap in hsl() for Tailwind v4
         cssVars[cssVarName] = `hsl(${value})`
       }
