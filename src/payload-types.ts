@@ -236,15 +236,15 @@ export interface Book {
   /**
    * Wholesale cost price (what we paid)
    */
-  costPrice: number;
+  costPrice?: number | null;
   /**
    * Standard retail price for general public
    */
-  sellPrice: number;
+  sellPrice?: number | null;
   /**
    * Discounted price for collective members
    */
-  memberPrice: number;
+  memberPrice?: number | null;
   currency: 'AUD' | 'USD' | 'EUR' | 'GBP';
   /**
    * Current stock quantity
