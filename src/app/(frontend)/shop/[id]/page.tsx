@@ -111,13 +111,13 @@ export default async function BookPage({ params }: BookPageProps) {
             <CardContent className="p-6">
               <div className="flex items-baseline gap-4">
                 <span className="text-3xl font-bold">
-                  {formatPrice(book.sellPrice, book.currency)}
+                  {formatPrice(book.sellPrice ?? 0, book.currency)}
                 </span>
-                {book.memberPrice < book.sellPrice && (
+                {(book.memberPrice ?? 0) < (book.sellPrice ?? 0) && (
                   <div className="flex flex-col">
                     <span className="text-sm text-muted-foreground">Member Price</span>
                     <span className="text-xl font-semibold text-primary">
-                      {formatPrice(book.memberPrice, book.currency)}
+                      {formatPrice(book.memberPrice ?? 0, book.currency)}
                     </span>
                   </div>
                 )}

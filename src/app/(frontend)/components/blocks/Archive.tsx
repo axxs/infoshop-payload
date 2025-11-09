@@ -6,7 +6,7 @@ import type { Where } from 'payload'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatPrice } from '@/lib/utils'
 
 interface ArchiveProps {
   title?: string | null
@@ -108,7 +108,7 @@ export async function Archive(props: ArchiveProps) {
                       {book.sellPrice && (
                         <CardContent>
                           <p className="font-semibold text-primary">
-                            ${(book.sellPrice / 100).toFixed(2)}
+                            {formatPrice(book.sellPrice, book.currency)}
                           </p>
                         </CardContent>
                       )}

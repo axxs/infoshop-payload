@@ -56,10 +56,12 @@ export function BookCard({ book }: BookCardProps) {
       <CardFooter className="flex flex-col gap-3 p-4 pt-0">
         <div className="flex w-full items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-lg font-bold">{formatPrice(book.sellPrice, book.currency)}</span>
-            {book.memberPrice < book.sellPrice && (
+            <span className="text-lg font-bold">
+              {formatPrice(book.sellPrice ?? 0, book.currency)}
+            </span>
+            {(book.memberPrice ?? 0) < (book.sellPrice ?? 0) && (
               <span className="text-sm text-muted-foreground">
-                Member: {formatPrice(book.memberPrice, book.currency)}
+                Member: {formatPrice(book.memberPrice ?? 0, book.currency)}
               </span>
             )}
           </div>
