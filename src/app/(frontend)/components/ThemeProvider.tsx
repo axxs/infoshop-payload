@@ -39,7 +39,7 @@ export function ThemeProvider({ children, initialTheme }: ThemeProviderProps) {
     const themePrefix = `${activeTheme}_${modePrefix}`
 
     // Apply CSS variables based on active theme and mode
-    const cssVars: Record<string, string> = {}
+    const cssVars: Record<string, string | null> = {}
 
     // Color tokens (must match Theme.ts field names with underscores)
     const colorKeys = [
@@ -66,12 +66,16 @@ export function ThemeProvider({ children, initialTheme }: ThemeProviderProps) {
     colorKeys.forEach((key) => {
       const themeKey = `${themePrefix}_${key}` as keyof Theme
       const value = theme[themeKey]
+      const cssVarName = `--color-${key.replace(/_/g, '-')}`
+
       if (value && typeof value === 'string') {
         // Use --color-* prefix for Tailwind v4 compatibility
         // Convert snake_case to kebab-case for CSS variables
-        const cssVarName = `--color-${key.replace(/_/g, '-')}`
         // Wrap in hsl() for Tailwind v4
         cssVars[cssVarName] = `hsl(${value})`
+      } else {
+        // If value is null/undefined, mark for removal to use CSS defaults
+        cssVars[cssVarName] = null
       }
     })
 
@@ -94,9 +98,14 @@ export function ThemeProvider({ children, initialTheme }: ThemeProviderProps) {
       cssVars['--radius'] = radius
     }
 
-    // Apply all CSS variables to root
+    // Apply or remove CSS variables from root
     Object.entries(cssVars).forEach(([key, value]) => {
-      root.style.setProperty(key, value)
+      if (value === null) {
+        // Remove inline style to use CSS defaults from globals.css
+        root.style.removeProperty(key)
+      } else {
+        root.style.setProperty(key, value)
+      }
     })
   }, [theme, mounted])
 
