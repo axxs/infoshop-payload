@@ -7,7 +7,7 @@
  * Note: This is a free API with no authentication required
  */
 
-import { cleanISBN, convertISBN10to13 } from './isbnUtils'
+import { cleanISBN } from './isbnUtils'
 
 /**
  * WorldCat Classify API response structure (simplified XML response)
@@ -18,12 +18,6 @@ interface WorldCatWork {
   heldby?: string // Number of libraries holding this work
   editions?: string
   owi?: string // OCLC Work Identifier
-}
-
-interface WorldCatRecommendations {
-  ddc?: Array<{ mostPopular?: string; nsfa?: string }> // Dewey Decimal
-  lcc?: Array<{ mostPopular?: string; nsfa?: string }> // Library of Congress
-  fast?: Array<{ nsfa?: string; headings?: string[] }> // FAST subject headings
 }
 
 /**
@@ -144,31 +138,6 @@ function parseWorldCatXML(xml: string): WorldCatWork | null {
     console.error('[WorldCat] Error parsing XML:', error)
     return null
   }
-}
-
-/**
- * Extract FAST subject headings from XML
- *
- * @param xml - XML response string
- * @returns Array of subject headings
- */
-function extractSubjects(xml: string): string[] {
-  const subjects: string[] = []
-
-  try {
-    // Extract FAST headings (most reliable subject data from WorldCat)
-    const fastMatches = xml.matchAll(/<heading[^>]*>([^<]+)<\/heading>/g)
-    for (const match of fastMatches) {
-      const heading = match[1].trim()
-      if (heading && !subjects.includes(heading)) {
-        subjects.push(heading)
-      }
-    }
-  } catch (error) {
-    console.error('[WorldCat] Error extracting subjects:', error)
-  }
-
-  return subjects
 }
 
 /**
