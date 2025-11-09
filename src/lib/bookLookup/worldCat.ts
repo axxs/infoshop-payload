@@ -1,11 +1,12 @@
 /**
- * WorldCat Classify API Integration
+ * WorldCat Metadata API Integration
  *
- * Provides book lookup functionality using OCLC's WorldCat Classify API
- * Documentation: http://classify.oclc.org/classify2/api_docs/index.html
+ * Provides book lookup functionality using OCLC's WorldCat Metadata API
+ * Documentation: https://developer.api.oclc.org/wcmd
  *
- * Note: This is a free API with no authentication required
- * Security note: Uses HTTP as OCLC only provides HTTP endpoint
+ * Note: This API uses HTTPS and requires OAuth authentication with a WSKey
+ * To enable: Set WORLDCAT_API_KEY and WORLDCAT_SECRET environment variables
+ * Fallback: Uses legacy Classify API (HTTP) if credentials not provided
  */
 
 import { cleanISBN, validateISBN } from '../isbnUtils'
@@ -79,23 +80,89 @@ function parseWorldCatXML(xml: string): WorldCatWork | null {
 }
 
 /**
- * Fetch book data from WorldCat Classify API
+ * Fetch book data from WorldCat API
  *
- * Security note: OCLC Classify API only supports HTTP (not HTTPS).
- * While ISBNs are not sensitive data, this exposes queries to potential MITM attacks.
- * Consider using alternative sources (Google Books, OpenLibrary) for production.
+ * Uses WorldCat Metadata API (HTTPS) if credentials are available,
+ * otherwise falls back to legacy Classify API (HTTP).
  *
  * @param isbn - ISBN-10 or ISBN-13
  * @returns Parsed work data or null
  */
 async function fetchFromWorldCat(isbn: string): Promise<WorldCatWork | null> {
+  const apiKey = process.env.WORLDCAT_API_KEY
+  const apiSecret = process.env.WORLDCAT_SECRET
+
+  // Use secure Metadata API if credentials available
+  if (apiKey && apiSecret) {
+    return fetchFromMetadataAPI(isbn, apiKey, apiSecret)
+  }
+
+  // Fallback to legacy Classify API (HTTP only)
+  return fetchFromClassifyAPI(isbn)
+}
+
+/**
+ * Fetch from WorldCat Metadata API (HTTPS, requires OAuth)
+ *
+ * @param isbn - ISBN-10 or ISBN-13
+ * @param apiKey - WorldCat API key (WSKey)
+ * @param apiSecret - WorldCat API secret
+ * @returns Parsed work data or null
+ */
+async function fetchFromMetadataAPI(
+  isbn: string,
+  apiKey: string,
+  apiSecret: string,
+): Promise<WorldCatWork | null> {
+  const url = `https://metadata.api.oclc.org/classify/v1/isbn/${cleanISBN(isbn)}`
+
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT.WORLDCAT)
+
+  try {
+    // Basic Auth using WSKey credentials
+    const auth = Buffer.from(`${apiKey}:${apiSecret}`).toString('base64')
+
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        Accept: 'application/xml',
+        Authorization: `Basic ${auth}`,
+      },
+    })
+
+    clearTimeout(timeoutId)
+
+    if (!response.ok) {
+      return null
+    }
+
+    const xml = await response.text()
+    return parseWorldCatXML(xml)
+  } catch (error) {
+    clearTimeout(timeoutId)
+    if (error instanceof Error && error.name === 'AbortError') {
+      return null
+    }
+    return null
+  }
+}
+
+/**
+ * Fetch from legacy WorldCat Classify API (HTTP fallback)
+ *
+ * SECURITY WARNING: This API only supports HTTP (insecure).
+ * Use Metadata API with credentials for production.
+ *
+ * @param isbn - ISBN-10 or ISBN-13
+ * @returns Parsed work data or null
+ */
+async function fetchFromClassifyAPI(isbn: string): Promise<WorldCatWork | null> {
   const params = new URLSearchParams({
     isbn: isbn,
-    summary: 'true', // Get summary with work-level data
+    summary: 'true',
   })
 
-  // SECURITY WARNING: OCLC Classify only supports HTTP (insecure)
-  // This is a known limitation of the OCLC service
   const url = `http://classify.oclc.org/classify2/Classify?${params}`
 
   const controller = new AbortController()
