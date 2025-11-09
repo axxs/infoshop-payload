@@ -5,9 +5,11 @@
  * Documentation: http://classify.oclc.org/classify2/api_docs/index.html
  *
  * Note: This is a free API with no authentication required
+ * Security note: Uses HTTP as OCLC only provides HTTP endpoint
  */
 
-import { cleanISBN } from './isbnUtils'
+import { cleanISBN, validateISBN } from '../isbnUtils'
+import type { BookLookupResult, BookData } from './types'
 
 /**
  * WorldCat Classify API response structure (simplified XML response)
@@ -18,27 +20,6 @@ interface WorldCatWork {
   heldby?: string // Number of libraries holding this work
   editions?: string
   owi?: string // OCLC Work Identifier
-}
-
-/**
- * Book lookup result
- */
-export interface BookLookupResult {
-  success: boolean
-  data?: {
-    title: string
-    author: string
-    publisher?: string
-    publishedDate?: string
-    description?: string
-    coverImageUrl?: string
-    isbn: string
-    oclcNumber?: string
-    pages?: number
-    subjects?: string[]
-  }
-  error?: string
-  source: 'worldcat'
 }
 
 /**
@@ -134,8 +115,7 @@ function parseWorldCatXML(xml: string): WorldCatWork | null {
       owi,
       heldby,
     }
-  } catch (error) {
-    console.error('[WorldCat] Error parsing XML:', error)
+  } catch {
     return null
   }
 }
@@ -143,63 +123,81 @@ function parseWorldCatXML(xml: string): WorldCatWork | null {
 /**
  * Fetch book data from WorldCat Classify API
  *
+ * Security note: OCLC only provides HTTP endpoint. We attempt HTTPS first,
+ * then fallback to HTTP if needed. ISBNs are not sensitive data.
+ *
  * @param isbn - ISBN-10 or ISBN-13
  * @returns Parsed work data or null
  */
 async function fetchFromWorldCat(isbn: string): Promise<WorldCatWork | null> {
-  const baseUrl = 'http://classify.oclc.org/classify2/Classify'
   const params = new URLSearchParams({
     isbn: isbn,
     summary: 'true', // Get summary with work-level data
   })
 
-  try {
-    const response = await fetch(`${baseUrl}?${params}`, {
-      headers: {
-        Accept: 'application/xml',
-      },
-    })
+  // Try HTTPS first, fallback to HTTP (OCLC's API only supports HTTP)
+  const urls = [
+    `https://classify.oclc.org/classify2/Classify?${params}`,
+    `http://classify.oclc.org/classify2/Classify?${params}`,
+  ]
 
-    if (!response.ok) {
-      console.warn(`[WorldCat] HTTP ${response.status} for ISBN ${isbn}`)
-      return null
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
+  for (const url of urls) {
+    try {
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          Accept: 'application/xml',
+        },
+      })
+
+      if (!response.ok) {
+        continue // Try next URL
+      }
+
+      clearTimeout(timeoutId)
+      const xml = await response.text()
+
+      // Check response code in XML
+      const responseMatch = xml.match(/<response code="(\d+)"/)
+      if (!responseMatch) {
+        return null
+      }
+
+      const responseCode = responseMatch[1]
+
+      // Response codes:
+      // 0 = Single work found (success)
+      // 2 = Single work editions found (success)
+      // 4 = Multiple works found (we'll use first)
+      // 100 = No input (error)
+      // 101 = Invalid input (error)
+      // 102 = Not found (error)
+      // 200 = Unexpected error (error)
+
+      if (responseCode === '102') {
+        return null
+      }
+
+      if (!['0', '2', '4'].includes(responseCode)) {
+        return null
+      }
+
+      return parseWorldCatXML(xml)
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        clearTimeout(timeoutId)
+        return null
+      }
+      // Continue to next URL
+      continue
     }
-
-    const xml = await response.text()
-
-    // Check response code in XML
-    const responseMatch = xml.match(/<response code="(\d+)"/)
-    if (!responseMatch) {
-      console.warn('[WorldCat] Invalid XML response')
-      return null
-    }
-
-    const responseCode = responseMatch[1]
-
-    // Response codes:
-    // 0 = Single work found (success)
-    // 2 = Single work editions found (success)
-    // 4 = Multiple works found (we'll use first)
-    // 100 = No input (error)
-    // 101 = Invalid input (error)
-    // 102 = Not found (error)
-    // 200 = Unexpected error (error)
-
-    if (responseCode === '102') {
-      console.log(`[WorldCat] No results for ISBN ${isbn}`)
-      return null
-    }
-
-    if (!['0', '2', '4'].includes(responseCode)) {
-      console.warn(`[WorldCat] Error response code ${responseCode} for ISBN ${isbn}`)
-      return null
-    }
-
-    return parseWorldCatXML(xml)
-  } catch (error) {
-    console.error(`[WorldCat] Error fetching ISBN ${isbn}:`, error)
-    return null
   }
+
+  clearTimeout(timeoutId)
+  return null
 }
 
 /**
@@ -209,7 +207,7 @@ async function fetchFromWorldCat(isbn: string): Promise<WorldCatWork | null> {
  * @param isbn - Original ISBN
  * @returns Standardised book data
  */
-function transformWorldCatData(work: WorldCatWork, isbn: string): BookLookupResult['data'] {
+function transformWorldCatData(work: WorldCatWork, isbn: string): BookData {
   // Note: WorldCat Classify doesn't provide cover images, descriptions, or publisher info
   // It's primarily a cataloguing/classification service
   return {
@@ -220,10 +218,10 @@ function transformWorldCatData(work: WorldCatWork, isbn: string): BookLookupResu
     // WorldCat doesn't provide these fields:
     publisher: undefined,
     publishedDate: undefined,
-    description: undefined,
+    synopsis: undefined,
     coverImageUrl: undefined,
     pages: undefined,
-    subjects: undefined, // Could extract FAST headings but they're very technical
+    subjects: undefined,
   }
 }
 
@@ -236,10 +234,19 @@ function transformWorldCatData(work: WorldCatWork, isbn: string): BookLookupResu
 export async function lookupBookByISBN(isbn: string): Promise<BookLookupResult> {
   const cleaned = cleanISBN(isbn)
 
+  // Validate ISBN format
+  const validation = validateISBN(cleaned)
+  if (!validation.valid) {
+    return {
+      success: false,
+      error: validation.error || 'Invalid ISBN format',
+      source: 'worldcat',
+    }
+  }
+
   // Check cache first
   const cached = cache.get(cleaned)
   if (cached) {
-    console.log(`[WorldCat] Cache hit for ISBN ${cleaned}`)
     return cached
   }
 

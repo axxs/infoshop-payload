@@ -72,8 +72,18 @@ export const Books: CollectionConfig = {
       },
     },
     {
+      name: 'synopsis',
+      type: 'textarea',
+      admin: {
+        description: 'Plain text book synopsis (auto-populated from ISBN lookup)',
+      },
+    },
+    {
       name: 'description',
       type: 'richText',
+      admin: {
+        description: 'Rich text description for detailed book information',
+      },
     },
     // Visibility
     {

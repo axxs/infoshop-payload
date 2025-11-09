@@ -5,12 +5,13 @@
  * Documentation: https://openlibrary.org/dev/docs/api/books
  */
 
-import { cleanISBN, convertISBN10to13 } from './isbnUtils'
+import { cleanISBN, convertISBN10to13, validateISBN } from '../isbnUtils'
+import type { BookLookupResult, BookData } from './types'
 
 /**
  * Open Library book data structure
  */
-export interface OpenLibraryBook {
+interface OpenLibraryBook {
   title: string
   subtitle?: string
   authors?: Array<{ name: string; url: string }>
@@ -30,28 +31,7 @@ export interface OpenLibraryBook {
     lccn?: string[]
   }
   url?: string
-  description?: string
-}
-
-/**
- * Book lookup result
- */
-export interface BookLookupResult {
-  success: boolean
-  data?: {
-    title: string
-    author: string
-    publisher?: string
-    publishedDate?: string
-    description?: string
-    coverImageUrl?: string
-    isbn: string
-    oclcNumber?: string
-    pages?: number
-    subjects?: string[]
-  }
-  error?: string
-  source: 'openlibrary'
+  description?: string | { value: string }
 }
 
 /**
@@ -118,7 +98,7 @@ async function fetchFromOpenLibrary(isbn: string): Promise<OpenLibraryBook | nul
 
   // Set up request timeout (10 seconds)
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 10000)
+  const timeoutId = setTimeout(() => controller.abort(), 10000)
 
   try {
     const response = await fetch(url, {
@@ -128,10 +108,10 @@ async function fetchFromOpenLibrary(isbn: string): Promise<OpenLibraryBook | nul
       signal: controller.signal,
     })
 
-    clearTimeout(timeout)
+    clearTimeout(timeoutId)
 
     if (!response.ok) {
-      throw new Error(`Open Library API error: ${response.status} ${response.statusText}`)
+      return null
     }
 
     const data = await response.json()
@@ -143,17 +123,18 @@ async function fetchFromOpenLibrary(isbn: string): Promise<OpenLibraryBook | nul
 
     return data[bookKey] as OpenLibraryBook
   } catch (error) {
-    clearTimeout(timeout)
-    throw new Error(
-      `Failed to fetch from Open Library: ${error instanceof Error ? error.message : 'Unknown error'}`,
-    )
+    clearTimeout(timeoutId)
+    if (error instanceof Error && error.name === 'AbortError') {
+      return null
+    }
+    return null
   }
 }
 
 /**
  * Transform Open Library data to our format
  */
-function transformOpenLibraryData(olBook: OpenLibraryBook, isbn: string): BookLookupResult['data'] {
+function transformOpenLibraryData(olBook: OpenLibraryBook, isbn: string): BookData {
   // Extract author names
   const author =
     olBook.authors && olBook.authors.length > 0
@@ -165,7 +146,7 @@ function transformOpenLibraryData(olBook: OpenLibraryBook, isbn: string): BookLo
     olBook.publishers && olBook.publishers.length > 0 ? olBook.publishers[0].name : undefined
 
   // Extract cover image (prefer large, fallback to medium, then small)
-  const coverImageUrl = olBook.cover?.large || olBook.cover?.medium || olBook.cover?.small
+  const coverImageUrl = olBook.cover?.large ?? olBook.cover?.medium ?? olBook.cover?.small
 
   // Extract OCLC number
   const oclcNumber =
@@ -174,15 +155,15 @@ function transformOpenLibraryData(olBook: OpenLibraryBook, isbn: string): BookLo
       : undefined
 
   // Extract description (can be string or object with value)
-  let description: string | undefined
+  let synopsis: string | undefined
   if (typeof olBook.description === 'string') {
-    description = olBook.description
+    synopsis = olBook.description
   } else if (
     olBook.description &&
     typeof olBook.description === 'object' &&
     'value' in olBook.description
   ) {
-    description = (olBook.description as { value: string }).value
+    synopsis = olBook.description.value
   }
 
   // Extract subjects (can be string array or object array with name property)
@@ -206,7 +187,7 @@ function transformOpenLibraryData(olBook: OpenLibraryBook, isbn: string): BookLo
     author,
     publisher,
     publishedDate: olBook.publishDate,
-    description,
+    synopsis,
     coverImageUrl,
     isbn: cleanISBN(isbn),
     oclcNumber,
@@ -223,6 +204,16 @@ function transformOpenLibraryData(olBook: OpenLibraryBook, isbn: string): BookLo
  */
 export async function lookupBookByISBN(isbn: string): Promise<BookLookupResult> {
   const cleaned = cleanISBN(isbn)
+
+  // Validate ISBN format
+  const validation = validateISBN(cleaned)
+  if (!validation.valid) {
+    return {
+      success: false,
+      error: validation.error || 'Invalid ISBN format',
+      source: 'openlibrary',
+    }
+  }
 
   // Check cache first
   const cached = cache.get(cleaned)

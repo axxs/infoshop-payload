@@ -39,22 +39,28 @@ const DEFAULT_OPTIONS: Required<CSVImportOptions> = {
 }
 
 /**
- * Enriches operation with data from Open Library ISBN lookup
+ * Enriches operation with data from multi-source ISBN lookup
  *
  * @param operation - Book operation with ISBN
+ * @param payload - Payload instance for logging
  * @returns Enriched operation or original if lookup fails
  */
-async function enrichFromISBN(operation: BookOperation): Promise<BookOperation> {
+async function enrichFromISBN(operation: BookOperation, payload: Payload): Promise<BookOperation> {
   if (!operation.isbn) {
     return operation
   }
 
   try {
-    console.log(`[CSV Import] Looking up ISBN: ${operation.isbn}`)
     const result = await lookupBookByISBN(operation.isbn)
 
     if (result.success && result.data) {
-      console.log(`[CSV Import] ISBN ${operation.isbn} found:`, result.data.title)
+      payload.logger.info({
+        msg: 'ISBN lookup successful',
+        isbn: operation.isbn,
+        title: result.data.title,
+        source: result.source,
+      })
+
       // Only populate fields that are missing
       return {
         ...operation,
@@ -62,7 +68,7 @@ async function enrichFromISBN(operation: BookOperation): Promise<BookOperation> 
         author: operation.author || result.data.author,
         publisher: operation.publisher || result.data.publisher,
         publishedDate: operation.publishedDate || result.data.publishedDate,
-        description: operation.description || result.data.description,
+        synopsis: operation.synopsis || result.data.synopsis,
         coverImageUrl: operation.coverImageUrl || result.data.coverImageUrl,
         subjectNames:
           operation.subjectNames && operation.subjectNames.length > 0
@@ -70,10 +76,18 @@ async function enrichFromISBN(operation: BookOperation): Promise<BookOperation> 
             : result.data.subjects,
       }
     } else {
-      console.warn(`[CSV Import] ISBN ${operation.isbn} not found:`, result.error)
+      payload.logger.warn({
+        msg: 'ISBN lookup failed',
+        isbn: operation.isbn,
+        error: result.error,
+      })
     }
   } catch (error) {
-    console.error(`[CSV Import] Error looking up ISBN ${operation.isbn}:`, error)
+    payload.logger.error({
+      msg: 'Error during ISBN lookup',
+      isbn: operation.isbn,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    })
   }
 
   return operation
@@ -101,7 +115,7 @@ export async function previewCSVImport(
   if (opts.autoPopulateFromISBN) {
     const enrichedOperations: BookOperation[] = []
     for (const operation of operations) {
-      enrichedOperations.push(await enrichFromISBN(operation))
+      enrichedOperations.push(await enrichFromISBN(operation, payload))
     }
     operations = enrichedOperations
   }
@@ -285,6 +299,7 @@ async function executeBookOperation(
     oclcNumber: operation.oclc,
     publisher: operation.publisher,
     publishedDate: operation.publishedDate,
+    synopsis: operation.synopsis,
     // Note: description is richText (Lexical), not supported in CSV import
     costPrice: operation.costPrice,
     sellPrice: operation.sellPrice,

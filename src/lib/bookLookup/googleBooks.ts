@@ -5,7 +5,8 @@
  * Documentation: https://developers.google.com/books/docs/v1/using
  */
 
-import { cleanISBN } from './isbnUtils'
+import { cleanISBN, validateISBN } from '../isbnUtils'
+import type { BookLookupResult, BookData } from './types'
 
 /**
  * Google Books API response structure
@@ -41,27 +42,6 @@ interface GoogleBooksResponse {
   kind: string
   totalItems: number
   items?: GoogleBooksItem[]
-}
-
-/**
- * Book lookup result
- */
-export interface BookLookupResult {
-  success: boolean
-  data?: {
-    title: string
-    author: string
-    publisher?: string
-    publishedDate?: string
-    description?: string
-    coverImageUrl?: string
-    isbn: string
-    oclcNumber?: string
-    pages?: number
-    subjects?: string[]
-  }
-  error?: string
-  source: 'googlebooks'
 }
 
 /**
@@ -112,7 +92,7 @@ class GoogleBooksCache {
 const cache = new GoogleBooksCache()
 
 /**
- * Fetch book data from Google Books API
+ * Fetch book data from Google Books API with timeout
  *
  * @param isbn - ISBN-10 or ISBN-13
  * @returns Google Books API response or null
@@ -125,29 +105,36 @@ async function fetchFromGoogleBooks(isbn: string): Promise<GoogleBooksItem | nul
     ...(apiKey && { key: apiKey }),
   })
 
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
   try {
     const response = await fetch(`${baseUrl}?${params}`, {
+      signal: controller.signal,
       headers: {
         Accept: 'application/json',
       },
     })
 
+    clearTimeout(timeoutId)
+
     if (!response.ok) {
-      console.warn(`[Google Books] HTTP ${response.status} for ISBN ${isbn}`)
       return null
     }
 
     const data: GoogleBooksResponse = await response.json()
 
     if (data.totalItems === 0 || !data.items || data.items.length === 0) {
-      console.log(`[Google Books] No results for ISBN ${isbn}`)
       return null
     }
 
     // Return the first item (most relevant)
     return data.items[0]
   } catch (error) {
-    console.error(`[Google Books] Error fetching ISBN ${isbn}:`, error)
+    clearTimeout(timeoutId)
+    if (error instanceof Error && error.name === 'AbortError') {
+      return null
+    }
     return null
   }
 }
@@ -159,7 +146,7 @@ async function fetchFromGoogleBooks(isbn: string): Promise<GoogleBooksItem | nul
  * @param isbn - Original ISBN
  * @returns Standardised book data
  */
-function transformGoogleBooksData(item: GoogleBooksItem, isbn: string): BookLookupResult['data'] {
+function transformGoogleBooksData(item: GoogleBooksItem, isbn: string): BookData {
   const volumeInfo = item.volumeInfo
 
   // Extract author (join multiple authors with comma)
@@ -177,7 +164,7 @@ function transformGoogleBooksData(item: GoogleBooksItem, isbn: string): BookLook
   }
 
   // Replace http:// with https:// for cover images
-  if (coverImageUrl && coverImageUrl.startsWith('http://')) {
+  if (coverImageUrl?.startsWith('http://')) {
     coverImageUrl = coverImageUrl.replace('http://', 'https://')
   }
 
@@ -189,7 +176,7 @@ function transformGoogleBooksData(item: GoogleBooksItem, isbn: string): BookLook
     author,
     publisher: volumeInfo.publisher,
     publishedDate: volumeInfo.publishedDate,
-    description: volumeInfo.description,
+    synopsis: volumeInfo.description,
     coverImageUrl,
     isbn: cleanISBN(isbn),
     pages: volumeInfo.pageCount,
@@ -206,10 +193,19 @@ function transformGoogleBooksData(item: GoogleBooksItem, isbn: string): BookLook
 export async function lookupBookByISBN(isbn: string): Promise<BookLookupResult> {
   const cleaned = cleanISBN(isbn)
 
+  // Validate ISBN format
+  const validation = validateISBN(cleaned)
+  if (!validation.valid) {
+    return {
+      success: false,
+      error: validation.error || 'Invalid ISBN format',
+      source: 'googlebooks',
+    }
+  }
+
   // Check cache first
   const cached = cache.get(cleaned)
   if (cached) {
-    console.log(`[Google Books] Cache hit for ISBN ${cleaned}`)
     return cached
   }
 

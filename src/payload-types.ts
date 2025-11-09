@@ -214,6 +214,13 @@ export interface Book {
   author: string;
   publisher?: string | null;
   publishedDate?: string | null;
+  /**
+   * Plain text book synopsis (auto-populated from ISBN lookup)
+   */
+  synopsis?: string | null;
+  /**
+   * Rich text description for detailed book information
+   */
   description?: {
     root: {
       type: string;
@@ -730,6 +737,7 @@ export interface BooksSelect<T extends boolean = true> {
   author?: T;
   publisher?: T;
   publishedDate?: T;
+  synopsis?: T;
   description?: T;
   featured?: T;
   costPrice?: T;
