@@ -111,13 +111,13 @@ export default async function BookPage({ params }: BookPageProps) {
             <CardContent className="p-6">
               <div className="flex items-baseline gap-4">
                 <span className="text-3xl font-bold">
-                  {formatPrice(book.sellPrice, book.currency)}
+                  {formatPrice(book.sellPrice ?? 0, book.currency)}
                 </span>
-                {book.memberPrice < book.sellPrice && (
+                {(book.memberPrice ?? 0) < (book.sellPrice ?? 0) && (
                   <div className="flex flex-col">
                     <span className="text-sm text-muted-foreground">Member Price</span>
                     <span className="text-xl font-semibold text-primary">
-                      {formatPrice(book.memberPrice, book.currency)}
+                      {formatPrice(book.memberPrice ?? 0, book.currency)}
                     </span>
                   </div>
                 )}
@@ -196,7 +196,21 @@ export default async function BookPage({ params }: BookPageProps) {
         </div>
       </div>
 
-      {/* Description Section - TODO: Implement Lexical renderer */}
+      {/* Synopsis Section */}
+      {book.synopsis && (
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>About This Book</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
+              {book.synopsis}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Description Section - TODO: Implement Lexical renderer for rich description */}
       {/* book.description is a Lexical rich text object, needs proper rendering */}
     </div>
   )

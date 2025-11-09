@@ -72,8 +72,18 @@ export const Books: CollectionConfig = {
       },
     },
     {
+      name: 'synopsis',
+      type: 'textarea',
+      admin: {
+        description: 'Plain text book synopsis (auto-populated from ISBN lookup)',
+      },
+    },
+    {
       name: 'description',
       type: 'richText',
+      admin: {
+        description: 'Rich text description for detailed book information',
+      },
     },
     // Visibility
     {
@@ -89,7 +99,7 @@ export const Books: CollectionConfig = {
     {
       name: 'costPrice',
       type: 'number',
-      required: true,
+      defaultValue: 0,
       min: 0,
       admin: {
         description: 'Wholesale cost price (what we paid)',
@@ -99,7 +109,7 @@ export const Books: CollectionConfig = {
     {
       name: 'sellPrice',
       type: 'number',
-      required: true,
+      defaultValue: 0,
       min: 0,
       admin: {
         description: 'Standard retail price for general public',
@@ -109,7 +119,7 @@ export const Books: CollectionConfig = {
     {
       name: 'memberPrice',
       type: 'number',
-      required: true,
+      defaultValue: 0,
       min: 0,
       admin: {
         description: 'Discounted price for collective members',

@@ -6,6 +6,7 @@ import type { Book, Category, Subject } from '@/payload-types'
 import type { Where } from 'payload'
 import Link from 'next/link'
 import Image from 'next/image'
+import { formatPrice } from '@/lib/utils'
 
 interface BookShowcaseProps {
   title: string
@@ -118,7 +119,7 @@ export async function BookShowcase(props: BookShowcaseProps) {
                       )}
                       {book.sellPrice && (
                         <p className="font-semibold text-primary">
-                          ${(book.sellPrice / 100).toFixed(2)}
+                          {formatPrice(book.sellPrice, book.currency)}
                         </p>
                       )}
                     </div>

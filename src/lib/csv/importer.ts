@@ -11,8 +11,9 @@ import { validateBookOperation, isOperationValid } from './validator'
 import { detectAndHandleDuplicates } from './duplicateDetector'
 import { processAndLinkSubjects } from '../openLibrary/subjectManager'
 import { downloadCoverImageIfPresent } from '../openLibrary/imageDownloader'
-import { lookupBookByISBN } from '../openLibrary'
+import { lookupBookByISBN } from '../bookLookup'
 import { validateImageURL } from '../urlValidator'
+import type { Book } from '@/payload-types'
 import type { SupportedCurrency } from '../square/constants'
 import type {
   BookOperation,
@@ -31,7 +32,7 @@ const DEFAULT_OPTIONS: Required<CSVImportOptions> = {
   duplicateStrategy: DuplicateStrategy.WARN,
   autoCreateCategories: true,
   autoCreateSubjects: true,
-  autoPopulateFromISBN: false,
+  autoPopulateFromISBN: true, // Enable by default for ISBN-only imports
   downloadCoverImages: true,
   defaultCurrency: 'USD',
   batchSize: 10,
@@ -39,12 +40,13 @@ const DEFAULT_OPTIONS: Required<CSVImportOptions> = {
 }
 
 /**
- * Enriches operation with data from Open Library ISBN lookup
+ * Enriches operation with data from multi-source ISBN lookup
  *
  * @param operation - Book operation with ISBN
+ * @param payload - Payload instance for logging
  * @returns Enriched operation or original if lookup fails
  */
-async function enrichFromISBN(operation: BookOperation): Promise<BookOperation> {
+async function enrichFromISBN(operation: BookOperation, payload: Payload): Promise<BookOperation> {
   if (!operation.isbn) {
     return operation
   }
@@ -53,6 +55,13 @@ async function enrichFromISBN(operation: BookOperation): Promise<BookOperation> 
     const result = await lookupBookByISBN(operation.isbn)
 
     if (result.success && result.data) {
+      payload.logger.info({
+        msg: 'ISBN lookup successful',
+        isbn: operation.isbn,
+        title: result.data.title,
+        source: result.source,
+      })
+
       // Only populate fields that are missing
       return {
         ...operation,
@@ -60,16 +69,26 @@ async function enrichFromISBN(operation: BookOperation): Promise<BookOperation> 
         author: operation.author || result.data.author,
         publisher: operation.publisher || result.data.publisher,
         publishedDate: operation.publishedDate || result.data.publishedDate,
-        description: operation.description || result.data.description,
+        synopsis: operation.synopsis || result.data.synopsis,
         coverImageUrl: operation.coverImageUrl || result.data.coverImageUrl,
         subjectNames:
           operation.subjectNames && operation.subjectNames.length > 0
             ? operation.subjectNames
             : result.data.subjects,
       }
+    } else {
+      payload.logger.warn({
+        msg: 'ISBN lookup failed',
+        isbn: operation.isbn,
+        error: result.error,
+      })
     }
-  } catch (_error) {
-    // Silently fail - lookup is optional enrichment
+  } catch (error) {
+    payload.logger.error({
+      msg: 'Error during ISBN lookup',
+      isbn: operation.isbn,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    })
   }
 
   return operation
@@ -97,7 +116,7 @@ export async function previewCSVImport(
   if (opts.autoPopulateFromISBN) {
     const enrichedOperations: BookOperation[] = []
     for (const operation of operations) {
-      enrichedOperations.push(await enrichFromISBN(operation))
+      enrichedOperations.push(await enrichFromISBN(operation, payload))
     }
     operations = enrichedOperations
   }
@@ -272,33 +291,36 @@ async function executeBookOperation(
   }
 
   // 3. Prepare book data
-  // Note: Type assertion required due to Payload's complex type system with optional fields,
-  // conditional spreads, and dynamically generated types. All fields are validated at runtime.
-  const bookData = {
+  // Required fields per Book schema: title, author, currency, stockQuantity, stockStatus
+  // Provide defaults for required fields if missing from CSV
+  type BookCreateData = Omit<Book, 'id' | 'updatedAt' | 'createdAt' | 'deletedAt' | 'sizes'>
+
+  const bookData: BookCreateData = {
     title: operation.title,
-    author: operation.author,
-    isbn: operation.isbn,
-    oclcNumber: operation.oclc,
-    publisher: operation.publisher,
-    publishedDate: operation.publishedDate,
+    author: operation.author || 'Unknown Author', // Required field with fallback
+    isbn: operation.isbn ?? null,
+    oclcNumber: operation.oclc ?? null,
+    publisher: operation.publisher ?? null,
+    publishedDate: operation.publishedDate ?? null,
+    synopsis: operation.synopsis ?? null,
     // Note: description is richText (Lexical), not supported in CSV import
-    costPrice: operation.costPrice,
-    sellPrice: operation.sellPrice,
-    memberPrice: operation.memberPrice,
+    description: null,
+    featured: null,
+    costPrice: operation.costPrice ?? null,
+    sellPrice: operation.sellPrice ?? null,
+    memberPrice: operation.memberPrice ?? null,
     currency: (operation.currency || options.defaultCurrency) as SupportedCurrency,
     stockQuantity: operation.stockQuantity ?? 0,
     reorderLevel: operation.reorderLevel ?? 5,
-    stockStatus: (operation.stockStatus || 'IN_STOCK') as
-      | 'IN_STOCK'
-      | 'LOW_STOCK'
-      | 'OUT_OF_STOCK'
-      | 'DISCONTINUED',
+    stockStatus: (operation.stockStatus || 'IN_STOCK') as Book['stockStatus'],
+    categories: categoryId ? [categoryId] : null,
+    subjects: null,
+    _subjectNames: null,
+    coverImage: coverImageId ?? null,
+    externalCoverUrl: null,
     isDigital: operation.isDigital ?? false,
-    downloadUrl: operation.downloadUrl,
-    fileSize: operation.fileSize,
-    ...(categoryId && { categories: [categoryId] }),
-    ...(coverImageId && { coverImage: coverImageId }),
-  } as any
+    digitalFile: null,
+  }
 
   // 4. Create or update book
   let bookId: number

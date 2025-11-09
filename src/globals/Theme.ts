@@ -24,6 +24,15 @@ export const Theme: GlobalConfig = {
           label: 'Active Theme',
           fields: [
             {
+              type: 'ui',
+              name: 'themeResetButton',
+              admin: {
+                components: {
+                  Field: '@/globals/ThemeResetButton#ThemeResetButton',
+                },
+              },
+            },
+            {
               name: 'activeTheme',
               type: 'select',
               required: true,
@@ -229,7 +238,7 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'default_dark_background',
                   type: 'text',
-                  defaultValue: '222.2 84% 4.9%',
+                  defaultValue: '222.2 47% 8%',
                   admin: {
                     description: 'Page background colour',
                   },
@@ -245,7 +254,7 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'default_dark_card',
                   type: 'text',
-                  defaultValue: '222.2 84% 4.9%',
+                  defaultValue: '222.2 47% 11%',
                 },
                 {
                   name: 'default_dark_card_foreground',
@@ -255,17 +264,17 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'default_dark_muted',
                   type: 'text',
-                  defaultValue: '217.2 32.6% 17.5%',
+                  defaultValue: '217.2 32.6% 20%',
                 },
                 {
                   name: 'default_dark_muted_foreground',
                   type: 'text',
-                  defaultValue: '215 20.2% 65.1%',
+                  defaultValue: '215 20.2% 70%',
                 },
                 {
                   name: 'default_dark_accent',
                   type: 'text',
-                  defaultValue: '217.2 32.6% 17.5%',
+                  defaultValue: '217.2 32.6% 20%',
                 },
                 {
                   name: 'default_dark_accent_foreground',
@@ -275,17 +284,17 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'default_dark_destructive',
                   type: 'text',
-                  defaultValue: '0 62.8% 30.6%',
+                  defaultValue: '0 62.8% 50%',
                 },
                 {
                   name: 'default_dark_border',
                   type: 'text',
-                  defaultValue: '217.2 32.6% 17.5%',
+                  defaultValue: '217.2 32.6% 25%',
                 },
                 {
                   name: 'default_dark_input',
                   type: 'text',
-                  defaultValue: '217.2 32.6% 17.5%',
+                  defaultValue: '217.2 32.6% 25%',
                   admin: {
                     description: 'Input border colour',
                   },
@@ -301,7 +310,7 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'default_dark_popover',
                   type: 'text',
-                  defaultValue: '222.2 84% 4.9%',
+                  defaultValue: '222.2 47% 11%',
                   admin: {
                     description: 'Popover background colour',
                   },
@@ -317,7 +326,7 @@ export const Theme: GlobalConfig = {
                 {
                   name: 'default_dark_secondary',
                   type: 'text',
-                  defaultValue: '217.2 32.6% 17.5%',
+                  defaultValue: '217.2 32.6% 20%',
                   admin: {
                     description: 'Secondary background colour',
                   },

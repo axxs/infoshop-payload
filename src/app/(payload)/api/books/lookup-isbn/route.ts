@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { validateISBN } from '@/lib/isbnUtils'
-import { lookupBookByISBN } from '@/lib/openLibrary'
+import { lookupBookByISBN } from '@/lib/bookLookup'
 
 /**
  * Simple in-memory rate limiter

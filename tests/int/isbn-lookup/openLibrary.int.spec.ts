@@ -4,7 +4,7 @@
  */
 
 import { describe, test, expect, beforeEach } from 'vitest'
-import { lookupBookByISBN, clearISBNCache } from '../../../src/lib/openLibrary'
+import { lookupBookByISBN, clearISBNCache } from '../../../src/lib/bookLookup/openLibrary'
 
 describe('Open Library Integration', () => {
   beforeEach(() => {

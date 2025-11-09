@@ -109,6 +109,7 @@ export interface CSVRow {
   // Metadata
   publisher?: string
   publishedDate?: string
+  synopsis?: string
   description?: string
   coverImageUrl?: string
   externalCoverUrl?: string
@@ -155,6 +156,7 @@ export interface BookOperation {
   // Metadata
   publisher?: string
   publishedDate?: string
+  synopsis?: string
   description?: string
   coverImageUrl?: string
 
