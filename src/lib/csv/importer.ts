@@ -50,9 +50,11 @@ async function enrichFromISBN(operation: BookOperation): Promise<BookOperation> 
   }
 
   try {
+    console.log(`[CSV Import] Looking up ISBN: ${operation.isbn}`)
     const result = await lookupBookByISBN(operation.isbn)
 
     if (result.success && result.data) {
+      console.log(`[CSV Import] ISBN ${operation.isbn} found:`, result.data.title)
       // Only populate fields that are missing
       return {
         ...operation,
@@ -67,9 +69,11 @@ async function enrichFromISBN(operation: BookOperation): Promise<BookOperation> 
             ? operation.subjectNames
             : result.data.subjects,
       }
+    } else {
+      console.warn(`[CSV Import] ISBN ${operation.isbn} not found:`, result.error)
     }
-  } catch (_error) {
-    // Silently fail - lookup is optional enrichment
+  } catch (error) {
+    console.error(`[CSV Import] Error looking up ISBN ${operation.isbn}:`, error)
   }
 
   return operation
