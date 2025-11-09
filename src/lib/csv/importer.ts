@@ -11,7 +11,7 @@ import { validateBookOperation, isOperationValid } from './validator'
 import { detectAndHandleDuplicates } from './duplicateDetector'
 import { processAndLinkSubjects } from '../openLibrary/subjectManager'
 import { downloadCoverImageIfPresent } from '../openLibrary/imageDownloader'
-import { lookupBookByISBN } from '../openLibrary'
+import { lookupBookByISBN } from '../bookLookup'
 import { validateImageURL } from '../urlValidator'
 import type { SupportedCurrency } from '../square/constants'
 import type {
