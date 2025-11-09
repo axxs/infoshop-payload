@@ -51,6 +51,9 @@ export function BookCard({ book }: BookCardProps) {
         <CardContent className="p-4">
           <h3 className="line-clamp-2 font-semibold">{book.title}</h3>
           <p className="mt-1 text-sm text-muted-foreground">{book.author}</p>
+          {book.synopsis && (
+            <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{book.synopsis}</p>
+          )}
         </CardContent>
       </Link>
       <CardFooter className="flex flex-col gap-3 p-4 pt-0">

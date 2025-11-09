@@ -196,7 +196,21 @@ export default async function BookPage({ params }: BookPageProps) {
         </div>
       </div>
 
-      {/* Description Section - TODO: Implement Lexical renderer */}
+      {/* Synopsis Section */}
+      {book.synopsis && (
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>About This Book</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
+              {book.synopsis}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Description Section - TODO: Implement Lexical renderer for rich description */}
       {/* book.description is a Lexical rich text object, needs proper rendering */}
     </div>
   )
