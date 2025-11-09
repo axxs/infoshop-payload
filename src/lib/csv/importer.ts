@@ -31,7 +31,7 @@ const DEFAULT_OPTIONS: Required<CSVImportOptions> = {
   duplicateStrategy: DuplicateStrategy.WARN,
   autoCreateCategories: true,
   autoCreateSubjects: true,
-  autoPopulateFromISBN: false,
+  autoPopulateFromISBN: true, // Enable by default for ISBN-only imports
   downloadCoverImages: true,
   defaultCurrency: 'USD',
   batchSize: 10,
