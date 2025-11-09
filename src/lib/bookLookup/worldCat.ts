@@ -10,6 +10,8 @@
 
 import { cleanISBN, validateISBN } from '../isbnUtils'
 import type { BookLookupResult, BookData } from './types'
+import { LRUCache } from './cache'
+import { TIMEOUT } from './config'
 
 /**
  * WorldCat Classify API response structure (simplified XML response)
@@ -22,52 +24,8 @@ interface WorldCatWork {
   owi?: string // OCLC Work Identifier
 }
 
-/**
- * In-memory cache with TTL and LRU eviction
- */
-class WorldCatCache {
-  private cache: Map<string, { data: BookLookupResult; timestamp: number }> = new Map()
-  private ttl: number = 1000 * 60 * 60 * 24 // 24 hours
-  private maxSize: number = 1000 // Maximum cache entries
-
-  set(isbn: string, data: BookLookupResult): void {
-    // If at max size, remove oldest entry (LRU)
-    if (this.cache.size >= this.maxSize) {
-      const firstKey = this.cache.keys().next().value
-      if (firstKey) {
-        this.cache.delete(firstKey)
-      }
-    }
-
-    this.cache.set(isbn, {
-      data,
-      timestamp: Date.now(),
-    })
-  }
-
-  get(isbn: string): BookLookupResult | null {
-    const cached = this.cache.get(isbn)
-    if (!cached) return null
-
-    // Check if expired
-    if (Date.now() - cached.timestamp > this.ttl) {
-      this.cache.delete(isbn)
-      return null
-    }
-
-    // Move to end (mark as recently used)
-    this.cache.delete(isbn)
-    this.cache.set(isbn, cached)
-
-    return cached.data
-  }
-
-  clear(): void {
-    this.cache.clear()
-  }
-}
-
-const cache = new WorldCatCache()
+// Shared cache instance for WorldCat Classify API results
+const cache = new LRUCache<BookLookupResult>()
 
 /**
  * Parse XML response from WorldCat Classify API
@@ -123,8 +81,9 @@ function parseWorldCatXML(xml: string): WorldCatWork | null {
 /**
  * Fetch book data from WorldCat Classify API
  *
- * Security note: OCLC only provides HTTP endpoint. We attempt HTTPS first,
- * then fallback to HTTP if needed. ISBNs are not sensitive data.
+ * Security note: OCLC Classify API only supports HTTP (not HTTPS).
+ * While ISBNs are not sensitive data, this exposes queries to potential MITM attacks.
+ * Consider using alternative sources (Google Books, OpenLibrary) for production.
  *
  * @param isbn - ISBN-10 or ISBN-13
  * @returns Parsed work data or null
@@ -135,69 +94,62 @@ async function fetchFromWorldCat(isbn: string): Promise<WorldCatWork | null> {
     summary: 'true', // Get summary with work-level data
   })
 
-  // Try HTTPS first, fallback to HTTP (OCLC's API only supports HTTP)
-  const urls = [
-    `https://classify.oclc.org/classify2/Classify?${params}`,
-    `http://classify.oclc.org/classify2/Classify?${params}`,
-  ]
+  // SECURITY WARNING: OCLC Classify only supports HTTP (insecure)
+  // This is a known limitation of the OCLC service
+  const url = `http://classify.oclc.org/classify2/Classify?${params}`
 
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT.WORLDCAT)
 
-  for (const url of urls) {
-    try {
-      const response = await fetch(url, {
-        signal: controller.signal,
-        headers: {
-          Accept: 'application/xml',
-        },
-      })
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        Accept: 'application/xml',
+      },
+    })
 
-      if (!response.ok) {
-        continue // Try next URL
-      }
-
+    if (!response.ok) {
       clearTimeout(timeoutId)
-      const xml = await response.text()
-
-      // Check response code in XML
-      const responseMatch = xml.match(/<response code="(\d+)"/)
-      if (!responseMatch) {
-        return null
-      }
-
-      const responseCode = responseMatch[1]
-
-      // Response codes:
-      // 0 = Single work found (success)
-      // 2 = Single work editions found (success)
-      // 4 = Multiple works found (we'll use first)
-      // 100 = No input (error)
-      // 101 = Invalid input (error)
-      // 102 = Not found (error)
-      // 200 = Unexpected error (error)
-
-      if (responseCode === '102') {
-        return null
-      }
-
-      if (!['0', '2', '4'].includes(responseCode)) {
-        return null
-      }
-
-      return parseWorldCatXML(xml)
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        clearTimeout(timeoutId)
-        return null
-      }
-      // Continue to next URL
-      continue
+      return null
     }
-  }
 
-  clearTimeout(timeoutId)
-  return null
+    clearTimeout(timeoutId)
+    const xml = await response.text()
+
+    // Check response code in XML
+    const responseMatch = xml.match(/<response code="(\d+)"/)
+    if (!responseMatch) {
+      return null
+    }
+
+    const responseCode = responseMatch[1]
+
+    // Response codes:
+    // 0 = Single work found (success)
+    // 2 = Single work editions found (success)
+    // 4 = Multiple works found (we'll use first)
+    // 100 = No input (error)
+    // 101 = Invalid input (error)
+    // 102 = Not found (error)
+    // 200 = Unexpected error (error)
+
+    if (responseCode === '102') {
+      return null
+    }
+
+    if (!['0', '2', '4'].includes(responseCode)) {
+      return null
+    }
+
+    return parseWorldCatXML(xml)
+  } catch (error) {
+    clearTimeout(timeoutId)
+    if (error instanceof Error && error.name === 'AbortError') {
+      return null
+    }
+    return null
+  }
 }
 
 /**

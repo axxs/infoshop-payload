@@ -13,6 +13,7 @@ import { processAndLinkSubjects } from '../openLibrary/subjectManager'
 import { downloadCoverImageIfPresent } from '../openLibrary/imageDownloader'
 import { lookupBookByISBN } from '../bookLookup'
 import { validateImageURL } from '../urlValidator'
+import type { Book } from '@/payload-types'
 import type { SupportedCurrency } from '../square/constants'
 import type {
   BookOperation,
@@ -290,34 +291,36 @@ async function executeBookOperation(
   }
 
   // 3. Prepare book data
-  // Note: Type assertion required due to Payload's complex type system with optional fields,
-  // conditional spreads, and dynamically generated types. All fields are validated at runtime.
-  const bookData = {
+  // Required fields per Book schema: title, author, currency, stockQuantity, stockStatus
+  // Provide defaults for required fields if missing from CSV
+  type BookCreateData = Omit<Book, 'id' | 'updatedAt' | 'createdAt' | 'deletedAt' | 'sizes'>
+
+  const bookData: BookCreateData = {
     title: operation.title,
-    author: operation.author,
-    isbn: operation.isbn,
-    oclcNumber: operation.oclc,
-    publisher: operation.publisher,
-    publishedDate: operation.publishedDate,
-    synopsis: operation.synopsis,
+    author: operation.author || 'Unknown Author', // Required field with fallback
+    isbn: operation.isbn ?? null,
+    oclcNumber: operation.oclc ?? null,
+    publisher: operation.publisher ?? null,
+    publishedDate: operation.publishedDate ?? null,
+    synopsis: operation.synopsis ?? null,
     // Note: description is richText (Lexical), not supported in CSV import
-    costPrice: operation.costPrice,
-    sellPrice: operation.sellPrice,
-    memberPrice: operation.memberPrice,
+    description: null,
+    featured: null,
+    costPrice: operation.costPrice ?? null,
+    sellPrice: operation.sellPrice ?? null,
+    memberPrice: operation.memberPrice ?? null,
     currency: (operation.currency || options.defaultCurrency) as SupportedCurrency,
     stockQuantity: operation.stockQuantity ?? 0,
     reorderLevel: operation.reorderLevel ?? 5,
-    stockStatus: (operation.stockStatus || 'IN_STOCK') as
-      | 'IN_STOCK'
-      | 'LOW_STOCK'
-      | 'OUT_OF_STOCK'
-      | 'DISCONTINUED',
+    stockStatus: (operation.stockStatus || 'IN_STOCK') as Book['stockStatus'],
+    categories: categoryId ? [categoryId] : null,
+    subjects: null,
+    _subjectNames: null,
+    coverImage: coverImageId ?? null,
+    externalCoverUrl: null,
     isDigital: operation.isDigital ?? false,
-    downloadUrl: operation.downloadUrl,
-    fileSize: operation.fileSize,
-    ...(categoryId && { categories: [categoryId] }),
-    ...(coverImageId && { coverImage: coverImageId }),
-  } as any
+    digitalFile: null,
+  }
 
   // 4. Create or update book
   let bookId: number

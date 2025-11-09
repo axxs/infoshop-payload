@@ -20,9 +20,10 @@ import type { BookLookupResult, BookData } from './types'
  * @param primary - Primary source data
  * @param fallback - Fallback source data
  * @returns Merged data with best available values
+ * @throws Error if merged data is missing required fields (title, author)
  */
 function mergeBookData(primary: BookData, fallback: BookData): BookData {
-  return {
+  const merged: BookData = {
     title: primary.title ?? fallback.title,
     author: primary.author ?? fallback.author,
     publisher: primary.publisher ?? fallback.publisher,
@@ -37,6 +38,15 @@ function mergeBookData(primary: BookData, fallback: BookData): BookData {
         ? primary.subjects
         : (fallback.subjects ?? primary.subjects),
   }
+
+  // Validate that required fields are present after merging
+  if (!merged.title || !merged.author) {
+    throw new Error(
+      `Merged book data missing required fields: ${!merged.title ? 'title' : ''} ${!merged.author ? 'author' : ''}`.trim(),
+    )
+  }
+
+  return merged
 }
 
 /**
@@ -186,6 +196,9 @@ export async function lookupBookByISBNEnriched(isbn: string): Promise<BookLookup
 
 /**
  * Clear all caches (useful for testing)
+ *
+ * Note: This clears the in-memory LRU caches for all book lookup sources.
+ * Use this during testing or when you need to force fresh API calls.
  */
 export function clearAllCaches(): void {
   OpenLibrary.clearISBNCache()

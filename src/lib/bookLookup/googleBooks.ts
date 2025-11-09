@@ -7,6 +7,8 @@
 
 import { cleanISBN, validateISBN } from '../isbnUtils'
 import type { BookLookupResult, BookData } from './types'
+import { LRUCache } from './cache'
+import { TIMEOUT } from './config'
 
 /**
  * Google Books API response structure
@@ -44,52 +46,8 @@ interface GoogleBooksResponse {
   items?: GoogleBooksItem[]
 }
 
-/**
- * In-memory cache with TTL and LRU eviction
- */
-class GoogleBooksCache {
-  private cache: Map<string, { data: BookLookupResult; timestamp: number }> = new Map()
-  private ttl: number = 1000 * 60 * 60 * 24 // 24 hours
-  private maxSize: number = 1000 // Maximum cache entries
-
-  set(isbn: string, data: BookLookupResult): void {
-    // If at max size, remove oldest entry (LRU)
-    if (this.cache.size >= this.maxSize) {
-      const firstKey = this.cache.keys().next().value
-      if (firstKey) {
-        this.cache.delete(firstKey)
-      }
-    }
-
-    this.cache.set(isbn, {
-      data,
-      timestamp: Date.now(),
-    })
-  }
-
-  get(isbn: string): BookLookupResult | null {
-    const cached = this.cache.get(isbn)
-    if (!cached) return null
-
-    // Check if expired
-    if (Date.now() - cached.timestamp > this.ttl) {
-      this.cache.delete(isbn)
-      return null
-    }
-
-    // Move to end (mark as recently used)
-    this.cache.delete(isbn)
-    this.cache.set(isbn, cached)
-
-    return cached.data
-  }
-
-  clear(): void {
-    this.cache.clear()
-  }
-}
-
-const cache = new GoogleBooksCache()
+// Shared cache instance for Google Books API results
+const cache = new LRUCache<BookLookupResult>()
 
 /**
  * Fetch book data from Google Books API with timeout
@@ -106,7 +64,7 @@ async function fetchFromGoogleBooks(isbn: string): Promise<GoogleBooksItem | nul
   })
 
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT.GOOGLE_BOOKS)
 
   try {
     const response = await fetch(`${baseUrl}?${params}`, {

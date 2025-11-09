@@ -24,6 +24,7 @@ import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { StockStatusCell as StockStatusCell_2c07ab628c47b06a4ccb5d4060d31d0e } from '@/collections/Books/StockStatusCell'
 import { CSVImportButton as CSVImportButton_f0fcb9c73ffc3e12906853b99205ef14 } from '@/collections/Books/CSVImportButton'
+import { ThemeResetButton as ThemeResetButton_09ecb106c251d11d9ee583486a5b31fb } from '@/globals/ThemeResetButton'
 
 export const importMap = {
   '@/collections/Books/ISBNLookupField#ISBNLookupField':
@@ -78,4 +79,5 @@ export const importMap = {
     StockStatusCell_2c07ab628c47b06a4ccb5d4060d31d0e,
   '@/collections/Books/CSVImportButton#CSVImportButton':
     CSVImportButton_f0fcb9c73ffc3e12906853b99205ef14,
+  '@/globals/ThemeResetButton#ThemeResetButton': ThemeResetButton_09ecb106c251d11d9ee583486a5b31fb,
 }
