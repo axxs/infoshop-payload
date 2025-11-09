@@ -76,8 +76,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Read file content
-    const csvContent = await file.text()
+    // Read file content with explicit UTF-8 encoding
+    // The File.text() method reads as UTF-8 by default, but we ensure proper handling
+    const arrayBuffer = await file.arrayBuffer()
+    const decoder = new TextDecoder('utf-8')
+    const csvContent = decoder.decode(arrayBuffer)
 
     // Parse options
     let options: CSVImportOptions = {
