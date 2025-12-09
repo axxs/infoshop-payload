@@ -17,8 +17,8 @@ _This is a complete, in progress, rewrite of the Infoshop system using modern he
 ## Tech Stack
 
 - **CMS**: Payload CMS 3.62.0
-- **Framework**: Next.js 15.4.4 (App Router)
-- **UI**: React 19.1.0 (Server Components)
+- **Framework**: Next.js 15.4.8 (App Router)
+- **UI**: React 19.1.2 (Server Components)
 - **Database**: SQLite (development) → PostgreSQL (production)
 - **ORM**: Drizzle (via Payload)
 - **Rich Text**: Lexical Editor
