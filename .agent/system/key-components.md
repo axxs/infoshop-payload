@@ -230,7 +230,19 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Books, Categories, Subjects, Suppliers, Events],
+  collections: [
+    Users,
+    Media,
+    Books,
+    Categories,
+    Subjects,
+    Suppliers,
+    Events,
+    EventAttendance,
+    Sales,
+    SaleItems,
+  ],
+  globals: [Theme, Layout],
   editor: lexicalEditor(),
   db: sqliteAdapter({
     client: { url: process.env.DATABASE_URI! },
@@ -281,100 +293,33 @@ Current plugins:
 
 - `payloadCloudPlugin` - Cloud deployment support
 
-Future plugins:
+Implemented integrations (not plugins, but custom code):
 
-- Custom Square sync plugin (Phase 3 planned)
-- Bulk import plugin (Phase 4.x planned)
+- Square POS sync (`src/lib/square/`)
+- CSV bulk import (`src/lib/csv/`)
+- Open Library/Google Books/WorldCat lookup (`src/lib/bookLookup/`)
 
-## Open Library Integration (Phase 3.7)
+## Open Library Integration
 
-### Subject Manager (`src/lib/openLibrary/subjectManager.ts`)
+> **📖 Detailed Documentation**: See `task/phase-3-7-isbn-enhancements.md` for complete implementation details.
 
-**Purpose**: Find-or-create Subject records with performance optimization and race condition handling.
+**Location**: `src/lib/openLibrary/`
 
-**Key Functions**:
+**Key Components**:
 
-```typescript
-// Find or create subject with O(1) indexed lookups
-export async function findOrCreateSubject(payload: Payload, name: string): Promise<SubjectResult>
+| File                 | Purpose                                          |
+| -------------------- | ------------------------------------------------ |
+| `subjectManager.ts`  | Find-or-create subjects with O(1) indexed lookup |
+| `imageDownloader.ts` | Secure cover image download with DoS prevention  |
+| `actions.ts`         | Server actions for client component integration  |
 
-// Process multiple subjects with filtering and limits
-export async function processSubjects(
-  payload: Payload,
-  subjectNames: string[],
-  options?: SubjectManagerOptions,
-): Promise<number[]>
+**Key Features**:
 
-// Link subjects to a book with validation
-export async function linkSubjectsToBook(
-  payload: Payload,
-  bookId: number,
-  subjectIds: number[],
-): Promise<void>
-
-// Complete workflow: process and link subjects
-export async function processAndLinkSubjects(
-  payload: Payload,
-  bookId: number,
-  subjectNames: string[],
-  options?: SubjectManagerOptions,
-): Promise<number>
-```
-
-**Features**:
-
-- O(1) case-insensitive lookups using indexed `normalizedName` field
-- Generic subject filtering (skips "Fiction", "Literature", etc.)
-- Race condition handling with duplicate error retry
-- Configurable max subjects and filtering options
-
-### Image Downloader (`src/lib/openLibrary/imageDownloader.ts`)
-
-**Purpose**: Secure cover image download and storage.
-
-**Key Functions**:
-
-```typescript
-// Download image with validation and return actual content-type
-async function downloadImageBuffer(
-  url: string,
-  timeout?: number,
-): Promise<{ buffer: Buffer; contentType: string }>
-
-// Download and create Media record
-export async function downloadCoverImage(
-  payload: Payload,
-  imageUrl: string,
-  options?: DownloadImageOptions,
-): Promise<DownloadImageResult>
-```
-
-**Security Features**:
-
-- HTTPS-only enforcement
-- 10MB size limit with pre/post-download validation
-- Content-Type validation
-- 30-second timeout with AbortController
-- DoS prevention
-
-### Server Actions (`src/lib/openLibrary/actions.ts`)
-
-**Purpose**: `'use server'` functions for client component integration.
-
-```typescript
-// Process subjects and link to book
-export async function processBookSubjects(
-  bookId: number,
-  subjectNames: string[],
-): Promise<ProcessSubjectsResult>
-
-// Download cover image and return Media ID
-export async function downloadBookCover(
-  coverImageUrl: string | undefined,
-  bookTitle: string,
-): Promise<DownloadCoverResult>
-```
+- Multi-source book lookup (Open Library, Google Books, WorldCat)
+- Subject auto-creation with race condition handling
+- Secure image download (HTTPS-only, 10MB limit, 30s timeout)
+- Recursion prevention in hooks via context guards
 
 ---
 
-Last Updated: 2025-11-06
+Last Updated: 2025-02-01
