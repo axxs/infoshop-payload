@@ -4,7 +4,7 @@
 
 Payload CMS collections define the data schema. Drizzle ORM (used internally by Payload) manages the actual database tables.
 
-## Current Collections (7 total)
+## Current Collections (10 total) + 2 Globals
 
 ### Users
 
@@ -155,6 +155,121 @@ Payload CMS collections define the data schema. Drizzle ORM (used internally by 
 
 ---
 
+### EventAttendance
+
+**Purpose**: Event registration and attendance tracking
+
+**Key Fields**:
+
+- `event` → Events (required, relationship)
+- `user` → Users (required, relationship)
+- `status` (REGISTERED, ATTENDED, CANCELLED, WAITLIST)
+- `registeredAt` (auto-set timestamp)
+- `attendedAt` (set when checked in)
+- `cancelledAt` (set when cancelled)
+- `cancellationReason` (optional)
+- `notes` (internal notes)
+
+**Hooks**: `preventDuplicateRegistration`, `validateCapacityAndSetStatus`, `setTimestamps`, `updateEventAttendeeCount`
+
+**Location**: `src/collections/EventAttendance.ts`
+
+---
+
+### Sales
+
+**Purpose**: Point of sale transactions and online orders
+
+**Key Fields**:
+
+- `receiptNumber` (unique, auto-generated)
+- `saleDate` (date/time of sale)
+- `status` (PENDING, PROCESSING, COMPLETED, CANCELLED, REFUNDED)
+- `statusHistory` (audit trail array)
+- `totalAmount` (calculated from items)
+- `paymentMethod` (CASH, CARD, SQUARE, MEMBER_CREDIT, OTHER)
+- **Square Integration**:
+  - `squareTransactionId`
+  - `squareReceiptUrl`
+- **Customer Info**:
+  - `customer` → Users (optional relationship)
+  - `customerEmail`
+  - `customerName`
+- `items` → SaleItems (has many, required)
+- **Cancellation**:
+  - `cancelledAt`, `cancelledBy`, `cancellationReason`
+- `notes`
+
+**Hooks**: `validateSaleItems`, `generateReceiptNumber`, `calculateTotalAmount`, `deductStock`
+
+**Location**: `src/collections/Sales.ts`
+
+---
+
+### SaleItems
+
+**Purpose**: Individual line items for sales
+
+**Key Fields**:
+
+- `book` → Books (required relationship)
+- `quantity` (min: 1)
+- `unitPrice` (price at time of sale)
+- `discount` (optional discount amount)
+- `lineTotal` (calculated: quantity × unitPrice - discount)
+- `priceType` (RETAIL, MEMBER, CUSTOM)
+
+**Admin**: Hidden from navigation (accessed via Sales)
+
+**Hooks**: `validateStockAvailability`, `setUnitPriceFromBook`, `calculateLineTotal`
+
+**Location**: `src/collections/SaleItems.ts`
+
+---
+
+## Globals (2 total)
+
+### Theme
+
+**Purpose**: Site-wide theming configuration with live preview
+
+**Key Fields**:
+
+- `activeTheme` (default, radical)
+- `colorMode` (auto, light, dark)
+- **Per-theme color settings** (light/dark modes):
+  - primary, background, foreground, card, muted, accent, destructive, border, input, ring, popover, secondary
+- **Typography**: fontFamily, headingFontFamily, radius
+
+**Features**: Live preview, draft/publish versioning
+
+**Location**: `src/globals/Theme.ts`
+
+---
+
+### Layout
+
+**Purpose**: Site header, footer, and homepage configuration
+
+**Key Fields**:
+
+- **Header**:
+  - `logo` → Media
+  - `navigation` (array with nested children for dropdowns)
+  - `ctaButton` (label, href)
+- **Footer**:
+  - `columns` (array of link groups)
+  - `socialLinks` (platform, url)
+  - `copyright`
+- **Homepage**:
+  - `blocks` (block-based page builder)
+
+**Features**: Live preview, draft/publish versioning
+
+**Location**: `src/globals/Layout.ts`
+
+---
+
 ## Relationships
 
 ```
@@ -164,8 +279,16 @@ Books ──has-one──→ Supplier
 Books ──has-one──→ Media (coverImage)
 
 Events ──has-one──→ Media (image)
+EventAttendance ──has-one──→ Events
+EventAttendance ──has-one──→ Users
+
+Sales ──has-many──→ SaleItems
+Sales ──has-one──→ Users (customer, optional)
+SaleItems ──has-one──→ Books
 
 Categories ──has-one──→ Categories (parent, for hierarchy)
+
+Layout ──has-one──→ Media (logo)
 ```
 
 ## Database Technology
@@ -216,16 +339,25 @@ Categories ──has-one──→ Categories (parent, for hierarchy)
 - **afterChange**: `checkLowStock` - Log warnings for low stock items
 - **afterChange**: `processSubjectsFromISBN` - Process staged subjects from ISBN lookup
 
-### Future Hooks
+### Sales Collection (Implemented)
 
-- **afterChange**: Sync with Square POS (planned)
-- **beforeRead**: Apply member pricing if applicable (planned)
+- **beforeValidate**: `validateSaleItems` - Ensure items exist and are valid
+- **beforeChange**: `generateReceiptNumber` - Auto-generate unique receipt numbers
+- **beforeChange**: `calculateTotalAmount` - Sum line items for total
+- **afterChange**: `deductStock` - Reduce book inventory on completed sales
 
-### Events Collection (Planned)
+### SaleItems Collection (Implemented)
 
-- **beforeChange**: Validate capacity
-- **afterChange**: Update attendee count
-- **afterRead**: Calculate status (past/upcoming)
+- **beforeValidate**: `validateStockAvailability` - Check sufficient stock
+- **beforeChange**: `setUnitPriceFromBook` - Copy current book price
+- **beforeChange**: `calculateLineTotal` - Calculate quantity × price - discount
+
+### EventAttendance Collection (Implemented)
+
+- **beforeValidate**: `preventDuplicateRegistration` - One registration per user per event
+- **beforeValidate**: `validateCapacityAndSetStatus` - Check capacity, set waitlist if full
+- **beforeChange**: `setTimestamps` - Auto-set registeredAt, attendedAt, cancelledAt
+- **afterChange**: `updateEventAttendeeCount` - Update event's registered count
 
 ## Auto-Generated Types
 
@@ -293,4 +425,4 @@ Data will be migrated from Prisma schema in Phase 2:
 
 ---
 
-Last Updated: 2025-11-01
+Last Updated: 2025-02-01

@@ -319,9 +319,7 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
 - [ ] Event management with capacity (deferred)
 - [ ] Bulk CSV import (exists in legacy, needs migration)
 
-### Phase 4: Extended Features - 🔄 IN PROGRESS
-
-#### Completed
+### Phase 4: Extended Features - ✅ COMPLETE
 
 - [x] Point of Sale interface (Phase 4.2)
 - [x] Square Payments integration (Phase 4.3)
@@ -331,14 +329,21 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
   - [x] Product sales analysis
   - [x] CSV export functionality
   - [x] Interactive charts and widgets
+- [x] Customer storefront (Phase 4.5)
+- [x] Shopping cart with encrypted cookies (Phase 4.6)
+- [x] Book search & filters
+- [x] Member pricing display
 
-#### Pending
+### Phase 5: Events & Theme System - ✅ COMPLETE
 
-- [ ] Customer storefront
-- [ ] Shopping cart
-- [ ] Book search & filters
-- [ ] Event registration
-- [ ] Member pricing display
+- [x] Event registration system with capacity management
+- [x] Public event pages with calendar view
+- [x] EventAttendance collection with hooks
+- [x] Theme management with live preview
+- [x] Draft/publish workflow for themes
+- [x] Layout global with header/footer/homepage blocks
+- [x] CSV bulk import with validation and duplicate detection
+- [x] Multi-source ISBN lookup (Open Library, Google Books, WorldCat)
 
 ### Nice to Have (Phase 5+)
 
@@ -452,67 +457,68 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
 
 ## Timeline Summary
 
-| Phase                   | Duration    | Status            | Completion Date |
-| ----------------------- | ----------- | ----------------- | --------------- |
-| Phase 1: Foundation     | 1 week      | ✅ Complete       | 2025-10-15      |
-| Phase 2: Data Migration | 1 week      | ⏸️ Deferred       | TBD             |
-| Phase 3: Core Features  | 2 weeks     | ✅ Complete       | 2025-10-28      |
-| Phase 4: Extended       | 3 weeks     | 🔄 In Progress    | ~75% Complete   |
-| Phase 5: Deployment     | 1 week      | ⏳ Pending        | TBD             |
-| **Total**               | **8 weeks** | **~70% Complete** |                 |
+| Phase                      | Duration    | Status        | Completion Date |
+| -------------------------- | ----------- | ------------- | --------------- |
+| Phase 1: Foundation        | 1 week      | ✅ Complete   | 2025-10-15      |
+| Phase 2: Data Migration    | 1 week      | ⏸️ Deferred   | TBD             |
+| Phase 3: Core Features     | 2 weeks     | ✅ Complete   | 2025-10-28      |
+| Phase 4: Extended Features | 3 weeks     | ✅ Complete   | 2025-11-08      |
+| Phase 5: Events & Themes   | 2 weeks     | ✅ Complete   | 2025-01-31      |
+| Phase 6: Production        | TBD         | ⏳ Pending    | TBD             |
+| **Total**                  | **9 weeks** | **~85% Done** |                 |
 
-### Phase 4 Progress Breakdown:
+### Completed Phases:
 
-- ✅ Phase 4.1: Sales Collection & Validation (Complete)
-- ✅ Phase 4.2: Point of Sale Interface (Complete)
-- ✅ Phase 4.3: Square Payments Integration (Complete)
-- ✅ Phase 4.4: Sales Analytics Dashboard (Complete)
-- ✅ Phase 4.5: Customer Storefront (Complete - PR #10)
-- ✅ Phase 4.6: Shopping Cart & Checkout (Complete - PR #11)
-- ⏳ Phase 4.7: Order History & Tracking (Pending)
-- ⏳ Phase 4.8: Advanced E-commerce Features (Pending)
+- ✅ Phase 4.1: Sales Collection & Validation
+- ✅ Phase 4.2: Point of Sale Interface
+- ✅ Phase 4.3: Square Payments Integration
+- ✅ Phase 4.4: Sales Analytics Dashboard
+- ✅ Phase 4.5: Customer Storefront
+- ✅ Phase 4.6: Shopping Cart & Checkout
+- ✅ Phase 5.1: Event Registration System
+- ✅ Phase 5.2: Public Event Pages & Calendar
+- ✅ Phase 5.3: Theme System with Live Preview
+- ✅ Phase 5.4: CSV Bulk Import
+- ✅ Phase 5.5: Multi-source ISBN Lookup
 
 ---
 
 ## Immediate Next Steps
 
-### Current Status (As of 2025-11-04)
+### Current Status (As of 2025-02-01)
 
 - ✅ Git repository configured with proper workflow
 - ✅ Claude Code infrastructure aligned
 - ✅ Admin users functional
-- ✅ Core collections and validation complete
+- ✅ Core collections and validation complete (10 collections + 2 globals)
 - ✅ Square integration operational (catalog sync + payments)
 - ✅ Sales management and analytics complete
+- ✅ Customer storefront with shopping cart
+- ✅ Event system with public pages and registration
+- ✅ Theme system with live preview
+- ✅ CSV bulk import with validation
 
 ### Next Priorities
 
-1. **Phase 4.7: Order History & Tracking (1-2 weeks)**
-   - Customer order history page
-   - Order detail views
-   - Order status tracking
-   - Email notifications for orders
-   - Admin order management interface
-
-2. **Phase 4.8: Advanced E-commerce Features (1-2 weeks)**
-   - Abandoned cart recovery
-   - Gift cards and discount codes
-   - Shipping address collection
-   - Guest checkout support
-   - Wishlist functionality
-
-3. **Data Migration (deferred until all features complete)**
-   - Export existing PostgreSQL data from legacy system
-   - Write migration scripts for Books, Categories, Sales
-   - Validate data integrity
-   - Run production migration
-
-4. **Phase 5: Production Deployment**
-   - Comprehensive test coverage
+1. **Phase 6: Production Readiness**
+   - Comprehensive test coverage audit
    - Performance optimization
    - Security audit
    - Production database setup (PostgreSQL)
    - Deploy to hosting platform
+
+2. **Phase 7: Advanced Features (Optional)**
+   - Order history & tracking for customers
+   - Email notifications for orders
+   - Abandoned cart recovery
+   - Gift cards and discount codes
+   - Wishlist functionality
+
+3. **Data Migration (deferred)**
+   - Export existing PostgreSQL data from legacy system
+   - Write migration scripts for Books, Categories, Sales
+   - Validate data integrity
+   - Run production migration
 
 ---
 
@@ -629,7 +635,7 @@ Migrate React components from `/home/axxs/infoshop/frontend/src/components`:
 
 ## Conclusion
 
-This migration represents a strategic shift from custom infrastructure to a batteries-included CMS. The phased approach has proven successful, with ~70% completion and all core business features operational.
+This migration represents a strategic shift from custom infrastructure to a batteries-included CMS. The phased approach has proven successful, with ~85% completion and all core business features operational.
 
-**Current Status:** Phase 4.6 complete - Ready for Phase 4.7 (Order History)
-**Last Updated:** 2025-11-04
+**Current Status:** Phase 5 complete - Ready for Phase 6 (Production Deployment)
+**Last Updated:** 2025-02-01

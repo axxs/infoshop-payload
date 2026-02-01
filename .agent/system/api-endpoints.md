@@ -27,6 +27,9 @@ DELETE /api/{collection}/:id       # Delete by ID
 - `/api/subjects` - Subject tags
 - `/api/suppliers` - Vendors
 - `/api/events` - Store events
+- `/api/event-attendance` - Event registrations
+- `/api/sales` - Sales transactions
+- `/api/sale-items` - Sale line items
 
 ### Query Parameters
 
@@ -105,28 +108,72 @@ query {
 }
 ```
 
-## Custom Endpoints (Planned for Phase 3)
+## Custom Endpoints (Implemented)
 
-### Square Sync
+### ISBN Lookup
+
+**Path**: `/api/books/lookup-isbn`
+**Method**: POST
+**Purpose**: Lookup book metadata by ISBN via Open Library, Google Books, WorldCat
+**Auth**: Authenticated users
+**Body**: `{ "isbn": "978-0-123456-78-9" }`
+**Response**: Book metadata with subjects and cover image URL
+
+### CSV Import (3 endpoints)
+
+**Path**: `/api/books/csv-import/preview`
+**Method**: POST
+**Purpose**: Parse and validate CSV, return preview with validation results
+**Auth**: Admin only
+
+**Path**: `/api/books/csv-import/execute`
+**Method**: POST
+**Purpose**: Execute validated import with duplicate handling strategy
+**Auth**: Admin only
+
+**Path**: `/api/books/csv-import/template`
+**Method**: GET
+**Purpose**: Download CSV template with correct column headers
+**Auth**: Public
+
+### Square Integration (2 endpoints)
 
 **Path**: `/api/square/sync`
 **Method**: POST
-**Purpose**: Sync inventory with Square POS
-**Auth**: Admin only
+**Purpose**: Sync book catalog with Square POS inventory
+**Auth**: Admin only (requires API key header)
 
-### Book Lookup
-
-**Path**: `/api/books/lookup/:identifier`
-**Method**: GET
-**Purpose**: Lookup book by ISBN/UPC via Open Library API
-**Auth**: Authenticated users
-
-### Bulk Import
-
-**Path**: `/api/books/import`
+**Path**: `/api/square/payments`
 **Method**: POST
-**Purpose**: Import books from CSV
+**Purpose**: Process Square payment for checkout
+**Auth**: Authenticated users
+**Body**: `{ "sourceId": "...", "amount": 1999, "orderId": "..." }`
+
+### Reports (4 endpoints)
+
+**Path**: `/api/reports/revenue`
+**Method**: GET
+**Purpose**: Revenue tracking with day/week/month grouping
 **Auth**: Admin only
+**Query**: `?groupBy=day&startDate=2025-01-01&endDate=2025-01-31`
+
+**Path**: `/api/reports/daily-sales`
+**Method**: GET
+**Purpose**: Daily sales breakdown with payment method analysis
+**Auth**: Admin only
+**Query**: `?date=2025-01-15`
+
+**Path**: `/api/reports/product-sales`
+**Method**: GET
+**Purpose**: Product sales analysis with top sellers
+**Auth**: Admin only
+**Query**: `?limit=20&startDate=2025-01-01`
+
+**Path**: `/api/reports/export`
+**Method**: GET
+**Purpose**: Export sales data as CSV for external analysis
+**Auth**: Admin only
+**Query**: `?startDate=2025-01-01&endDate=2025-01-31`
 
 ## Authentication
 
@@ -218,4 +265,4 @@ curl -X POST http://localhost:3001/api/books \
 
 ---
 
-Last Updated: 2025-11-01
+Last Updated: 2025-02-01

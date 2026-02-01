@@ -17,9 +17,9 @@ This directory contains token-optimised documentation for Claude Code to quickly
 │   ├── project-architecture.md
 │   ├── database-schema.md
 │   ├── api-endpoints.md
-│   ├── key-components.md
-│   ├── dependencies.md
-│   └── configuration.md
+│   └── key-components.md
+├── planning/               # Migration and roadmap planning
+│   └── MIGRATION_PLAN.md
 ├── task/                   # Completed implementation patterns
 │   └── (task docs added as features are built)
 └── SOPs/                   # Standard Operating Procedures
@@ -46,14 +46,12 @@ This directory contains token-optimised documentation for Claude Code to quickly
 
 ## System Documentation Overview
 
-| File                      | What It Contains                                                 | When to Read                     |
-| ------------------------- | ---------------------------------------------------------------- | -------------------------------- |
-| `project-architecture.md` | Payload 3.x architecture, Next.js structure, collection patterns | Starting any feature             |
-| `database-schema.md`      | Collection schemas, relationships, hooks                         | Working with data models         |
-| `api-endpoints.md`        | REST/GraphQL APIs, custom endpoints                              | Building APIs                    |
-| `key-components.md`       | Collection configs, hooks, plugins                               | Extending Payload                |
-| `dependencies.md`         | Key packages and their purpose                                   | Debugging or adding dependencies |
-| `configuration.md`        | payload.config.ts, environment variables                         | Configuration changes            |
+| File                      | What It Contains                                                 | When to Read             |
+| ------------------------- | ---------------------------------------------------------------- | ------------------------ |
+| `project-architecture.md` | Payload 3.x architecture, Next.js structure, collection patterns | Starting any feature     |
+| `database-schema.md`      | Collection schemas, relationships, hooks, globals                | Working with data models |
+| `api-endpoints.md`        | REST/GraphQL APIs, custom endpoints                              | Building APIs            |
+| `key-components.md`       | Collection configs, hooks, plugins                               | Extending Payload        |
 
 ## Workflow
 
@@ -84,57 +82,50 @@ This directory contains token-optimised documentation for Claude Code to quickly
 ✅ **System documentation complete**
 
 - Project architecture documented
-- Collection schemas defined (including Phase 3.7 enhancements)
-- API structure outlined
+- 10 collections + 2 globals defined (see `database-schema.md`)
+- Custom API endpoints documented (see `api-endpoints.md`)
 - Key components identified (including Open Library integration)
 
 ✅ **Task documentation**: Growing with each feature
 
-- Phase 2: Database setup and initial collections
 - Phase 3: Open Library ISBN lookup integration
 - Phase 3.7: ISBN lookup enhancements (subjects, cover images)
 - Phase 4.6: Shopping cart functionality
-- CSV Bulk Import: Comprehensive book import system (2,467 lines)
+- Phase 5: Events system with registration
+- CSV Bulk Import: Comprehensive book import system
+- Theme System: Admin-configurable theming with live preview
 
 ✅ **SOPs**: Standard operating procedures documented
 
 - Adding collections
 - Troubleshooting guide
 
-## Recent Updates (2025-11-06)
+## Recent Updates (2025-02-01)
 
-**CSV Bulk Import Documentation Added**:
+**Documentation Refresh**:
 
-- `task/csv-bulk-import.md` - Complete implementation guide (1,432 lines)
-- Comprehensive CSV import system with two-phase workflow
-- Validation engine with ERROR/WARNING/INFO severity levels
-- Duplicate detection (ISBN + Title/Author) with 4 strategies
-- Batch processing with configurable size (default 10)
-- Admin UI modal component with preview and statistics
-- Integration with Phase 3.7 infrastructure (subjects, cover images)
-- 21 integration tests (all passing ✅)
-- Total implementation: 2,467 lines
+- Updated `database-schema.md` with all 10 collections + 2 globals
+- Updated `api-endpoints.md` with all custom endpoints
+- Marked `prisma-to-payload-mapping.md` as historical reference
+- Synchronized with Phase 5 completion status
 
-**Key Features Documented**:
+**Completed Features**:
 
-- PapaParse CSV parsing with flexible column mapping
-- 10+ validation rules (pricing, stock, ISBN, digital products)
-- Find-or-create patterns for categories and subjects
-- Optional ISBN enrichment from Open Library
-- Secure cover image download with size limits
-- Granular error reporting per row
-- Preview before execute safety workflow
+- Phase 5: Events system with public pages and calendar
+- Theme system with live preview and draft/publish workflow
+- CSV bulk import with validation and duplicate detection
+- Square POS integration (catalog sync + payments)
+- Sales analytics dashboard with reporting
 
-**Previous: Phase 3.7 Documentation**:
+**Key Implementation Guides**:
 
-- `task/phase-3-7-isbn-enhancements.md` - Complete implementation guide (708 lines)
-- Subject auto-creation with O(1) indexed lookups
-- Secure cover image download with DoS prevention
-- Hook context guards for recursion prevention
-- Server actions for client integration
-- 15 integration tests (all passing ✅)
+- `task/csv-bulk-import.md` - CSV import system
+- `task/phase-3-7-isbn-enhancements.md` - ISBN lookup with subjects/covers
+- `task/phase-4-6-shopping-cart.md` - Shopping cart implementation
+- `task/phase-5-events-system.md` - Event registration system
+- `task/week-7-completion.md` - Theme system implementation
 
 ---
 
-Last Updated: 2025-11-06
+Last Updated: 2025-02-01
 Project: Infoshop Payload CMS Migration
