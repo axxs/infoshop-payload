@@ -10,6 +10,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { validateISBN } from '@/lib/isbnUtils'
 import { lookupBookByISBN } from '@/lib/bookLookup'
+import { requireRole } from '@/lib/access'
 
 /**
  * Simple in-memory rate limiter
@@ -75,12 +76,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     )
   }
   try {
-    // Authentication check - only authenticated users can look up ISBNs
+    // Authorization check - only admin/volunteer can look up ISBNs
     const payload = await getPayload({ config })
-    const { user } = await payload.auth({ headers: request.headers })
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireRole(payload, request.headers, ['admin', 'volunteer'])
+    if (!auth.authorized) return auth.response
 
     // Extract and sanitize ISBN from query parameter
     const searchParams = request.nextUrl.searchParams

@@ -9,6 +9,7 @@ import config from '@payload-config'
 import { processPayment } from '@/lib/square/payments'
 import { DEFAULT_CURRENCY } from '@/lib/square/constants'
 import { checkRateLimit, getRateLimitHeaders } from '@/lib/rateLimit'
+import { requireRole } from '@/lib/access'
 import type { Currency } from 'square'
 
 /** Rate limit: 5 payment attempts per minute per IP */
@@ -32,12 +33,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Authentication — only authenticated users can process payments
+    // Authorization — any authenticated user can process payments
     const payload = await getPayload({ config })
-    const { user } = await payload.auth({ headers: request.headers })
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireRole(payload, request.headers, ['admin', 'volunteer', 'customer'])
+    if (!auth.authorized) return auth.response
 
     const body = await request.json()
 

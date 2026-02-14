@@ -19,16 +19,15 @@ import type { Where } from 'payload'
 import config from '@payload-config'
 import Papa from 'papaparse'
 import type { Book } from '@/payload-types'
+import { requireRole } from '@/lib/access'
 
 export async function GET(request: NextRequest) {
   try {
     const payload = await getPayload({ config })
 
-    // Authentication check - only authenticated users can export books
-    const { user } = await payload.auth({ headers: request.headers })
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
+    // Authorization check - only admin/volunteer can export books (includes cost prices)
+    const auth = await requireRole(payload, request.headers, ['admin', 'volunteer'])
+    if (!auth.authorized) return auth.response
 
     const { searchParams } = new URL(request.url)
 

@@ -15,15 +15,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { lookupBookByISBN } from '@/lib/bookLookup'
 import { downloadCoverImageIfPresent } from '@/lib/openLibrary/imageDownloader'
 import { validateImageURL } from '@/lib/urlValidator'
+import { requireRole } from '@/lib/access'
 
 export async function POST(request: NextRequest) {
   const payload = await getPayload({ config })
 
-  // Check authentication
-  const { user } = await payload.auth({ headers: request.headers })
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  // Authorization check - only admin/volunteer can refresh covers
+  const auth = await requireRole(payload, request.headers, ['admin', 'volunteer'])
+  if (!auth.authorized) return auth.response
 
   const { searchParams } = new URL(request.url)
   const limit = parseInt(searchParams.get('limit') || '50', 10)

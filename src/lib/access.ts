@@ -10,7 +10,8 @@
  * @module lib/access
  */
 
-import type { Access, FieldAccess } from 'payload'
+import type { Access, FieldAccess, BasePayload } from 'payload'
+import { NextResponse } from 'next/server'
 
 type UserRole = 'admin' | 'volunteer' | 'customer'
 
@@ -90,4 +91,62 @@ export const isAdminOrVolunteerOrSelf =
 export const adminFieldAccess: FieldAccess = ({ req: { user } }) => {
   if (!user) return false
   return hasRoles(user as { role?: string | null }, ['admin'])
+}
+
+// ---------------------------------------------------------------------------
+// Route-level authorization helpers
+// Used in Next.js API route handlers for authentication + role enforcement
+// ---------------------------------------------------------------------------
+
+interface AuthSuccess {
+  authorized: true
+  user: { id: number; role?: string | null; email?: string | null }
+}
+
+interface AuthFailure {
+  authorized: false
+  response: NextResponse
+}
+
+type AuthResult = AuthSuccess | AuthFailure
+
+/**
+ * Authenticate and authorize a request for admin-only API routes.
+ * Returns the user if authorized, or a ready-to-return NextResponse (401/403) if not.
+ *
+ * @example
+ * ```ts
+ * const auth = await requireRole(payload, request.headers, ['admin', 'volunteer'])
+ * if (!auth.authorized) return auth.response
+ * // auth.user is now available
+ * ```
+ */
+export async function requireRole(
+  payload: BasePayload,
+  headers: Headers,
+  roles: UserRole[],
+): Promise<AuthResult> {
+  const { user } = await payload.auth({ headers })
+
+  if (!user) {
+    return {
+      authorized: false,
+      response: NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 }),
+    }
+  }
+
+  if (!hasRoles(user as { role?: string | null }, roles)) {
+    return {
+      authorized: false,
+      response: NextResponse.json(
+        { success: false, error: 'Forbidden: insufficient permissions' },
+        { status: 403 },
+      ),
+    }
+  }
+
+  return {
+    authorized: true,
+    user: user as unknown as AuthSuccess['user'],
+  }
 }

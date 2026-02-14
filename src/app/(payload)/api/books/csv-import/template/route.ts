@@ -10,15 +10,14 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { generateTemplate } from '@/lib/csv/parser'
 import { checkRateLimit, getRateLimitHeaders } from '@/lib/rateLimit'
+import { requireRole } from '@/lib/access'
 
 export async function GET(request: NextRequest) {
-  // Authentication check - only authenticated users can download templates
+  // Authorization check - only admin/volunteer can download templates
   try {
     const payload = await getPayload({ config })
-    const { user } = await payload.auth({ headers: request.headers })
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireRole(payload, request.headers, ['admin', 'volunteer'])
+    if (!auth.authorized) return auth.response
   } catch {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   }

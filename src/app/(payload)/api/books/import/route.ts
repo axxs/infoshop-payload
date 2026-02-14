@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { requireRole } from '@/lib/access'
 import { validateBookOperation, isOperationValid } from '@/lib/csv/validator'
 import { detectAndHandleDuplicates } from '@/lib/csv/duplicateDetector'
 import { processAndLinkSubjects } from '@/lib/openLibrary/subjectManager'
@@ -92,11 +93,9 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await getPayload({ config })
 
-    // Authentication check - only authenticated users can import books
-    const { user } = await payload.auth({ headers: request.headers })
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
+    // Authorization check - only admin/volunteer can import books
+    const auth = await requireRole(payload, request.headers, ['admin', 'volunteer'])
+    if (!auth.authorized) return auth.response
 
     const body = await request.json()
     const {

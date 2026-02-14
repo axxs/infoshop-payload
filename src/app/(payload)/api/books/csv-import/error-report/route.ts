@@ -11,15 +11,14 @@ import config from '@payload-config'
 import Papa from 'papaparse'
 import type { PreviewResult, ErrorReportRow, BookOperationResult } from '@/lib/csv/types'
 import { ValidationSeverity } from '@/lib/csv/types'
+import { requireRole } from '@/lib/access'
 
 export async function POST(request: NextRequest) {
   try {
-    // Authentication check
+    // Authorization check - only admin/volunteer can generate error reports
     const payload = await getPayload({ config })
-    const { user } = await payload.auth({ headers: request.headers })
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireRole(payload, request.headers, ['admin', 'volunteer'])
+    if (!auth.authorized) return auth.response
 
     const body = await request.json()
     const { preview } = body as { preview: PreviewResult }

@@ -11,6 +11,7 @@ import config from '@payload-config'
 import { executeCSVImport } from '@/lib/csv/importer'
 import type { PreviewResult, CSVImportOptions } from '@/lib/csv/types'
 import { checkRateLimit, getRateLimitHeaders } from '@/lib/rateLimit'
+import { requireRole } from '@/lib/access'
 
 export async function POST(request: NextRequest) {
   // Rate limiting: 5 requests per minute (stricter for database writes)
@@ -37,11 +38,9 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await getPayload({ config })
 
-    // Authentication check - only authenticated users can execute imports
-    const { user } = await payload.auth({ headers: request.headers })
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
+    // Authorization check - only admin/volunteer can execute imports
+    const auth = await requireRole(payload, request.headers, ['admin', 'volunteer'])
+    if (!auth.authorized) return auth.response
 
     // Parse request body
     const body = await request.json()

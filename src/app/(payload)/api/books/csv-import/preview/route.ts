@@ -12,6 +12,7 @@ import { previewCSVImport, quickValidateFormat } from '@/lib/csv/importer'
 import type { CSVImportOptions } from '@/lib/csv/types'
 import { DuplicateStrategy } from '@/lib/csv/types'
 import { checkRateLimit, getRateLimitHeaders } from '@/lib/rateLimit'
+import { requireRole } from '@/lib/access'
 
 export async function POST(request: NextRequest) {
   // Rate limiting: 10 requests per minute
@@ -38,11 +39,9 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await getPayload({ config })
 
-    // Authentication check - only authenticated users can preview imports
-    const { user } = await payload.auth({ headers: request.headers })
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
+    // Authorization check - only admin/volunteer can preview imports
+    const auth = await requireRole(payload, request.headers, ['admin', 'volunteer'])
+    if (!auth.authorized) return auth.response
 
     // Parse form data
     const formData = await request.formData()
