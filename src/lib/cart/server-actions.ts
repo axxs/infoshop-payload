@@ -6,6 +6,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { cookies } from 'next/headers'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import type {
@@ -125,7 +126,10 @@ export async function addToCart(
 
     // SECURITY: Verify member pricing authorization
     if (isMemberPrice) {
-      const { user } = await payload.auth({ headers: new Headers() })
+      const cookieStore = await cookies()
+      const authHeaders = new Headers()
+      authHeaders.set('cookie', cookieStore.toString())
+      const { user } = await payload.auth({ headers: authHeaders })
 
       if (!user || !user.isMember) {
         return {

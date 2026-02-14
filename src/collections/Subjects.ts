@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { slugify } from './utils/slugify'
+import { publicRead, isAdminOrVolunteer } from '@/lib/access'
 
 export const Subjects: CollectionConfig = {
   slug: 'subjects',
@@ -7,10 +8,10 @@ export const Subjects: CollectionConfig = {
     useAsTitle: 'name',
   },
   access: {
-    read: () => true,
-    create: ({ req: { user } }) => !!user,
-    update: ({ req: { user } }) => !!user,
-    delete: ({ req: { user } }) => !!user,
+    read: publicRead,
+    create: isAdminOrVolunteer,
+    update: isAdminOrVolunteer,
+    delete: isAdminOrVolunteer,
   },
   fields: [
     {

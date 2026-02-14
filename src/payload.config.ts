@@ -47,7 +47,15 @@ export default buildConfig({
   ],
   globals: [Theme, Layout],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: (() => {
+    const secret = process.env.PAYLOAD_SECRET
+    if (!secret) {
+      throw new Error(
+        'PAYLOAD_SECRET environment variable is required. Generate one with: openssl rand -base64 32',
+      )
+    }
+    return secret
+  })(),
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },

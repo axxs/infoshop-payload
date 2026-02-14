@@ -6,10 +6,22 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { getPayload } from 'payload'
+import config from '@payload-config'
 import { generateTemplate } from '@/lib/csv/parser'
 import { checkRateLimit, getRateLimitHeaders } from '@/lib/rateLimit'
 
 export async function GET(request: NextRequest) {
+  // Authentication check - only authenticated users can download templates
+  try {
+    const payload = await getPayload({ config })
+    const { user } = await payload.auth({ headers: request.headers })
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+  } catch {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+  }
   // Rate limiting: 20 requests per minute for template downloads
   const rateLimit = checkRateLimit(request, {
     maxRequests: 20,

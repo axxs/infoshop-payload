@@ -6,6 +6,7 @@ import { BookGrid } from '../components/books/BookGrid'
 import { SearchBar } from '../components/shop/SearchBar'
 import { SortSelect } from '../components/shop/SortSelect'
 import { sanitizeSearchInput } from '@/lib/utils'
+import type { Book } from '@/payload-types'
 
 interface ShopPageProps {
   searchParams: Promise<{
@@ -19,25 +20,59 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const payload = await getPayload({ config })
   const params = await searchParams
 
+  // Fetch theme settings for shop visibility options
+  const theme = (await payload.findGlobal({
+    slug: 'theme',
+  })) as {
+    showOutOfStockBooks?: boolean
+    showUnpricedBooks?: boolean
+    contactEmail?: string
+    contactPageUrl?: string
+  }
+
+  const showOutOfStockBooks = theme?.showOutOfStockBooks ?? false
+  const showUnpricedBooks = theme?.showUnpricedBooks ?? false
+  const contactEmail = theme?.contactEmail
+  const contactPageUrl = theme?.contactPageUrl
+
   const page = Number(params.page) || 1
   const limit = 20
 
-  // Build query
-  const where: Where = {
-    stockStatus: {
-      not_in: ['OUT_OF_STOCK', 'DISCONTINUED'],
+  // Build query based on visibility settings
+  const stockStatusExclusions: string[] = ['DISCONTINUED']
+  if (!showOutOfStockBooks) {
+    stockStatusExclusions.push('OUT_OF_STOCK')
+  }
+
+  // Build base conditions
+  const conditions: Where[] = [
+    {
+      stockStatus: {
+        not_in: stockStatusExclusions,
+      },
     },
+  ]
+
+  // Exclude books without pricing unless showUnpricedBooks is enabled
+  if (!showUnpricedBooks) {
+    conditions.push({
+      sellPrice: { greater_than: 0 },
+    })
   }
 
   // Add search query (sanitized)
   const sanitizedSearch = sanitizeSearchInput(params.search)
   if (sanitizedSearch) {
-    where.or = [
-      { title: { contains: sanitizedSearch } },
-      { author: { contains: sanitizedSearch } },
-      { isbn: { contains: sanitizedSearch } },
-    ]
+    conditions.push({
+      or: [
+        { title: { contains: sanitizedSearch } },
+        { author: { contains: sanitizedSearch } },
+        { isbn: { contains: sanitizedSearch } },
+      ],
+    })
   }
+
+  const where: Where = conditions.length > 1 ? { and: conditions } : conditions[0]
 
   // Determine sort
   let sort = '-createdAt' // Default: newest first
@@ -45,16 +80,37 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   if (params.sort === 'price-low') sort = 'sellPrice'
   if (params.sort === 'price-high') sort = '-sellPrice'
 
-  // Fetch books
-  const { docs: books, totalDocs } = await payload.find({
+  // Fetch books - select only needed fields to avoid date serialization issues
+  // Some books have invalid date values that cause RSC serialization to fail
+  const result = await payload.find({
     collection: 'books',
     where,
     limit,
     page,
     sort,
-    depth: 2, // Include categories, subjects, coverImage
+    depth: 1,
+    select: {
+      id: true,
+      title: true,
+      author: true,
+      synopsis: true,
+      sellPrice: true,
+      memberPrice: true,
+      currency: true,
+      stockQuantity: true,
+      stockStatus: true,
+      coverImage: true,
+      externalCoverUrl: true,
+      categories: true,
+      subjects: true,
+    },
   })
 
+  // Convert to plain JSON to ensure RSC serialization works correctly
+  // This also strips any Payload-specific properties that might cause issues
+  const books: Book[] = JSON.parse(JSON.stringify(result.docs))
+
+  const totalDocs = result.totalDocs
   const totalPages = Math.ceil(totalDocs / limit)
 
   return (
@@ -75,7 +131,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
         </Suspense>
       </div>
 
-      <BookGrid books={books} />
+      <BookGrid books={books} contactEmail={contactEmail} contactPageUrl={contactPageUrl} />
 
       {totalPages > 1 && (
         <div className="mt-8 flex justify-center gap-2">

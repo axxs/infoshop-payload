@@ -2,8 +2,8 @@
 
 ## From Express/Prisma/React to Payload CMS/Next.js
 
-**Last Updated**: 2025-11-08
-**Current Status**: Phase 5 (Events System) - ✅ Complete
+**Last Updated**: 2026-02-01
+**Current Status**: Phase 6 (Theme System) - ✅ Complete
 
 ---
 
@@ -32,8 +32,8 @@
 | Phase 3: Core Integrations     | ✅ Complete | 100%       |
 | Phase 4: Sales System          | ✅ Complete | 100%       |
 | Phase 5: Events System         | ✅ Complete | 100%       |
-| Phase 6: Theme System Planning | 📅 Next     | 0%         |
-| Phase 7: Public Storefront/CMS | 📅 Planned  | 0%         |
+| Phase 6: Theme System          | ✅ Complete | 100%       |
+| Phase 7: Public Storefront/CMS | 📅 Next     | 0%         |
 | Phase 8: Advanced Features     | 📅 Planned  | 0%         |
 
 ---
@@ -130,7 +130,7 @@
 
 ---
 
-### 🔄 Phase 4: Sales System (95% Complete)
+### ✅ Phase 4: Sales System (Complete)
 
 **Priority**: HIGH - Core business functionality
 
@@ -313,55 +313,55 @@ model EventAttendance {
 
 ---
 
-### 📅 Phase 6: Theme System Planning (Not Started)
+### ✅ Phase 6: Theme System (Complete)
 
 **Priority**: HIGH - Foundation for customizable public website
 
-**Note**: This phase focuses on planning and architectural design for the theme/template system before implementation in Phase 7.
+**Note**: This phase delivered a complete theme system with block-based content composition, CSS variable theming, and dark mode support.
 
-#### 6.1 Research & Requirements
+#### 6.1 Research & Requirements ✅
 
-- [ ] Analyze theme requirements (design flexibility, ease of customization)
-- [ ] Research Payload CMS theming best practices
-- [ ] Evaluate existing Next.js theme solutions
-- [ ] Define theme switching mechanism
-- [ ] Design template hierarchy
-- [ ] Plan component library structure
+- [x] Analyze theme requirements (design flexibility, ease of customization)
+- [x] Research Payload CMS theming best practices
+- [x] Evaluate existing Next.js theme solutions
+- [x] Define theme switching mechanism (CSS variables + Payload Globals)
+- [x] Design template hierarchy (blocks-based composition)
+- [x] Plan component library structure
 
-#### 6.2 Architecture Design
+#### 6.2 Architecture Design ✅
 
 **Theme System Design:**
 
-- [ ] Theme configuration schema (colors, fonts, layouts)
-- [ ] Template structure (page layouts, components)
-- [ ] Asset management (images, fonts, CSS)
-- [ ] Theme preview system
-- [ ] Version control strategy
-- [ ] Migration path between themes
+- [x] Theme configuration schema (HSL colors, fonts, radius via Payload Globals)
+- [x] Template structure (block-based page layouts)
+- [x] Asset management (Next.js Image optimization)
+- [x] Theme preview system (admin UI live preview)
+- [x] Two production themes: Default (blue) and Radical (red/black)
 
-**Technical Decisions:**
+**Technical Decisions Made:**
 
-- [ ] CSS-in-JS vs Tailwind vs CSS Modules
-- [ ] Component composition strategy
-- [ ] Dynamic vs static theming
-- [ ] Performance considerations
-- [ ] SEO implications
-- [ ] Accessibility requirements
+- [x] **CSS Variables + Tailwind v4** - Native browser support, no runtime overhead
+- [x] **Block-based composition** - Content editors control layouts via Payload admin
+- [x] **Dynamic theming** - Runtime theme switching without rebuilds
+- [x] **Server Components First** - Optimal performance with RSC architecture
+- [x] **Lexical Rich Text** - Safe serialization to React components (XSS protected)
 
-#### 6.3 Deliverables
+#### 6.3 Deliverables ✅
 
-- [ ] Theme system architecture document
-- [ ] Component library specification
-- [ ] Implementation roadmap
-- [ ] Theme template examples
-- [ ] Developer documentation
+- [x] Theme system architecture document (`.agent/task/theme-system.md`)
+- [x] Component library: Hero, BookShowcase, Content, CTA, Media, Archive blocks
+- [x] Theme setup guide (`.agent/task/theme-setup-guide.md`)
+- [x] Seed script for quick setup (`pnpm seed:theme`)
+- [x] ThemeProvider with dark mode support
+- [x] Navigation dropdown components (Radix UI)
 
-**Success Criteria:**
+**Key Files:**
 
-- Clear, well-documented theme system architecture
-- Proof-of-concept theme implementation
-- Buy-in from team on approach
-- Ready to begin Phase 7 implementation
+- `src/globals/Theme.ts` - Theme configuration global
+- `src/globals/Layout.ts` - Layout configuration global (header, footer, homepage)
+- `src/app/(frontend)/components/ThemeProvider.tsx` - Client-side theme application
+- `src/blocks/` - Block definitions (Hero, BookShowcase, Content, etc.)
+- `src/app/(frontend)/components/blocks/` - Block UI components
 
 ---
 
@@ -515,10 +515,10 @@ model Page {
 ```
 Phase 1 (Foundation) ✅
   → Phase 3 (Core Integrations) ✅
-    → Phase 4 (Sales System) 🔄 95%
-      → Phase 5 (Events System) 📅
-        → Phase 6 (Theme Planning) 📅
-          → Phase 7 (Public Storefront/CMS) 📅
+    → Phase 4 (Sales System) ✅
+      → Phase 5 (Events System) ✅
+        → Phase 6 (Theme System) ✅
+          → Phase 7 (Public Storefront/CMS) 📅 ← NEXT
 ```
 
 ### Parallel Work
@@ -531,97 +531,93 @@ Phase 1 (Foundation) ✅
 
 ## Feature Comparison Matrix
 
-| Feature              | Old System        | New System          | Status         |
-| -------------------- | ----------------- | ------------------- | -------------- |
+| Feature              | Old System        | New System           | Status       |
+| -------------------- | ----------------- | -------------------- | ------------ |
 | **Core Inventory**   |
-| Book Management      | ✅ Express/Prisma | ✅ Payload          | ✅ Complete    |
-| Categories           | ✅ Hierarchical   | ✅ Hierarchical     | ✅ Complete    |
-| Subjects             | ✅ Flat tags      | ✅ Flat tags        | ✅ Complete    |
-| Suppliers            | ✅ Full CRUD      | ✅ Full CRUD        | ✅ Complete    |
-| Media/Images         | ✅ Upload         | ✅ Upload           | ✅ Complete    |
-| CSV Import           | ❌ None           | ✅ Full system      | ✅ Complete    |
+| Book Management      | ✅ Express/Prisma | ✅ Payload           | ✅ Complete  |
+| Categories           | ✅ Hierarchical   | ✅ Hierarchical      | ✅ Complete  |
+| Subjects             | ✅ Flat tags      | ✅ Flat tags         | ✅ Complete  |
+| Suppliers            | ✅ Full CRUD      | ✅ Full CRUD         | ✅ Complete  |
+| Media/Images         | ✅ Upload         | ✅ Upload            | ✅ Complete  |
+| CSV Import           | ❌ None           | ✅ Full system       | ✅ Complete  |
 | **Integrations**     |
-| Open Library         | ❌ None           | ✅ ISBN Lookup      | ✅ Complete    |
-| Square Catalog       | ✅ Sync           | ✅ Sync             | ✅ Complete    |
-| Square Payments      | ✅ Payment        | ✅ Web Payments SDK | ✅ Complete    |
+| Open Library         | ❌ None           | ✅ ISBN Lookup       | ✅ Complete  |
+| Square Catalog       | ✅ Sync           | ✅ Sync              | ✅ Complete  |
+| Square Payments      | ✅ Payment        | ✅ Web Payments SDK  | ✅ Complete  |
 | **Sales**            |
-| Shopping Cart        | ✅ React UI       | ✅ Server-side      | ✅ Complete    |
-| Checkout Flow        | ✅ Full system    | ✅ Full system      | ✅ Complete    |
-| Payment Processing   | ✅ Square         | ✅ Square (AUD)     | ✅ Complete    |
-| Order Management     | ✅ Full           | ✅ Full             | ✅ Complete    |
-| Sales Tracking       | ✅ Full system    | ✅ Full system      | ✅ Complete    |
-| Receipts             | ✅ Generate       | ✅ Square receipts  | ✅ Complete    |
-| Reporting            | ✅ Analytics      | ✅ Basic reports    | ✅ Complete    |
-| Email Notifications  | ✅ Enabled        | ❌ Not yet          | 📅 Phase 4.8   |
+| Shopping Cart        | ✅ React UI       | ✅ Server-side       | ✅ Complete  |
+| Checkout Flow        | ✅ Full system    | ✅ Full system       | ✅ Complete  |
+| Payment Processing   | ✅ Square         | ✅ Square (AUD)      | ✅ Complete  |
+| Order Management     | ✅ Full           | ✅ Full              | ✅ Complete  |
+| Sales Tracking       | ✅ Full system    | ✅ Full system       | ✅ Complete  |
+| Receipts             | ✅ Generate       | ✅ Square receipts   | ✅ Complete  |
+| Reporting            | ✅ Analytics      | ✅ Basic reports     | ✅ Complete  |
+| Email Notifications  | ✅ Enabled        | ❌ Not yet           | 📅 Phase 4.8 |
 | **Community**        |
-| Events (Basic)       | ✅ Basic          | ✅ Basic            | ✅ Complete    |
-| Event Registration   | ✅ Track          | ❌ Not yet          | 📅 Phase 5     |
-| Event Calendar       | ✅ View           | ❌ Not yet          | 📅 Phase 5     |
-| Volunteer Shifts     | ✅ Schedule       | ❌ Not needed       | ⛔ Removed     |
-| Collective Decisions | ✅ Track          | ❌ Not needed       | ⛔ Removed     |
+| Events (Basic)       | ✅ Basic          | ✅ Basic             | ✅ Complete  |
+| Event Registration   | ✅ Track          | ✅ Full system       | ✅ Complete  |
+| Event Calendar       | ✅ View           | ✅ Monthly/weekly    | ✅ Complete  |
+| Volunteer Shifts     | ✅ Schedule       | ❌ Not needed        | ⛔ Removed   |
+| Collective Decisions | ✅ Track          | ❌ Not needed        | ⛔ Removed   |
 | **Website/CMS**      |
-| Pages                | ✅ CMS            | ❌ Not yet          | 📅 Phase 7     |
-| Content Blocks       | ✅ Flexible       | ❌ Not yet          | 📅 Phase 7     |
-| Themes               | ✅ Custom         | ❌ Planning         | 📅 Phase 6     |
-| Public Storefront    | ✅ React          | ✅ Basic (partial)  | 🔄 In Progress |
+| Pages                | ✅ CMS            | ❌ Not yet           | 📅 Phase 7   |
+| Content Blocks       | ✅ Flexible       | ✅ 6 block types     | ✅ Complete  |
+| Themes               | ✅ Custom         | ✅ CSS vars + blocks | ✅ Complete  |
+| Public Storefront    | ✅ React          | ✅ RSC + blocks      | ✅ Complete  |
 | **Admin**            |
-| User Management      | ✅ Full           | ✅ Full             | ✅ Complete    |
-| Permissions          | ✅ Roles          | ✅ Roles            | ✅ Complete    |
-| Configuration        | ✅ Database       | ❌ Not yet          | 📅 Phase 8     |
+| User Management      | ✅ Full           | ✅ Full              | ✅ Complete  |
+| Permissions          | ✅ Roles          | ✅ Roles             | ✅ Complete  |
+| Configuration        | ✅ Database       | ❌ Not yet           | 📅 Phase 8   |
 
 ---
 
 ## Recommended Next Steps
 
-### Immediate Priorities (Complete Phase 4)
+### Immediate Priority: Phase 7 (Public Storefront/CMS)
 
-**Option A: Complete Phase 4.8 (Optional Enhancements)**
+With Phases 1-6 complete, the next focus is implementing the full CMS and enhancing the public storefront.
 
-1. Email notifications for order status changes
-2. Shipping address collection (if needed)
-3. Guest checkout support
+**Phase 7.1: CMS Pages Collection**
 
-**Option B: Move to Phase 5 (Events System)**
+1. Create Pages collection with Lexical rich text
+2. SEO metadata fields (title, description, OG tags)
+3. Publishing workflow (draft/published/scheduled)
+4. Slug management and URL routing
+5. Page templates integration with existing blocks
 
-Proceed directly to events system development (recommended if email notifications aren't urgent)
+**Phase 7.2: Navigation System**
 
-### Phase 5: Events System (2-3 weeks)
+1. Menu management collection
+2. Nested navigation support
+3. Dynamic menu generation
+4. Footer configuration enhancement
 
-**Week 1: Event Attendance Foundation**
+**Phase 7.3: Public Website Polish**
 
-1. Create EventAttendance collection
-2. Registration workflow (authenticated users)
-3. Capacity tracking and limits
-4. Waitlist management
+1. Enhanced search and filtering
+2. Category/subject landing pages
+3. Featured books and new arrivals sections
+4. Static site generation for content pages
+5. Sitemap generation
+6. Schema.org structured data
 
-**Week 2: Event Features**
+### Optional Enhancements (Can Run in Parallel)
 
-1. Event calendar view (monthly/weekly)
-2. Public event listing page
-3. Event search and filtering
-4. Check-in system
+**Phase 4.8: Email Notifications**
 
-**Week 3: Polish & Integration**
+- Order status change emails
+- Event registration confirmations
+- Low stock alerts
 
-1. Email notifications (registration confirmation, reminders)
-2. Event categories/tags
-3. Recurring events support
-4. Testing and documentation
+**Phase 5.3: Event Enhancements**
 
-### Phase 6: Theme System Planning (1-2 weeks)
+- iCal export
+- Recurring events
+- QR code check-in
 
-**Research & Architecture Design**
+### Long-Term (Phase 8)
 
-1. Research Payload CMS + Next.js theming approaches
-2. Define theme configuration schema
-3. Design component library structure
-4. Create proof-of-concept theme
-5. Document architecture decisions
-
-### Long-Term (Phases 7-8)
-
-**Phase 7**: Public Storefront/CMS implementation (3-4 weeks)
-**Phase 8**: Advanced features as needed (ongoing)
+Advanced features as needed: gift cards, discount codes, advanced reporting, internationalization
 
 ---
 
@@ -681,13 +677,15 @@ Proceed directly to events system development (recommended if email notification
 - [x] User event dashboard
 - [ ] Email notifications for events working (deferred to Phase 5.3)
 
-### Phase 6 Complete When:
+### ✅ Phase 6 Complete (Achieved)
 
-- [ ] Theme architecture documented
-- [ ] Component library specification complete
-- [ ] Proof-of-concept theme created
-- [ ] Team approves architecture approach
-- [ ] Ready to begin Phase 7 implementation
+- [x] Theme architecture documented (`.agent/task/theme-system.md`)
+- [x] Component library: 6 block types (Hero, BookShowcase, Content, CTA, Media, Archive)
+- [x] Two production themes: Default (blue) and Radical (red/black)
+- [x] Dark mode support with auto/light/dark modes
+- [x] CSS variable theming with Tailwind v4
+- [x] Seed script for quick setup (`pnpm seed:theme`)
+- [x] Setup guide documented (`.agent/task/theme-setup-guide.md`)
 
 ### Phase 7 Complete When:
 
@@ -723,6 +721,8 @@ Proceed directly to events system development (recommended if email notification
 - ✅ Multi-currency support (AUD default) with GST calculation
 - ✅ Type-safe relationship handling utilities
 - ✅ Comprehensive testing (integration + E2E)
+- ✅ Theme system with CSS variables, dark mode, and block-based composition
+- ✅ Event registration system with capacity management and waitlists
 
 ### Key Technical Decisions
 
@@ -732,6 +732,8 @@ Proceed directly to events system development (recommended if email notification
 - **Currency**: AUD with 10% GST, multi-currency capable
 - **Testing**: Vitest (integration) + Playwright (E2E)
 - **Type Safety**: Centralized relationship ID utilities prevent runtime errors
+- **Theming**: CSS variables + Tailwind v4 with Payload Globals for configuration
+- **Content**: Block-based composition with Lexical rich text (XSS-safe serialization)
 
 ### Removed Features (Not Needed)
 
@@ -741,12 +743,12 @@ Proceed directly to events system development (recommended if email notification
 
 ### Next Priorities
 
-1. **Events System** (Phase 5) - Community engagement
-2. **Theme Planning** (Phase 6) - Architecture for customizable website
-3. **Public Storefront** (Phase 7) - Full public-facing website
+1. **Public Storefront/CMS** (Phase 7) - Pages collection, navigation, SEO
+2. **Email Notifications** (Phase 4.8/5.3) - Order and event emails
+3. **Advanced Features** (Phase 8) - As needed
 
 ---
 
-**Last Updated**: 2025-11-08
-**Next Review**: After Phase 5 (Events System) completion
-**Current Focus**: Planning Phase 5 implementation
+**Last Updated**: 2026-02-01
+**Next Review**: After Phase 7 (Public Storefront/CMS) completion
+**Current Focus**: Phase 7 - CMS Pages and Navigation

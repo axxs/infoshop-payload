@@ -4,6 +4,7 @@ import {
   validateStockAvailability,
   setUnitPriceFromBook,
 } from './SaleItems/hooks'
+import { authenticatedRead, isAdminOrVolunteer } from '@/lib/access'
 
 export const SaleItems: CollectionConfig = {
   slug: 'sale-items',
@@ -14,10 +15,10 @@ export const SaleItems: CollectionConfig = {
     hidden: true, // Hide from main navigation (accessed via Sales)
   },
   access: {
-    read: ({ req: { user } }) => !!user,
-    create: ({ req: { user } }) => !!user,
-    update: ({ req: { user } }) => !!user,
-    delete: ({ req: { user } }) => !!user,
+    read: authenticatedRead,
+    create: isAdminOrVolunteer,
+    update: isAdminOrVolunteer,
+    delete: isAdminOrVolunteer,
   },
   fields: [
     {

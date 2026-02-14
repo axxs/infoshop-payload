@@ -37,6 +37,12 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await getPayload({ config })
 
+    // Authentication check - only authenticated users can execute imports
+    const { user } = await payload.auth({ headers: request.headers })
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
     // Parse request body
     const body = await request.json()
     const { preview, options } = body as {
@@ -54,12 +60,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if preview has errors
-    if (preview.hasErrors) {
+    // Check if preview has errors (unless continueWithErrors is enabled)
+    if (preview.hasErrors && !options?.continueWithErrors) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Cannot execute import with validation errors. Please fix errors and try again.',
+          error:
+            'Cannot execute import with validation errors. Fix errors or enable "Continue with errors" to skip invalid rows.',
         },
         { status: 400 },
       )

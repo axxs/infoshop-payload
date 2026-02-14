@@ -388,6 +388,46 @@ export const Theme: GlobalConfig = {
           ],
         },
         {
+          label: 'Shop Settings',
+          fields: [
+            {
+              name: 'showOutOfStockBooks',
+              type: 'checkbox',
+              defaultValue: false,
+              admin: {
+                description:
+                  'Display out-of-stock books on the shop page (will show "Out of Stock" badge)',
+              },
+            },
+            {
+              name: 'showUnpricedBooks',
+              type: 'checkbox',
+              defaultValue: false,
+              admin: {
+                description:
+                  'Display books without pricing on the shop page (will show "Price on request" with contact link)',
+              },
+            },
+            {
+              name: 'contactEmail',
+              type: 'email',
+              admin: {
+                description: 'Email address for "Contact Us" links on unpriced/out-of-stock books',
+                placeholder: 'shop@example.com',
+              },
+            },
+            {
+              name: 'contactPageUrl',
+              type: 'text',
+              admin: {
+                description:
+                  'URL for contact page (optional - if set, will link to this page instead of email)',
+                placeholder: '/contact',
+              },
+            },
+          ],
+        },
+        {
           label: 'Radical Theme',
           fields: [
             {

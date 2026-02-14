@@ -6,6 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { getPayload } from 'payload'
+import config from '@payload-config'
 import { validateISBN } from '@/lib/isbnUtils'
 import { lookupBookByISBN } from '@/lib/bookLookup'
 
@@ -73,6 +75,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     )
   }
   try {
+    // Authentication check - only authenticated users can look up ISBNs
+    const payload = await getPayload({ config })
+    const { user } = await payload.auth({ headers: request.headers })
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
     // Extract and sanitize ISBN from query parameter
     const searchParams = request.nextUrl.searchParams
     const rawIsbn = searchParams.get('isbn')

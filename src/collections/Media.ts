@@ -1,9 +1,13 @@
 import type { CollectionConfig } from 'payload'
+import { publicRead, isAdminOrVolunteer } from '@/lib/access'
 
 export const Media: CollectionConfig = {
   slug: 'media',
   access: {
-    read: () => true,
+    read: publicRead,
+    create: isAdminOrVolunteer,
+    update: isAdminOrVolunteer,
+    delete: isAdminOrVolunteer,
   },
   fields: [
     {

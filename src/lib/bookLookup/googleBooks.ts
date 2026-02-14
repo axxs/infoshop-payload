@@ -114,6 +114,7 @@ function transformGoogleBooksData(item: GoogleBooksItem, isbn: string): BookData
   let coverImageUrl: string | undefined
   if (volumeInfo.imageLinks) {
     coverImageUrl =
+      volumeInfo.imageLinks.extraLarge ||
       volumeInfo.imageLinks.large ||
       volumeInfo.imageLinks.medium ||
       volumeInfo.imageLinks.small ||
@@ -124,6 +125,12 @@ function transformGoogleBooksData(item: GoogleBooksItem, isbn: string): BookData
   // Replace http:// with https:// for cover images
   if (coverImageUrl?.startsWith('http://')) {
     coverImageUrl = coverImageUrl.replace('http://', 'https://')
+  }
+
+  // Maximize image quality by modifying zoom parameter
+  // Google Books uses zoom=1 for thumbnails, zoom=0 for original/max size
+  if (coverImageUrl && coverImageUrl.includes('zoom=')) {
+    coverImageUrl = coverImageUrl.replace(/zoom=\d/, 'zoom=0')
   }
 
   // Extract subjects (categories)

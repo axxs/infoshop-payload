@@ -5,6 +5,7 @@ import {
   updateEventAttendeeCount,
   setTimestamps,
 } from './EventAttendance/hooks'
+import { isAuthenticated, isAdminOrVolunteer, isAdminOrVolunteerOrSelf } from '@/lib/access'
 
 export const EventAttendance: CollectionConfig = {
   slug: 'event-attendance',
@@ -14,10 +15,10 @@ export const EventAttendance: CollectionConfig = {
     description: 'Event registration and attendance tracking',
   },
   access: {
-    read: () => true, // Public read access
-    create: ({ req: { user } }) => !!user, // Authenticated users can register
-    update: ({ req: { user } }) => !!user,
-    delete: ({ req: { user } }) => !!user,
+    read: isAdminOrVolunteerOrSelf('user'),
+    create: isAuthenticated,
+    update: isAdminOrVolunteer,
+    delete: isAdminOrVolunteer,
   },
   fields: [
     {

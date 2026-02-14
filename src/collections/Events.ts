@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { publicRead, isAdminOrVolunteer } from '@/lib/access'
 
 export const Events: CollectionConfig = {
   slug: 'events',
@@ -7,10 +8,10 @@ export const Events: CollectionConfig = {
     defaultColumns: ['title', 'eventType', 'startDate', 'status'],
   },
   access: {
-    read: () => true, // Public read access
-    create: ({ req: { user } }) => !!user,
-    update: ({ req: { user } }) => !!user,
-    delete: ({ req: { user } }) => !!user,
+    read: publicRead,
+    create: isAdminOrVolunteer,
+    update: isAdminOrVolunteer,
+    delete: isAdminOrVolunteer,
   },
   fields: [
     {

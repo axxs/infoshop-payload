@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { isAdminOrVolunteer } from '@/lib/access'
 
 export const Suppliers: CollectionConfig = {
   slug: 'suppliers',
@@ -6,10 +7,10 @@ export const Suppliers: CollectionConfig = {
     useAsTitle: 'name',
   },
   access: {
-    read: ({ req: { user } }) => !!user,
-    create: ({ req: { user } }) => !!user,
-    update: ({ req: { user } }) => !!user,
-    delete: ({ req: { user } }) => !!user,
+    read: isAdminOrVolunteer,
+    create: isAdminOrVolunteer,
+    update: isAdminOrVolunteer,
+    delete: isAdminOrVolunteer,
   },
   fields: [
     {

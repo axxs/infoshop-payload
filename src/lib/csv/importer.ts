@@ -6,7 +6,7 @@
  */
 
 import type { Payload } from 'payload'
-import { parseCSV } from './parser'
+import { parseCSV, getCSVMetadata } from './parser'
 import { validateBookOperation, isOperationValid } from './validator'
 import { detectAndHandleDuplicates } from './duplicateDetector'
 import { processAndLinkSubjects } from '../openLibrary/subjectManager'
@@ -22,8 +22,9 @@ import type {
   PreviewResult,
   ExecutionResult,
   ValidationIssue,
+  QuickFormatResult,
 } from './types'
-import { BookOperationType, ValidationSeverity, DuplicateStrategy } from './types'
+import { BookOperationType, ValidationSeverity, ValidationCode, DuplicateStrategy } from './types'
 
 /**
  * Default import options
@@ -37,6 +38,65 @@ const DEFAULT_OPTIONS: Required<CSVImportOptions> = {
   defaultCurrency: 'USD',
   batchSize: 10,
   stopOnError: false,
+  continueWithErrors: false,
+}
+
+/**
+ * Quick format validation using first N rows only
+ * Used for instant feedback before full validation
+ *
+ * @param csvContent - Raw CSV file content
+ * @param sampleSize - Number of rows to validate (default: 5)
+ * @returns Quick format validation result
+ */
+export function quickValidateFormat(csvContent: string, sampleSize: number = 5): QuickFormatResult {
+  // Get CSV metadata (columns, total rows)
+  const { detectedColumns, totalRows, missingRequiredColumns } = getCSVMetadata(csvContent)
+
+  const issues: ValidationIssue[] = []
+
+  // Check for missing required columns
+  if (missingRequiredColumns.length > 0) {
+    issues.push({
+      severity: ValidationSeverity.ERROR,
+      field: 'columns',
+      message: `Missing required columns: ${missingRequiredColumns.join(', ')}`,
+      code: ValidationCode.REQUIRED_FIELD,
+      rowIndex: 0,
+    })
+  }
+
+  // Parse sample rows for validation
+  let sampleData: BookOperation[] = []
+  try {
+    sampleData = parseCSV(csvContent, sampleSize)
+
+    // Validate sample rows
+    for (const operation of sampleData) {
+      const operationIssues = validateBookOperation(operation)
+      issues.push(...operationIssues)
+    }
+  } catch (error) {
+    issues.push({
+      severity: ValidationSeverity.ERROR,
+      field: 'csv',
+      message: error instanceof Error ? error.message : 'Failed to parse CSV',
+      code: ValidationCode.REQUIRED_FIELD,
+      rowIndex: 0,
+    })
+  }
+
+  const hasErrors = issues.some((issue) => issue.severity === ValidationSeverity.ERROR)
+
+  return {
+    isValid: !hasErrors,
+    totalRows,
+    sampleRows: sampleData.length,
+    detectedColumns,
+    missingRequiredColumns,
+    issues,
+    sampleData,
+  }
 }
 
 /**
@@ -369,9 +429,14 @@ export async function executeCSVImport(
 ): Promise<ExecutionResult> {
   const opts = { ...DEFAULT_OPTIONS, ...options }
 
-  // Filter to only valid operations that should be executed
+  // Filter operations to execute
+  // When continueWithErrors is true, include all operations (invalid ones will fail gracefully)
+  // Otherwise, only include valid operations
   const operationsToExecute = previewResult.results
-    .filter((r) => r.isValid && r.operation.operationType !== BookOperationType.SKIP)
+    .filter((r) => {
+      if (r.operation.operationType === BookOperationType.SKIP) return false
+      return opts.continueWithErrors || r.isValid
+    })
     .map((r) => r.operation)
 
   const result: ExecutionResult = {

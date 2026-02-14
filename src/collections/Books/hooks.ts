@@ -156,8 +156,6 @@ export const checkLowStock: CollectionAfterChangeHook = async ({ doc, operation,
       reorderLevel,
       bookId: doc.id,
     })
-    // TODO: Send email notification to admin
-    // TODO: Create notification in admin dashboard
   }
 
   if (quantity === 0) {
@@ -167,7 +165,6 @@ export const checkLowStock: CollectionAfterChangeHook = async ({ doc, operation,
       isbn: doc.isbn || 'N/A',
       bookId: doc.id,
     })
-    // TODO: Send urgent notification
   }
 
   return doc
