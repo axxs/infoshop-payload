@@ -230,8 +230,7 @@ export default async function BookPage({ params }: BookPageProps) {
         </Card>
       )}
 
-      {/* Description Section - TODO: Implement Lexical renderer for rich description */}
-      {/* book.description is a Lexical rich text object, needs proper rendering */}
+      {/* Description Section — Lexical rich text renderer needed for book.description */}
     </div>
   )
 }

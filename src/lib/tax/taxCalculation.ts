@@ -12,7 +12,8 @@ export interface TaxCalculationResult {
 
 /**
  * Tax rates by currency/region
- * TODO: Replace with database-driven configuration or tax API integration (Stripe Tax, TaxJar)
+ * Note: Consider replacing with database-driven configuration or tax API integration
+ * (Stripe Tax, TaxJar) for production multi-region support.
  */
 const TAX_RATES: Record<string, { rate: number; description: string }> = {
   AUD: { rate: 0.1, description: 'GST (10%)' },

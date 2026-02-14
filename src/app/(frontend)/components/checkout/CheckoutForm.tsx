@@ -7,6 +7,7 @@ import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import type { PopulatedCart } from '@/lib/cart'
+import { processCheckout } from '@/lib/checkout/actions'
 
 interface CheckoutFormProps {
   cart: PopulatedCart
@@ -36,8 +37,7 @@ export function CheckoutForm({
       const tax = cart.subtotal * taxRate
       const _total = cart.subtotal + tax
 
-      // TODO: Initialize Square Web Payments SDK and get payment token (will use _total)
-      // For now, create a mock payment for development
+      // Square Web Payments SDK integration pending — use mock payment for development
       const mockPaymentResult = {
         success: true,
         transactionId: `mock-${Date.now()}`,
@@ -49,20 +49,14 @@ export function CheckoutForm({
         return
       }
 
-      // Create order via API
-      const orderResponse = await fetch('/api/checkout/create-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          squareTransactionId: mockPaymentResult.transactionId,
-          squareReceiptUrl: mockPaymentResult.receiptUrl,
-          paymentMethod: 'CARD',
-          customerEmail,
-          customerName,
-        }),
+      // Create order via Server Action (has built-in CSRF protection)
+      const orderResult = await processCheckout({
+        squareTransactionId: mockPaymentResult.transactionId,
+        squareReceiptUrl: mockPaymentResult.receiptUrl,
+        paymentMethod: 'CARD',
+        customerEmail,
+        customerName,
       })
-
-      const orderResult = await orderResponse.json()
 
       if (!orderResult.success) {
         setError(orderResult.error || 'Failed to create order')
@@ -113,7 +107,7 @@ export function CheckoutForm({
             />
           </div>
 
-          {/* TODO: Add Square Web Payments SDK card input */}
+          {/* Square Web Payments SDK card input placeholder */}
           <div className="rounded-lg border p-4">
             <p className="text-sm text-muted-foreground">
               Square Web Payments SDK integration coming soon.

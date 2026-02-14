@@ -80,15 +80,11 @@ export const validatePricing: CollectionBeforeChangeHook = async ({ data, req })
     )
   }
 
-  // Warn if selling below cost (allow but warn)
+  // Reject if selling below cost (negative margin = financial loss)
   if (sellPrice < costPrice) {
-    req.payload.logger.warn({
-      msg: 'Book price below cost - negative margin',
-      book: data.title || 'Unknown',
-      sellPrice,
-      costPrice,
-      margin: sellPrice - costPrice,
-    })
+    throw new Error(
+      `Sell price (${sellPrice}) cannot be below cost price (${costPrice}). This would result in a loss of ${(costPrice - sellPrice).toFixed(2)} per unit.`,
+    )
   }
 
   return data

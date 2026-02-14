@@ -4,12 +4,41 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { getPayload } from 'payload'
+import config from '@payload-config'
 import { processPayment } from '@/lib/square/payments'
 import { DEFAULT_CURRENCY } from '@/lib/square/constants'
+import { checkRateLimit, getRateLimitHeaders } from '@/lib/rateLimit'
 import type { Currency } from 'square'
+
+/** Rate limit: 5 payment attempts per minute per IP */
+const PAYMENT_RATE_LIMIT = { maxRequests: 5, windowSeconds: 60 }
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting — prevent card testing attacks
+    const rateCheck = checkRateLimit(request, PAYMENT_RATE_LIMIT)
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Too many payment attempts. Please try again later.' },
+        {
+          status: 429,
+          headers: getRateLimitHeaders(
+            PAYMENT_RATE_LIMIT.maxRequests,
+            rateCheck.remaining,
+            rateCheck.resetAt,
+          ),
+        },
+      )
+    }
+
+    // Authentication — only authenticated users can process payments
+    const payload = await getPayload({ config })
+    const { user } = await payload.auth({ headers: request.headers })
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
     const body = await request.json()
 
     // Validate required fields

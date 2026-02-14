@@ -148,12 +148,16 @@ export async function createOrder(params: CreateOrderParams): Promise<CreateOrde
       saleItemIds.push(saleItem.id)
     }
 
-    // 7. IMPROVED: Atomic stock updates with just-in-time re-fetch
-    // Re-fetch current stock immediately before update to minimize race condition window
-    // Combined with beforeChange hook validation (prevents negative stock), this provides strong protection
-    await Promise.all(
-      stockUpdates.map(async ({ bookId, quantityToDeduct }) => {
-        // Re-fetch book to get absolute latest stock quantity
+    // 7. Atomic stock updates with optimistic locking
+    // Uses updatedAt as a version check to detect concurrent modifications.
+    // If another request modifies the book between our read and update, the
+    // where clause won't match and we retry (up to MAX_RETRIES).
+    const MAX_RETRIES = 3
+    for (const { bookId, quantityToDeduct } of stockUpdates) {
+      let updated = false
+
+      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        // Read the freshest stock value
         const freshBook = await payload.findByID({
           collection: 'books',
           id: bookId,
@@ -163,7 +167,6 @@ export async function createOrder(params: CreateOrderParams): Promise<CreateOrde
           throw new Error(`Book ID ${bookId} not found during stock update`)
         }
 
-        // Final stock check with fresh data (critical for race condition prevention)
         if (freshBook.stockQuantity < quantityToDeduct) {
           throw new Error(
             `Insufficient stock for "${freshBook.title}". Available: ${freshBook.stockQuantity}, Required: ${quantityToDeduct}`,
@@ -172,16 +175,33 @@ export async function createOrder(params: CreateOrderParams): Promise<CreateOrde
 
         const newStock = freshBook.stockQuantity - quantityToDeduct
 
-        // Update will be validated by beforeChange hook (prevents negative stock)
-        return payload.update({
+        // Conditional update: only succeed if the book hasn't been modified since our read.
+        // This acts as an optimistic lock — if another checkout changed stock in between,
+        // updatedAt will differ and the update returns 0 docs, triggering a retry.
+        const result = await payload.update({
           collection: 'books',
-          id: bookId,
+          where: {
+            id: { equals: bookId },
+            updatedAt: { equals: freshBook.updatedAt },
+          },
           data: {
             stockQuantity: newStock,
           },
         })
-      }),
-    )
+
+        if (result.docs.length > 0) {
+          updated = true
+          break
+        }
+        // Conflict detected — another concurrent update modified this book. Retry.
+      }
+
+      if (!updated) {
+        throw new Error(
+          `Failed to update stock for book ID ${bookId} after ${MAX_RETRIES} attempts due to concurrent modifications. Please try again.`,
+        )
+      }
+    }
 
     // 8. Create Sale record with SaleItem IDs and initial status
     const now = new Date().toISOString()
