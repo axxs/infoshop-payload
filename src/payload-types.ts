@@ -59,369 +59,364 @@ export type SupportedTimezones =
   | 'Pacific/Guam'
   | 'Pacific/Noumea'
   | 'Pacific/Auckland'
-  | 'Pacific/Fiji'
+  | 'Pacific/Fiji';
 
 export interface Config {
   auth: {
-    users: UserAuthOperations
-  }
-  blocks: {}
+    users: UserAuthOperations;
+  };
+  blocks: {};
   collections: {
-    users: User
-    media: Media
-    books: Book
-    categories: Category
-    subjects: Subject
-    suppliers: Supplier
-    events: Event
-    'event-attendance': EventAttendance
-    sales: Sale
-    'sale-items': SaleItem
-    'payload-kv': PayloadKv
-    'payload-locked-documents': PayloadLockedDocument
-    'payload-preferences': PayloadPreference
-    'payload-migrations': PayloadMigration
-  }
-  collectionsJoins: {}
+    users: User;
+    media: Media;
+    books: Book;
+    categories: Category;
+    subjects: Subject;
+    suppliers: Supplier;
+    events: Event;
+    'event-attendance': EventAttendance;
+    sales: Sale;
+    'sale-items': SaleItem;
+    'payload-kv': PayloadKv;
+    'payload-locked-documents': PayloadLockedDocument;
+    'payload-preferences': PayloadPreference;
+    'payload-migrations': PayloadMigration;
+  };
+  collectionsJoins: {};
   collectionsSelect: {
-    users: UsersSelect<false> | UsersSelect<true>
-    media: MediaSelect<false> | MediaSelect<true>
-    books: BooksSelect<false> | BooksSelect<true>
-    categories: CategoriesSelect<false> | CategoriesSelect<true>
-    subjects: SubjectsSelect<false> | SubjectsSelect<true>
-    suppliers: SuppliersSelect<false> | SuppliersSelect<true>
-    events: EventsSelect<false> | EventsSelect<true>
-    'event-attendance': EventAttendanceSelect<false> | EventAttendanceSelect<true>
-    sales: SalesSelect<false> | SalesSelect<true>
-    'sale-items': SaleItemsSelect<false> | SaleItemsSelect<true>
-    'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>
-    'payload-locked-documents':
-      | PayloadLockedDocumentsSelect<false>
-      | PayloadLockedDocumentsSelect<true>
-    'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>
-    'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>
-  }
+    users: UsersSelect<false> | UsersSelect<true>;
+    media: MediaSelect<false> | MediaSelect<true>;
+    books: BooksSelect<false> | BooksSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    subjects: SubjectsSelect<false> | SubjectsSelect<true>;
+    suppliers: SuppliersSelect<false> | SuppliersSelect<true>;
+    events: EventsSelect<false> | EventsSelect<true>;
+    'event-attendance': EventAttendanceSelect<false> | EventAttendanceSelect<true>;
+    sales: SalesSelect<false> | SalesSelect<true>;
+    'sale-items': SaleItemsSelect<false> | SaleItemsSelect<true>;
+    'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
+    'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
+    'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
+    'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
+  };
   db: {
-    defaultIDType: number
-  }
+    defaultIDType: number;
+  };
   globals: {
-    theme: Theme
-    layout: Layout
-  }
+    theme: Theme;
+    layout: Layout;
+  };
   globalsSelect: {
-    theme: ThemeSelect<false> | ThemeSelect<true>
-    layout: LayoutSelect<false> | LayoutSelect<true>
-  }
-  locale: null
+    theme: ThemeSelect<false> | ThemeSelect<true>;
+    layout: LayoutSelect<false> | LayoutSelect<true>;
+  };
+  locale: null;
   user: User & {
-    collection: 'users'
-  }
+    collection: 'users';
+  };
   jobs: {
-    tasks: unknown
-    workflows: unknown
-  }
+    tasks: unknown;
+    workflows: unknown;
+  };
 }
 export interface UserAuthOperations {
   forgotPassword: {
-    email: string
-    password: string
-  }
+    email: string;
+    password: string;
+  };
   login: {
-    email: string
-    password: string
-  }
+    email: string;
+    password: string;
+  };
   registerFirstUser: {
-    email: string
-    password: string
-  }
+    email: string;
+    password: string;
+  };
   unlock: {
-    email: string
-    password: string
-  }
+    email: string;
+    password: string;
+  };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
-  id: number
+  id: number;
+  /**
+   * User role determines access permissions
+   */
+  role: 'admin' | 'volunteer' | 'customer';
   /**
    * Full name of the user
    */
-  name?: string | null
+  name?: string | null;
   /**
    * Is this user a collective member? (Grants access to member pricing)
    */
-  isMember?: boolean | null
+  isMember?: boolean | null;
   /**
    * Membership number (optional)
    */
-  membershipNumber?: string | null
+  membershipNumber?: string | null;
   /**
    * Member since date
    */
-  memberSince?: string | null
-  updatedAt: string
-  createdAt: string
-  email: string
-  resetPasswordToken?: string | null
-  resetPasswordExpiration?: string | null
-  salt?: string | null
-  hash?: string | null
-  loginAttempts?: number | null
-  lockUntil?: string | null
+  memberSince?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
   sessions?:
     | {
-        id: string
-        createdAt?: string | null
-        expiresAt: string
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
       }[]
-    | null
-  password?: string | null
+    | null;
+  password?: string | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
-  id: number
-  alt: string
-  updatedAt: string
-  createdAt: string
-  url?: string | null
-  thumbnailURL?: string | null
-  filename?: string | null
-  mimeType?: string | null
-  filesize?: number | null
-  width?: number | null
-  height?: number | null
-  focalX?: number | null
-  focalY?: number | null
+  id: number;
+  alt: string;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "books".
  */
 export interface Book {
-  id: number
-  title: string
+  id: number;
+  title: string;
   /**
    * ISBN-10 or ISBN-13
    */
-  isbn?: string | null
+  isbn?: string | null;
   /**
    * OCLC number for library cataloguing
    */
-  oclcNumber?: string | null
-  author: string
-  publisher?: string | null
-  publishedDate?: string | null
+  oclcNumber?: string | null;
+  author: string;
+  publisher?: string | null;
+  publishedDate?: string | null;
   /**
    * Plain text book synopsis (auto-populated from ISBN lookup)
    */
-  synopsis?: string | null
+  synopsis?: string | null;
   /**
    * Rich text description for detailed book information
    */
   description?: {
     root: {
-      type: string
+      type: string;
       children: {
-        type: any
-        version: number
-        [k: string]: unknown
-      }[]
-      direction: ('ltr' | 'rtl') | null
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-      indent: number
-      version: number
-    }
-    [k: string]: unknown
-  } | null
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
   /**
    * Display this book in featured sections on the homepage
    */
-  featured?: boolean | null
+  featured?: boolean | null;
   /**
    * Wholesale cost price (what we paid)
    */
-  costPrice?: number | null
+  costPrice?: number | null;
   /**
    * Standard retail price for general public
    */
-  sellPrice?: number | null
+  sellPrice?: number | null;
   /**
    * Discounted price for collective members
    */
-  memberPrice?: number | null
-  currency: 'AUD' | 'USD' | 'EUR' | 'GBP'
+  memberPrice?: number | null;
+  currency: 'AUD' | 'USD' | 'EUR' | 'GBP';
   /**
    * Current stock quantity
    */
-  stockQuantity: number
+  stockQuantity: number;
   /**
    * Alert when stock falls below this level
    */
-  reorderLevel?: number | null
+  reorderLevel?: number | null;
   /**
    * Auto-calculated based on stock quantity (or set to Discontinued manually)
    */
-  stockStatus: 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK' | 'DISCONTINUED'
+  stockStatus: 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK' | 'DISCONTINUED';
   /**
    * Primary categories (hierarchical)
    */
-  categories?: (number | Category)[] | null
+  categories?: (number | Category)[] | null;
   /**
    * Subject tags (flexible)
    */
-  subjects?: (number | Subject)[] | null
+  subjects?: (number | Subject)[] | null;
   /**
    * Temporary storage for subject names from ISBN lookup
    */
   _subjectNames?:
     | {
-        [k: string]: unknown
+        [k: string]: unknown;
       }
     | unknown[]
     | string
     | number
     | boolean
-    | null
+    | null;
   /**
    * Book cover image
    */
-  coverImage?: (number | null) | Media
+  coverImage?: (number | null) | Media;
   /**
    * External cover image URL (e.g., from Open Library)
    */
-  externalCoverUrl?: string | null
+  externalCoverUrl?: string | null;
   /**
    * Is this a digital/downloadable product?
    */
-  isDigital?: boolean | null
+  isDigital?: boolean | null;
   /**
    * Digital file for download (PDF, EPUB, etc.)
    */
-  digitalFile?: (number | null) | Media
+  digitalFile?: (number | null) | Media;
   /**
    * Square catalog object ID for sync
    */
-  squareCatalogObjectId?: string | null
+  squareCatalogObjectId?: string | null;
   /**
    * Last Square sync timestamp
    */
-  squareLastSyncedAt?: string | null
+  squareLastSyncedAt?: string | null;
   /**
    * Where we source this book from
    */
-  supplier?: (number | null) | Supplier
-  pages?: number | null
-  format?: ('HARDCOVER' | 'PAPERBACK' | 'EBOOK' | 'AUDIOBOOK' | 'ZINE' | 'PAMPHLET') | null
-  updatedAt: string
-  createdAt: string
+  supplier?: (number | null) | Supplier;
+  pages?: number | null;
+  format?: ('HARDCOVER' | 'PAPERBACK' | 'EBOOK' | 'AUDIOBOOK' | 'ZINE' | 'PAMPHLET') | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "categories".
  */
 export interface Category {
-  id: number
-  name: string
+  id: number;
+  name: string;
   /**
    * URL-friendly identifier (auto-generated from name if empty)
    */
-  slug: string
-  description?: string | null
+  slug: string;
+  description?: string | null;
   /**
    * Parent category for hierarchical organisation
    */
-  parent?: (number | null) | Category
-  updatedAt: string
-  createdAt: string
+  parent?: (number | null) | Category;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "subjects".
  */
 export interface Subject {
-  id: number
-  name: string
+  id: number;
+  name: string;
   /**
    * URL-friendly identifier (auto-generated from name if empty)
    */
-  slug: string
+  slug: string;
   /**
    * Normalized name for case-insensitive lookups (auto-generated)
    */
-  normalizedName: string
-  description?: string | null
-  updatedAt: string
-  createdAt: string
+  normalizedName: string;
+  description?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "suppliers".
  */
 export interface Supplier {
-  id: number
-  name: string
-  contactEmail?: string | null
-  contactPhone?: string | null
-  website?: string | null
-  notes?: string | null
-  updatedAt: string
-  createdAt: string
+  id: number;
+  name: string;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  website?: string | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "events".
  */
 export interface Event {
-  id: number
-  title: string
+  id: number;
+  title: string;
   description: {
     root: {
-      type: string
+      type: string;
       children: {
-        type: any
-        version: number
-        [k: string]: unknown
-      }[]
-      direction: ('ltr' | 'rtl') | null
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-      indent: number
-      version: number
-    }
-    [k: string]: unknown
-  }
-  eventType:
-    | 'BOOK_SIGNING'
-    | 'READING'
-    | 'DISCUSSION'
-    | 'WORKSHOP'
-    | 'SCREENING'
-    | 'MEETING'
-    | 'OTHER'
-  startDate: string
-  endDate?: string | null
-  location?: string | null
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  eventType: 'BOOK_SIGNING' | 'READING' | 'DISCUSSION' | 'WORKSHOP' | 'SCREENING' | 'MEETING' | 'OTHER';
+  startDate: string;
+  endDate?: string | null;
+  location?: string | null;
   /**
    * Maximum capacity (0 = unlimited)
    */
-  maxAttendees?: number | null
+  maxAttendees?: number | null;
   /**
    * Current number of registered attendees
    */
-  currentAttendees?: number | null
-  status: 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED'
-  registrationRequired?: boolean | null
-  isFree?: boolean | null
+  currentAttendees?: number | null;
+  status: 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
+  registrationRequired?: boolean | null;
+  isFree?: boolean | null;
   /**
    * Event ticket price
    */
-  price?: number | null
-  updatedAt: string
-  createdAt: string
+  price?: number | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Event registration and attendance tracking
@@ -430,41 +425,41 @@ export interface Event {
  * via the `definition` "event-attendance".
  */
 export interface EventAttendance {
-  id: number
+  id: number;
   /**
    * Event being attended
    */
-  event: number | Event
+  event: number | Event;
   /**
    * User attending the event
    */
-  user: number | User
+  user: number | User;
   /**
    * Current attendance status
    */
-  status: 'REGISTERED' | 'ATTENDED' | 'CANCELLED' | 'WAITLIST'
+  status: 'REGISTERED' | 'ATTENDED' | 'CANCELLED' | 'WAITLIST';
   /**
    * Date and time of registration
    */
-  registeredAt: string
+  registeredAt: string;
   /**
    * Date and time user checked in (attended)
    */
-  attendedAt?: string | null
+  attendedAt?: string | null;
   /**
    * Date and time registration was cancelled
    */
-  cancelledAt?: string | null
+  cancelledAt?: string | null;
   /**
    * Reason for cancellation (optional)
    */
-  cancellationReason?: string | null
+  cancellationReason?: string | null;
   /**
    * Internal notes about this registration
    */
-  notes?: string | null
-  updatedAt: string
-  createdAt: string
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Point of sale transactions and online orders
@@ -473,78 +468,78 @@ export interface EventAttendance {
  * via the `definition` "sales".
  */
 export interface Sale {
-  id: number
+  id: number;
   /**
    * Receipt/invoice number
    */
-  receiptNumber?: string | null
+  receiptNumber?: string | null;
   /**
    * Date and time of sale
    */
-  saleDate: string
+  saleDate: string;
   /**
    * Current order status
    */
-  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED'
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED';
   /**
    * Status change history for audit trail
    */
   statusHistory?:
     | {
-        status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED'
-        timestamp: string
-        note?: string | null
-        changedBy?: (number | null) | User
-        id?: string | null
+        status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED';
+        timestamp: string;
+        note?: string | null;
+        changedBy?: (number | null) | User;
+        id?: string | null;
       }[]
-    | null
+    | null;
   /**
    * Total sale amount (calculated from items)
    */
-  totalAmount: number
-  paymentMethod: 'CASH' | 'CARD' | 'SQUARE' | 'MEMBER_CREDIT' | 'OTHER'
+  totalAmount: number;
+  paymentMethod: 'CASH' | 'CARD' | 'SQUARE' | 'MEMBER_CREDIT' | 'OTHER';
   /**
    * Square transaction ID (for Square payments)
    */
-  squareTransactionId?: string | null
+  squareTransactionId?: string | null;
   /**
    * Square receipt URL
    */
-  squareReceiptUrl?: string | null
+  squareReceiptUrl?: string | null;
   /**
    * Customer account (if registered)
    */
-  customer?: (number | null) | User
+  customer?: (number | null) | User;
   /**
    * Customer email (for order notifications)
    */
-  customerEmail?: string | null
+  customerEmail?: string | null;
   /**
    * Customer name (for guest orders)
    */
-  customerName?: string | null
+  customerName?: string | null;
   /**
    * Items included in this sale
    */
-  items: (number | SaleItem)[]
+  items: (number | SaleItem)[];
   /**
    * Date and time order was cancelled
    */
-  cancelledAt?: string | null
+  cancelledAt?: string | null;
   /**
    * User who cancelled the order
    */
-  cancelledBy?: (number | null) | User
+  cancelledBy?: (number | null) | User;
   /**
    * Reason for cancellation
    */
-  cancellationReason?: string | null
+  cancellationReason?: string | null;
   /**
    * Internal notes about this order
    */
-  notes?: string | null
-  updatedAt: string
-  createdAt: string
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Individual line items for sales
@@ -553,724 +548,725 @@ export interface Sale {
  * via the `definition` "sale-items".
  */
 export interface SaleItem {
-  id: number
+  id: number;
   /**
    * Book being sold
    */
-  book: number | Book
+  book: number | Book;
   /**
    * Quantity sold
    */
-  quantity: number
+  quantity: number;
   /**
    * Price per unit at time of sale
    */
-  unitPrice: number
+  unitPrice: number;
   /**
    * Discount amount applied to this item
    */
-  discount?: number | null
+  discount?: number | null;
   /**
    * Total for this line item (quantity × unitPrice - discount)
    */
-  lineTotal: number
+  lineTotal: number;
   /**
    * Price tier used for this sale
    */
-  priceType: 'RETAIL' | 'MEMBER' | 'CUSTOM'
-  updatedAt: string
-  createdAt: string
+  priceType: 'RETAIL' | 'MEMBER' | 'CUSTOM';
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
-  id: number
-  key: string
+  id: number;
+  key: string;
   data:
     | {
-        [k: string]: unknown
+        [k: string]: unknown;
       }
     | unknown[]
     | string
     | number
     | boolean
-    | null
+    | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: number
+  id: number;
   document?:
     | ({
-        relationTo: 'users'
-        value: number | User
+        relationTo: 'users';
+        value: number | User;
       } | null)
     | ({
-        relationTo: 'media'
-        value: number | Media
+        relationTo: 'media';
+        value: number | Media;
       } | null)
     | ({
-        relationTo: 'books'
-        value: number | Book
+        relationTo: 'books';
+        value: number | Book;
       } | null)
     | ({
-        relationTo: 'categories'
-        value: number | Category
+        relationTo: 'categories';
+        value: number | Category;
       } | null)
     | ({
-        relationTo: 'subjects'
-        value: number | Subject
+        relationTo: 'subjects';
+        value: number | Subject;
       } | null)
     | ({
-        relationTo: 'suppliers'
-        value: number | Supplier
+        relationTo: 'suppliers';
+        value: number | Supplier;
       } | null)
     | ({
-        relationTo: 'events'
-        value: number | Event
+        relationTo: 'events';
+        value: number | Event;
       } | null)
     | ({
-        relationTo: 'event-attendance'
-        value: number | EventAttendance
+        relationTo: 'event-attendance';
+        value: number | EventAttendance;
       } | null)
     | ({
-        relationTo: 'sales'
-        value: number | Sale
+        relationTo: 'sales';
+        value: number | Sale;
       } | null)
     | ({
-        relationTo: 'sale-items'
-        value: number | SaleItem
+        relationTo: 'sale-items';
+        value: number | SaleItem;
       } | null)
     | ({
-        relationTo: 'payload-kv'
-        value: number | PayloadKv
-      } | null)
-  globalSlug?: string | null
+        relationTo: 'payload-kv';
+        value: number | PayloadKv;
+      } | null);
+  globalSlug?: string | null;
   user: {
-    relationTo: 'users'
-    value: number | User
-  }
-  updatedAt: string
-  createdAt: string
+    relationTo: 'users';
+    value: number | User;
+  };
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  id: number
+  id: number;
   user: {
-    relationTo: 'users'
-    value: number | User
-  }
-  key?: string | null
+    relationTo: 'users';
+    value: number | User;
+  };
+  key?: string | null;
   value?:
     | {
-        [k: string]: unknown
+        [k: string]: unknown;
       }
     | unknown[]
     | string
     | number
     | boolean
-    | null
-  updatedAt: string
-  createdAt: string
+    | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  id: number
-  name?: string | null
-  batch?: number | null
-  updatedAt: string
-  createdAt: string
+  id: number;
+  name?: string | null;
+  batch?: number | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
-  name?: T
-  isMember?: T
-  membershipNumber?: T
-  memberSince?: T
-  updatedAt?: T
-  createdAt?: T
-  email?: T
-  resetPasswordToken?: T
-  resetPasswordExpiration?: T
-  salt?: T
-  hash?: T
-  loginAttempts?: T
-  lockUntil?: T
+  role?: T;
+  name?: T;
+  isMember?: T;
+  membershipNumber?: T;
+  memberSince?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
   sessions?:
     | T
     | {
-        id?: T
-        createdAt?: T
-        expiresAt?: T
-      }
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
-  alt?: T
-  updatedAt?: T
-  createdAt?: T
-  url?: T
-  thumbnailURL?: T
-  filename?: T
-  mimeType?: T
-  filesize?: T
-  width?: T
-  height?: T
-  focalX?: T
-  focalY?: T
+  alt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "books_select".
  */
 export interface BooksSelect<T extends boolean = true> {
-  title?: T
-  isbn?: T
-  oclcNumber?: T
-  author?: T
-  publisher?: T
-  publishedDate?: T
-  synopsis?: T
-  description?: T
-  featured?: T
-  costPrice?: T
-  sellPrice?: T
-  memberPrice?: T
-  currency?: T
-  stockQuantity?: T
-  reorderLevel?: T
-  stockStatus?: T
-  categories?: T
-  subjects?: T
-  _subjectNames?: T
-  coverImage?: T
-  externalCoverUrl?: T
-  isDigital?: T
-  digitalFile?: T
-  squareCatalogObjectId?: T
-  squareLastSyncedAt?: T
-  supplier?: T
-  pages?: T
-  format?: T
-  updatedAt?: T
-  createdAt?: T
+  title?: T;
+  isbn?: T;
+  oclcNumber?: T;
+  author?: T;
+  publisher?: T;
+  publishedDate?: T;
+  synopsis?: T;
+  description?: T;
+  featured?: T;
+  costPrice?: T;
+  sellPrice?: T;
+  memberPrice?: T;
+  currency?: T;
+  stockQuantity?: T;
+  reorderLevel?: T;
+  stockStatus?: T;
+  categories?: T;
+  subjects?: T;
+  _subjectNames?: T;
+  coverImage?: T;
+  externalCoverUrl?: T;
+  isDigital?: T;
+  digitalFile?: T;
+  squareCatalogObjectId?: T;
+  squareLastSyncedAt?: T;
+  supplier?: T;
+  pages?: T;
+  format?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "categories_select".
  */
 export interface CategoriesSelect<T extends boolean = true> {
-  name?: T
-  slug?: T
-  description?: T
-  parent?: T
-  updatedAt?: T
-  createdAt?: T
+  name?: T;
+  slug?: T;
+  description?: T;
+  parent?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "subjects_select".
  */
 export interface SubjectsSelect<T extends boolean = true> {
-  name?: T
-  slug?: T
-  normalizedName?: T
-  description?: T
-  updatedAt?: T
-  createdAt?: T
+  name?: T;
+  slug?: T;
+  normalizedName?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "suppliers_select".
  */
 export interface SuppliersSelect<T extends boolean = true> {
-  name?: T
-  contactEmail?: T
-  contactPhone?: T
-  website?: T
-  notes?: T
-  updatedAt?: T
-  createdAt?: T
+  name?: T;
+  contactEmail?: T;
+  contactPhone?: T;
+  website?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "events_select".
  */
 export interface EventsSelect<T extends boolean = true> {
-  title?: T
-  description?: T
-  eventType?: T
-  startDate?: T
-  endDate?: T
-  location?: T
-  maxAttendees?: T
-  currentAttendees?: T
-  status?: T
-  registrationRequired?: T
-  isFree?: T
-  price?: T
-  updatedAt?: T
-  createdAt?: T
+  title?: T;
+  description?: T;
+  eventType?: T;
+  startDate?: T;
+  endDate?: T;
+  location?: T;
+  maxAttendees?: T;
+  currentAttendees?: T;
+  status?: T;
+  registrationRequired?: T;
+  isFree?: T;
+  price?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "event-attendance_select".
  */
 export interface EventAttendanceSelect<T extends boolean = true> {
-  event?: T
-  user?: T
-  status?: T
-  registeredAt?: T
-  attendedAt?: T
-  cancelledAt?: T
-  cancellationReason?: T
-  notes?: T
-  updatedAt?: T
-  createdAt?: T
+  event?: T;
+  user?: T;
+  status?: T;
+  registeredAt?: T;
+  attendedAt?: T;
+  cancelledAt?: T;
+  cancellationReason?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "sales_select".
  */
 export interface SalesSelect<T extends boolean = true> {
-  receiptNumber?: T
-  saleDate?: T
-  status?: T
+  receiptNumber?: T;
+  saleDate?: T;
+  status?: T;
   statusHistory?:
     | T
     | {
-        status?: T
-        timestamp?: T
-        note?: T
-        changedBy?: T
-        id?: T
-      }
-  totalAmount?: T
-  paymentMethod?: T
-  squareTransactionId?: T
-  squareReceiptUrl?: T
-  customer?: T
-  customerEmail?: T
-  customerName?: T
-  items?: T
-  cancelledAt?: T
-  cancelledBy?: T
-  cancellationReason?: T
-  notes?: T
-  updatedAt?: T
-  createdAt?: T
+        status?: T;
+        timestamp?: T;
+        note?: T;
+        changedBy?: T;
+        id?: T;
+      };
+  totalAmount?: T;
+  paymentMethod?: T;
+  squareTransactionId?: T;
+  squareReceiptUrl?: T;
+  customer?: T;
+  customerEmail?: T;
+  customerName?: T;
+  items?: T;
+  cancelledAt?: T;
+  cancelledBy?: T;
+  cancellationReason?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "sale-items_select".
  */
 export interface SaleItemsSelect<T extends boolean = true> {
-  book?: T
-  quantity?: T
-  unitPrice?: T
-  discount?: T
-  lineTotal?: T
-  priceType?: T
-  updatedAt?: T
-  createdAt?: T
+  book?: T;
+  quantity?: T;
+  unitPrice?: T;
+  discount?: T;
+  lineTotal?: T;
+  priceType?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
-  key?: T
-  data?: T
+  key?: T;
+  data?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents_select".
  */
 export interface PayloadLockedDocumentsSelect<T extends boolean = true> {
-  document?: T
-  globalSlug?: T
-  user?: T
-  updatedAt?: T
-  createdAt?: T
+  document?: T;
+  globalSlug?: T;
+  user?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-preferences_select".
  */
 export interface PayloadPreferencesSelect<T extends boolean = true> {
-  user?: T
-  key?: T
-  value?: T
-  updatedAt?: T
-  createdAt?: T
+  user?: T;
+  key?: T;
+  value?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-migrations_select".
  */
 export interface PayloadMigrationsSelect<T extends boolean = true> {
-  name?: T
-  batch?: T
-  updatedAt?: T
-  createdAt?: T
+  name?: T;
+  batch?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "theme".
  */
 export interface Theme {
-  id: number
+  id: number;
   /**
    * Select the currently active theme for the site
    */
-  activeTheme: 'default' | 'radical'
+  activeTheme: 'default' | 'radical';
   /**
    * Force light or dark mode, or use system preference
    */
-  colorMode: 'auto' | 'light' | 'dark'
+  colorMode: 'auto' | 'light' | 'dark';
   /**
    * Primary brand colour (raw HSL values without hsl() wrapper)
    */
-  default_light_primary?: string | null
+  default_light_primary?: string | null;
   /**
    * Page background colour
    */
-  default_light_background?: string | null
+  default_light_background?: string | null;
   /**
    * Main text colour
    */
-  default_light_foreground?: string | null
+  default_light_foreground?: string | null;
   /**
    * Card background colour
    */
-  default_light_card?: string | null
+  default_light_card?: string | null;
   /**
    * Card text colour
    */
-  default_light_card_foreground?: string | null
+  default_light_card_foreground?: string | null;
   /**
    * Muted background colour
    */
-  default_light_muted?: string | null
+  default_light_muted?: string | null;
   /**
    * Muted text colour
    */
-  default_light_muted_foreground?: string | null
+  default_light_muted_foreground?: string | null;
   /**
    * Accent background colour
    */
-  default_light_accent?: string | null
+  default_light_accent?: string | null;
   /**
    * Accent text colour
    */
-  default_light_accent_foreground?: string | null
+  default_light_accent_foreground?: string | null;
   /**
    * Destructive/error colour
    */
-  default_light_destructive?: string | null
+  default_light_destructive?: string | null;
   /**
    * Border colour
    */
-  default_light_border?: string | null
+  default_light_border?: string | null;
   /**
    * Input border colour
    */
-  default_light_input?: string | null
+  default_light_input?: string | null;
   /**
    * Focus ring colour
    */
-  default_light_ring?: string | null
+  default_light_ring?: string | null;
   /**
    * Popover background colour
    */
-  default_light_popover?: string | null
+  default_light_popover?: string | null;
   /**
    * Popover text colour
    */
-  default_light_popover_foreground?: string | null
+  default_light_popover_foreground?: string | null;
   /**
    * Secondary background colour
    */
-  default_light_secondary?: string | null
+  default_light_secondary?: string | null;
   /**
    * Secondary text colour
    */
-  default_light_secondary_foreground?: string | null
+  default_light_secondary_foreground?: string | null;
   /**
    * Destructive/error text colour
    */
-  default_light_destructive_foreground?: string | null
+  default_light_destructive_foreground?: string | null;
   /**
    * Primary brand colour (HSL format)
    */
-  default_dark_primary?: string | null
+  default_dark_primary?: string | null;
   /**
    * Page background colour
    */
-  default_dark_background?: string | null
+  default_dark_background?: string | null;
   /**
    * Main text colour
    */
-  default_dark_foreground?: string | null
-  default_dark_card?: string | null
-  default_dark_card_foreground?: string | null
-  default_dark_muted?: string | null
-  default_dark_muted_foreground?: string | null
-  default_dark_accent?: string | null
-  default_dark_accent_foreground?: string | null
-  default_dark_destructive?: string | null
-  default_dark_border?: string | null
+  default_dark_foreground?: string | null;
+  default_dark_card?: string | null;
+  default_dark_card_foreground?: string | null;
+  default_dark_muted?: string | null;
+  default_dark_muted_foreground?: string | null;
+  default_dark_accent?: string | null;
+  default_dark_accent_foreground?: string | null;
+  default_dark_destructive?: string | null;
+  default_dark_border?: string | null;
   /**
    * Input border colour
    */
-  default_dark_input?: string | null
+  default_dark_input?: string | null;
   /**
    * Focus ring colour
    */
-  default_dark_ring?: string | null
+  default_dark_ring?: string | null;
   /**
    * Popover background colour
    */
-  default_dark_popover?: string | null
+  default_dark_popover?: string | null;
   /**
    * Popover text colour
    */
-  default_dark_popover_foreground?: string | null
+  default_dark_popover_foreground?: string | null;
   /**
    * Secondary background colour
    */
-  default_dark_secondary?: string | null
+  default_dark_secondary?: string | null;
   /**
    * Secondary text colour
    */
-  default_dark_secondary_foreground?: string | null
+  default_dark_secondary_foreground?: string | null;
   /**
    * Destructive/error text colour
    */
-  default_dark_destructive_foreground?: string | null
+  default_dark_destructive_foreground?: string | null;
   /**
    * Main font family
    */
-  default_fontFamily?: string | null
+  default_fontFamily?: string | null;
   /**
    * Heading font family
    */
-  default_headingFontFamily?: string | null
+  default_headingFontFamily?: string | null;
   /**
    * Border radius for components
    */
-  default_radius?: string | null
+  default_radius?: string | null;
   /**
    * Display out-of-stock books on the shop page (will show "Out of Stock" badge)
    */
-  showOutOfStockBooks?: boolean | null
+  showOutOfStockBooks?: boolean | null;
   /**
    * Display books without pricing on the shop page (will show "Price on request" with contact link)
    */
-  showUnpricedBooks?: boolean | null
+  showUnpricedBooks?: boolean | null;
   /**
    * Email address for "Contact Us" links on unpriced/out-of-stock books
    */
-  contactEmail?: string | null
+  contactEmail?: string | null;
   /**
    * URL for contact page (optional - if set, will link to this page instead of email)
    */
-  contactPageUrl?: string | null
+  contactPageUrl?: string | null;
   /**
    * Bold red primary colour
    */
-  radical_light_primary?: string | null
+  radical_light_primary?: string | null;
   /**
    * Warm off-white background
    */
-  radical_light_background?: string | null
+  radical_light_background?: string | null;
   /**
    * Near black text
    */
-  radical_light_foreground?: string | null
-  radical_light_card?: string | null
-  radical_light_card_foreground?: string | null
-  radical_light_muted?: string | null
-  radical_light_muted_foreground?: string | null
-  radical_light_accent?: string | null
-  radical_light_accent_foreground?: string | null
-  radical_light_destructive?: string | null
-  radical_light_border?: string | null
+  radical_light_foreground?: string | null;
+  radical_light_card?: string | null;
+  radical_light_card_foreground?: string | null;
+  radical_light_muted?: string | null;
+  radical_light_muted_foreground?: string | null;
+  radical_light_accent?: string | null;
+  radical_light_accent_foreground?: string | null;
+  radical_light_destructive?: string | null;
+  radical_light_border?: string | null;
   /**
    * Input border colour
    */
-  radical_light_input?: string | null
+  radical_light_input?: string | null;
   /**
    * Focus ring colour
    */
-  radical_light_ring?: string | null
+  radical_light_ring?: string | null;
   /**
    * Popover background colour
    */
-  radical_light_popover?: string | null
+  radical_light_popover?: string | null;
   /**
    * Popover text colour
    */
-  radical_light_popover_foreground?: string | null
+  radical_light_popover_foreground?: string | null;
   /**
    * Secondary background colour
    */
-  radical_light_secondary?: string | null
+  radical_light_secondary?: string | null;
   /**
    * Secondary text colour
    */
-  radical_light_secondary_foreground?: string | null
+  radical_light_secondary_foreground?: string | null;
   /**
    * Destructive/error text colour
    */
-  radical_light_destructive_foreground?: string | null
+  radical_light_destructive_foreground?: string | null;
   /**
    * Brighter red for dark mode
    */
-  radical_dark_primary?: string | null
+  radical_dark_primary?: string | null;
   /**
    * Very dark grey
    */
-  radical_dark_background?: string | null
+  radical_dark_background?: string | null;
   /**
    * Warm white
    */
-  radical_dark_foreground?: string | null
-  radical_dark_card?: string | null
-  radical_dark_card_foreground?: string | null
-  radical_dark_muted?: string | null
-  radical_dark_muted_foreground?: string | null
-  radical_dark_accent?: string | null
-  radical_dark_accent_foreground?: string | null
-  radical_dark_destructive?: string | null
-  radical_dark_border?: string | null
+  radical_dark_foreground?: string | null;
+  radical_dark_card?: string | null;
+  radical_dark_card_foreground?: string | null;
+  radical_dark_muted?: string | null;
+  radical_dark_muted_foreground?: string | null;
+  radical_dark_accent?: string | null;
+  radical_dark_accent_foreground?: string | null;
+  radical_dark_destructive?: string | null;
+  radical_dark_border?: string | null;
   /**
    * Input border colour
    */
-  radical_dark_input?: string | null
+  radical_dark_input?: string | null;
   /**
    * Focus ring colour
    */
-  radical_dark_ring?: string | null
+  radical_dark_ring?: string | null;
   /**
    * Popover background colour
    */
-  radical_dark_popover?: string | null
+  radical_dark_popover?: string | null;
   /**
    * Popover text colour
    */
-  radical_dark_popover_foreground?: string | null
+  radical_dark_popover_foreground?: string | null;
   /**
    * Secondary background colour
    */
-  radical_dark_secondary?: string | null
+  radical_dark_secondary?: string | null;
   /**
    * Secondary text colour
    */
-  radical_dark_secondary_foreground?: string | null
+  radical_dark_secondary_foreground?: string | null;
   /**
    * Destructive/error text colour
    */
-  radical_dark_destructive_foreground?: string | null
+  radical_dark_destructive_foreground?: string | null;
   /**
    * Serif font for radical aesthetic
    */
-  radical_fontFamily?: string | null
+  radical_fontFamily?: string | null;
   /**
    * Bold sans-serif for headings
    */
-  radical_headingFontFamily?: string | null
+  radical_headingFontFamily?: string | null;
   /**
    * Sharp corners for edgy look
    */
-  radical_radius?: string | null
-  _status?: ('draft' | 'published') | null
-  updatedAt?: string | null
-  createdAt?: string | null
+  radical_radius?: string | null;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "layout".
  */
 export interface Layout {
-  id: number
+  id: number;
   /**
    * Site logo (recommended: SVG or PNG with transparency)
    */
-  logo?: (number | null) | Media
+  logo?: (number | null) | Media;
   /**
    * Main navigation links
    */
   navigation?:
     | {
-        label: string
-        href: string
+        label: string;
+        href: string;
         /**
          * Optional dropdown menu items
          */
         children?:
           | {
-              label: string
-              href: string
-              id?: string | null
+              label: string;
+              href: string;
+              id?: string | null;
             }[]
-          | null
-        id?: string | null
+          | null;
+        id?: string | null;
       }[]
-    | null
+    | null;
   /**
    * Optional call-to-action button in header
    */
   ctaButton?: {
-    label?: string | null
-    href?: string | null
-  }
+    label?: string | null;
+    href?: string | null;
+  };
   /**
    * Footer columns with links
    */
   columns?:
     | {
-        title: string
+        title: string;
         links?:
           | {
-              label: string
-              href: string
-              id?: string | null
+              label: string;
+              href: string;
+              id?: string | null;
             }[]
-          | null
-        id?: string | null
+          | null;
+        id?: string | null;
       }[]
-    | null
+    | null;
   /**
    * Social media links
    */
   socialLinks?:
     | {
-        platform: 'facebook' | 'twitter' | 'instagram' | 'linkedin' | 'github' | 'youtube'
-        url: string
-        id?: string | null
+        platform: 'facebook' | 'twitter' | 'instagram' | 'linkedin' | 'github' | 'youtube';
+        url: string;
+        id?: string | null;
       }[]
-    | null
+    | null;
   /**
    * Copyright text
    */
-  copyright?: string | null
+  copyright?: string | null;
   /**
    * Build the homepage layout by adding, removing, and reordering blocks
    */
@@ -1280,92 +1276,92 @@ export interface Layout {
             /**
              * Visual style of the hero section
              */
-            variant: 'default' | 'minimal' | 'fullHeight'
+            variant: 'default' | 'minimal' | 'fullHeight';
             /**
              * Main heading
              */
-            title: string
+            title: string;
             /**
              * Subtitle or description text
              */
-            subtitle?: string | null
+            subtitle?: string | null;
             /**
              * Optional background image
              */
-            backgroundImage?: (number | null) | Media
+            backgroundImage?: (number | null) | Media;
             /**
              * Icon to display above the title
              */
-            icon?: ('book-open' | 'library' | 'sparkles' | 'none') | null
+            icon?: ('book-open' | 'library' | 'sparkles' | 'none') | null;
             /**
              * Call-to-action buttons (max 3)
              */
             ctaButtons?:
               | {
-                  label: string
-                  href: string
-                  variant: 'default' | 'secondary' | 'outline'
-                  id?: string | null
+                  label: string;
+                  href: string;
+                  variant: 'default' | 'secondary' | 'outline';
+                  id?: string | null;
                 }[]
-              | null
+              | null;
             /**
              * Text alignment
              */
-            alignment: 'left' | 'center' | 'right'
-            id?: string | null
-            blockName?: string | null
-            blockType: 'hero'
+            alignment: 'left' | 'center' | 'right';
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'hero';
           }
         | {
             /**
              * Section heading
              */
-            title: string
+            title: string;
             /**
              * Optional description text below heading
              */
-            description?: string | null
+            description?: string | null;
             /**
              * How to select books to display
              */
-            displayMode: 'newest' | 'featured' | 'category' | 'subject' | 'manual'
+            displayMode: 'newest' | 'featured' | 'category' | 'subject' | 'manual';
             /**
              * Filter books by this category
              */
-            category?: (number | null) | Category
+            category?: (number | null) | Category;
             /**
              * Filter books by this subject
              */
-            subject?: (number | null) | Subject
+            subject?: (number | null) | Subject;
             /**
              * Manually select specific books
              */
-            manualBooks?: (number | Book)[] | null
+            manualBooks?: (number | Book)[] | null;
             /**
              * Number of books to display
              */
-            limit?: number | null
+            limit?: number | null;
             /**
              * Grid layout columns (desktop)
              */
-            columns: '2' | '3' | '4'
+            columns: '2' | '3' | '4';
             /**
              * Show "View All" link
              */
-            showViewAllLink?: boolean | null
+            showViewAllLink?: boolean | null;
             /**
              * Link destination for "View All" button
              */
-            viewAllHref?: string | null
-            id?: string | null
-            blockName?: string | null
-            blockType: 'bookShowcase'
+            viewAllHref?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'bookShowcase';
           }
         | {
             /**
              * Number of columns in this content block
              */
-            layout: 'oneColumn' | 'twoColumns' | 'threeColumns'
+            layout: 'oneColumn' | 'twoColumns' | 'threeColumns';
             /**
              * Add content columns (number should match layout)
              */
@@ -1376,134 +1372,134 @@ export interface Layout {
                    */
                   richText: {
                     root: {
-                      type: string
+                      type: string;
                       children: {
-                        type: any
-                        version: number
-                        [k: string]: unknown
-                      }[]
-                      direction: ('ltr' | 'rtl') | null
-                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-                      indent: number
-                      version: number
-                    }
-                    [k: string]: unknown
-                  }
-                  align?: ('left' | 'center' | 'right') | null
-                  id?: string | null
+                        type: any;
+                        version: number;
+                        [k: string]: unknown;
+                      }[];
+                      direction: ('ltr' | 'rtl') | null;
+                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                      indent: number;
+                      version: number;
+                    };
+                    [k: string]: unknown;
+                  };
+                  align?: ('left' | 'center' | 'right') | null;
+                  id?: string | null;
                 }[]
-              | null
+              | null;
             /**
              * Background colour for this section
              */
-            backgroundColor?: ('default' | 'muted' | 'primary') | null
-            id?: string | null
-            blockName?: string | null
-            blockType: 'content'
+            backgroundColor?: ('default' | 'muted' | 'primary') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'content';
           }
         | {
             /**
              * Icon to display
              */
-            icon?: ('book-open' | 'tag' | 'grid-3x3' | 'calendar' | 'info' | 'custom') | null
+            icon?: ('book-open' | 'tag' | 'grid-3x3' | 'calendar' | 'info' | 'custom') | null;
             /**
              * Upload a custom icon image
              */
-            customIcon?: (number | null) | Media
+            customIcon?: (number | null) | Media;
             /**
              * Main heading
              */
-            title: string
+            title: string;
             /**
              * Description text
              */
             description: {
               root: {
-                type: string
+                type: string;
                 children: {
-                  type: any
-                  version: number
-                  [k: string]: unknown
-                }[]
-                direction: ('ltr' | 'rtl') | null
-                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-                indent: number
-                version: number
-              }
-              [k: string]: unknown
-            }
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
             /**
              * Call-to-action buttons (1-2 max)
              */
             buttons?:
               | {
-                  label: string
-                  href: string
-                  variant: 'default' | 'outline'
-                  size: 'default' | 'lg'
-                  id?: string | null
+                  label: string;
+                  href: string;
+                  variant: 'default' | 'outline';
+                  size: 'default' | 'lg';
+                  id?: string | null;
                 }[]
-              | null
+              | null;
             /**
              * Background style
              */
-            backgroundColor: 'default' | 'muted' | 'gradient'
-            id?: string | null
-            blockName?: string | null
-            blockType: 'callToAction'
+            backgroundColor: 'default' | 'muted' | 'gradient';
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'callToAction';
           }
         | {
             /**
              * Image or video to display
              */
-            media: number | Media
+            media: number | Media;
             /**
              * Optional caption below the media
              */
             caption?: {
               root: {
-                type: string
+                type: string;
                 children: {
-                  type: any
-                  version: number
-                  [k: string]: unknown
-                }[]
-                direction: ('ltr' | 'rtl') | null
-                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-                indent: number
-                version: number
-              }
-              [k: string]: unknown
-            } | null
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            } | null;
             /**
              * Display size of the media
              */
-            size: 'small' | 'medium' | 'large' | 'fullWidth'
+            size: 'small' | 'medium' | 'large' | 'fullWidth';
             /**
              * Aspect ratio (auto uses original dimensions)
              */
-            aspectRatio?: ('auto' | '16:9' | '4:3' | '1:1') | null
-            id?: string | null
-            blockName?: string | null
-            blockType: 'media'
+            aspectRatio?: ('auto' | '16:9' | '4:3' | '1:1') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'media';
           }
         | {
             /**
              * Optional section heading
              */
-            title?: string | null
+            title?: string | null;
             /**
              * Which collection to display
              */
-            collection: 'books' | 'events'
+            collection: 'books' | 'events';
             /**
              * Filter books by category
              */
-            category?: (number | null) | Category
+            category?: (number | null) | Category;
             /**
              * Filter books by subject
              */
-            subject?: (number | null) | Subject
+            subject?: (number | null) | Subject;
             /**
              * Date range for events
              */
@@ -1511,296 +1507,297 @@ export interface Layout {
               /**
                * Filter events starting from this date
                */
-              start?: string | null
+              start?: string | null;
               /**
                * Filter events until this date
                */
-              end?: string | null
-            }
+              end?: string | null;
+            };
             /**
              * Display layout
              */
-            layout: 'grid' | 'list'
+            layout: 'grid' | 'list';
             /**
              * Show search bar above archive
              */
-            enableSearch?: boolean | null
+            enableSearch?: boolean | null;
             /**
              * Show filter controls
              */
-            enableFilters?: boolean | null
+            enableFilters?: boolean | null;
             /**
              * Number of items per page
              */
-            itemsPerPage: number
-            id?: string | null
-            blockName?: string | null
-            blockType: 'archive'
+            itemsPerPage: number;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'archive';
           }
       )[]
-    | null
-  _status?: ('draft' | 'published') | null
-  updatedAt?: string | null
-  createdAt?: string | null
+    | null;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "theme_select".
  */
 export interface ThemeSelect<T extends boolean = true> {
-  activeTheme?: T
-  colorMode?: T
-  default_light_primary?: T
-  default_light_background?: T
-  default_light_foreground?: T
-  default_light_card?: T
-  default_light_card_foreground?: T
-  default_light_muted?: T
-  default_light_muted_foreground?: T
-  default_light_accent?: T
-  default_light_accent_foreground?: T
-  default_light_destructive?: T
-  default_light_border?: T
-  default_light_input?: T
-  default_light_ring?: T
-  default_light_popover?: T
-  default_light_popover_foreground?: T
-  default_light_secondary?: T
-  default_light_secondary_foreground?: T
-  default_light_destructive_foreground?: T
-  default_dark_primary?: T
-  default_dark_background?: T
-  default_dark_foreground?: T
-  default_dark_card?: T
-  default_dark_card_foreground?: T
-  default_dark_muted?: T
-  default_dark_muted_foreground?: T
-  default_dark_accent?: T
-  default_dark_accent_foreground?: T
-  default_dark_destructive?: T
-  default_dark_border?: T
-  default_dark_input?: T
-  default_dark_ring?: T
-  default_dark_popover?: T
-  default_dark_popover_foreground?: T
-  default_dark_secondary?: T
-  default_dark_secondary_foreground?: T
-  default_dark_destructive_foreground?: T
-  default_fontFamily?: T
-  default_headingFontFamily?: T
-  default_radius?: T
-  showOutOfStockBooks?: T
-  showUnpricedBooks?: T
-  contactEmail?: T
-  contactPageUrl?: T
-  radical_light_primary?: T
-  radical_light_background?: T
-  radical_light_foreground?: T
-  radical_light_card?: T
-  radical_light_card_foreground?: T
-  radical_light_muted?: T
-  radical_light_muted_foreground?: T
-  radical_light_accent?: T
-  radical_light_accent_foreground?: T
-  radical_light_destructive?: T
-  radical_light_border?: T
-  radical_light_input?: T
-  radical_light_ring?: T
-  radical_light_popover?: T
-  radical_light_popover_foreground?: T
-  radical_light_secondary?: T
-  radical_light_secondary_foreground?: T
-  radical_light_destructive_foreground?: T
-  radical_dark_primary?: T
-  radical_dark_background?: T
-  radical_dark_foreground?: T
-  radical_dark_card?: T
-  radical_dark_card_foreground?: T
-  radical_dark_muted?: T
-  radical_dark_muted_foreground?: T
-  radical_dark_accent?: T
-  radical_dark_accent_foreground?: T
-  radical_dark_destructive?: T
-  radical_dark_border?: T
-  radical_dark_input?: T
-  radical_dark_ring?: T
-  radical_dark_popover?: T
-  radical_dark_popover_foreground?: T
-  radical_dark_secondary?: T
-  radical_dark_secondary_foreground?: T
-  radical_dark_destructive_foreground?: T
-  radical_fontFamily?: T
-  radical_headingFontFamily?: T
-  radical_radius?: T
-  _status?: T
-  updatedAt?: T
-  createdAt?: T
-  globalType?: T
+  activeTheme?: T;
+  colorMode?: T;
+  default_light_primary?: T;
+  default_light_background?: T;
+  default_light_foreground?: T;
+  default_light_card?: T;
+  default_light_card_foreground?: T;
+  default_light_muted?: T;
+  default_light_muted_foreground?: T;
+  default_light_accent?: T;
+  default_light_accent_foreground?: T;
+  default_light_destructive?: T;
+  default_light_border?: T;
+  default_light_input?: T;
+  default_light_ring?: T;
+  default_light_popover?: T;
+  default_light_popover_foreground?: T;
+  default_light_secondary?: T;
+  default_light_secondary_foreground?: T;
+  default_light_destructive_foreground?: T;
+  default_dark_primary?: T;
+  default_dark_background?: T;
+  default_dark_foreground?: T;
+  default_dark_card?: T;
+  default_dark_card_foreground?: T;
+  default_dark_muted?: T;
+  default_dark_muted_foreground?: T;
+  default_dark_accent?: T;
+  default_dark_accent_foreground?: T;
+  default_dark_destructive?: T;
+  default_dark_border?: T;
+  default_dark_input?: T;
+  default_dark_ring?: T;
+  default_dark_popover?: T;
+  default_dark_popover_foreground?: T;
+  default_dark_secondary?: T;
+  default_dark_secondary_foreground?: T;
+  default_dark_destructive_foreground?: T;
+  default_fontFamily?: T;
+  default_headingFontFamily?: T;
+  default_radius?: T;
+  showOutOfStockBooks?: T;
+  showUnpricedBooks?: T;
+  contactEmail?: T;
+  contactPageUrl?: T;
+  radical_light_primary?: T;
+  radical_light_background?: T;
+  radical_light_foreground?: T;
+  radical_light_card?: T;
+  radical_light_card_foreground?: T;
+  radical_light_muted?: T;
+  radical_light_muted_foreground?: T;
+  radical_light_accent?: T;
+  radical_light_accent_foreground?: T;
+  radical_light_destructive?: T;
+  radical_light_border?: T;
+  radical_light_input?: T;
+  radical_light_ring?: T;
+  radical_light_popover?: T;
+  radical_light_popover_foreground?: T;
+  radical_light_secondary?: T;
+  radical_light_secondary_foreground?: T;
+  radical_light_destructive_foreground?: T;
+  radical_dark_primary?: T;
+  radical_dark_background?: T;
+  radical_dark_foreground?: T;
+  radical_dark_card?: T;
+  radical_dark_card_foreground?: T;
+  radical_dark_muted?: T;
+  radical_dark_muted_foreground?: T;
+  radical_dark_accent?: T;
+  radical_dark_accent_foreground?: T;
+  radical_dark_destructive?: T;
+  radical_dark_border?: T;
+  radical_dark_input?: T;
+  radical_dark_ring?: T;
+  radical_dark_popover?: T;
+  radical_dark_popover_foreground?: T;
+  radical_dark_secondary?: T;
+  radical_dark_secondary_foreground?: T;
+  radical_dark_destructive_foreground?: T;
+  radical_fontFamily?: T;
+  radical_headingFontFamily?: T;
+  radical_radius?: T;
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "layout_select".
  */
 export interface LayoutSelect<T extends boolean = true> {
-  logo?: T
+  logo?: T;
   navigation?:
     | T
     | {
-        label?: T
-        href?: T
+        label?: T;
+        href?: T;
         children?:
           | T
           | {
-              label?: T
-              href?: T
-              id?: T
-            }
-        id?: T
-      }
+              label?: T;
+              href?: T;
+              id?: T;
+            };
+        id?: T;
+      };
   ctaButton?:
     | T
     | {
-        label?: T
-        href?: T
-      }
+        label?: T;
+        href?: T;
+      };
   columns?:
     | T
     | {
-        title?: T
+        title?: T;
         links?:
           | T
           | {
-              label?: T
-              href?: T
-              id?: T
-            }
-        id?: T
-      }
+              label?: T;
+              href?: T;
+              id?: T;
+            };
+        id?: T;
+      };
   socialLinks?:
     | T
     | {
-        platform?: T
-        url?: T
-        id?: T
-      }
-  copyright?: T
+        platform?: T;
+        url?: T;
+        id?: T;
+      };
+  copyright?: T;
   blocks?:
     | T
     | {
         hero?:
           | T
           | {
-              variant?: T
-              title?: T
-              subtitle?: T
-              backgroundImage?: T
-              icon?: T
+              variant?: T;
+              title?: T;
+              subtitle?: T;
+              backgroundImage?: T;
+              icon?: T;
               ctaButtons?:
                 | T
                 | {
-                    label?: T
-                    href?: T
-                    variant?: T
-                    id?: T
-                  }
-              alignment?: T
-              id?: T
-              blockName?: T
-            }
+                    label?: T;
+                    href?: T;
+                    variant?: T;
+                    id?: T;
+                  };
+              alignment?: T;
+              id?: T;
+              blockName?: T;
+            };
         bookShowcase?:
           | T
           | {
-              title?: T
-              description?: T
-              displayMode?: T
-              category?: T
-              subject?: T
-              manualBooks?: T
-              limit?: T
-              columns?: T
-              showViewAllLink?: T
-              viewAllHref?: T
-              id?: T
-              blockName?: T
-            }
+              title?: T;
+              description?: T;
+              displayMode?: T;
+              category?: T;
+              subject?: T;
+              manualBooks?: T;
+              limit?: T;
+              columns?: T;
+              showViewAllLink?: T;
+              viewAllHref?: T;
+              id?: T;
+              blockName?: T;
+            };
         content?:
           | T
           | {
-              layout?: T
+              layout?: T;
               columns?:
                 | T
                 | {
-                    richText?: T
-                    align?: T
-                    id?: T
-                  }
-              backgroundColor?: T
-              id?: T
-              blockName?: T
-            }
+                    richText?: T;
+                    align?: T;
+                    id?: T;
+                  };
+              backgroundColor?: T;
+              id?: T;
+              blockName?: T;
+            };
         callToAction?:
           | T
           | {
-              icon?: T
-              customIcon?: T
-              title?: T
-              description?: T
+              icon?: T;
+              customIcon?: T;
+              title?: T;
+              description?: T;
               buttons?:
                 | T
                 | {
-                    label?: T
-                    href?: T
-                    variant?: T
-                    size?: T
-                    id?: T
-                  }
-              backgroundColor?: T
-              id?: T
-              blockName?: T
-            }
+                    label?: T;
+                    href?: T;
+                    variant?: T;
+                    size?: T;
+                    id?: T;
+                  };
+              backgroundColor?: T;
+              id?: T;
+              blockName?: T;
+            };
         media?:
           | T
           | {
-              media?: T
-              caption?: T
-              size?: T
-              aspectRatio?: T
-              id?: T
-              blockName?: T
-            }
+              media?: T;
+              caption?: T;
+              size?: T;
+              aspectRatio?: T;
+              id?: T;
+              blockName?: T;
+            };
         archive?:
           | T
           | {
-              title?: T
-              collection?: T
-              category?: T
-              subject?: T
+              title?: T;
+              collection?: T;
+              category?: T;
+              subject?: T;
               dateRange?:
                 | T
                 | {
-                    start?: T
-                    end?: T
-                  }
-              layout?: T
-              enableSearch?: T
-              enableFilters?: T
-              itemsPerPage?: T
-              id?: T
-              blockName?: T
-            }
-      }
-  _status?: T
-  updatedAt?: T
-  createdAt?: T
-  globalType?: T
+                    start?: T;
+                    end?: T;
+                  };
+              layout?: T;
+              enableSearch?: T;
+              enableFilters?: T;
+              itemsPerPage?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "auth".
  */
 export interface Auth {
-  [k: string]: unknown
+  [k: string]: unknown;
 }
+
 
 declare module 'payload' {
   export interface GeneratedTypes extends Config {}

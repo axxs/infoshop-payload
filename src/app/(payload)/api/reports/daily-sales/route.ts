@@ -25,10 +25,15 @@ import {
   formatCurrency,
   validateDateRange,
 } from '@/lib/reports/validation'
+import { requireRole } from '@/lib/access'
 
 export async function GET(request: NextRequest) {
   try {
     const payload = await getPayload({ config })
+
+    const auth = await requireRole(payload, request.headers, ['admin', 'volunteer'])
+    if (!auth.authorized) return auth.response
+
     const { searchParams } = new URL(request.url)
 
     // Parse date range from query params (defaults to today)

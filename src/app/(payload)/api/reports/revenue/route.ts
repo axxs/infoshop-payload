@@ -28,6 +28,7 @@ import {
   formatCurrency,
   validateDateRange,
 } from '@/lib/reports/validation'
+import { requireRole } from '@/lib/access'
 
 type GroupBy = 'day' | 'week' | 'month'
 
@@ -62,6 +63,10 @@ function getGroupKey(date: Date, groupBy: GroupBy): string {
 export async function GET(request: NextRequest) {
   try {
     const payload = await getPayload({ config })
+
+    const auth = await requireRole(payload, request.headers, ['admin', 'volunteer'])
+    if (!auth.authorized) return auth.response
+
     const { searchParams } = new URL(request.url)
 
     // Parse and validate query parameters
