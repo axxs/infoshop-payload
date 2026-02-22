@@ -1,0 +1,46 @@
+# Dependencies
+node_modules
+
+# Build output
+.next
+out
+
+# Environment and secrets
+.env
+.env.local
+.env*.local
+.mcp.json
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Claude Code
+.claude/
+
+# Git
+.git
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temp
+tmp/
+.tmp/
+
+# Testing
+coverage
+playwright-report
+test-results

@@ -222,6 +222,30 @@ describe('Route Authorization Matrix', () => {
       deniedRoles: ['customer'],
     },
     {
+      name: 'Daily Sales Report (/api/reports/daily-sales)',
+      roles: adminRouteRoles,
+      allowedRoles: ['admin', 'volunteer'],
+      deniedRoles: ['customer'],
+    },
+    {
+      name: 'Revenue Report (/api/reports/revenue)',
+      roles: adminRouteRoles,
+      allowedRoles: ['admin', 'volunteer'],
+      deniedRoles: ['customer'],
+    },
+    {
+      name: 'Product Sales Report (/api/reports/product-sales)',
+      roles: adminRouteRoles,
+      allowedRoles: ['admin', 'volunteer'],
+      deniedRoles: ['customer'],
+    },
+    {
+      name: 'Sales Data Export (/api/reports/export)',
+      roles: adminRouteRoles,
+      allowedRoles: ['admin', 'volunteer'],
+      deniedRoles: ['customer'],
+    },
+    {
       name: 'Square Payments (/api/square/payments)',
       roles: allRoles,
       allowedRoles: ['admin', 'volunteer', 'customer'],

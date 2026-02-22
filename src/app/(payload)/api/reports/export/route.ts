@@ -17,6 +17,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { DEFAULT_DATE_RANGE_DAYS, MAX_SALES_QUERY_LIMIT } from '@/lib/reports/constants'
 import { centsToDollars, dollarsToCents, validateDateRange } from '@/lib/reports/validation'
+import { requireRole } from '@/lib/access'
 
 function escapeCSV(value: unknown): string {
   if (value === null || value === undefined) return ''
@@ -57,6 +58,10 @@ function generateCSV(data: unknown[], headers: string[]): string {
 export async function GET(request: NextRequest) {
   try {
     const payload = await getPayload({ config })
+
+    const auth = await requireRole(payload, request.headers, ['admin', 'volunteer'])
+    if (!auth.authorized) return auth.response
+
     const { searchParams } = new URL(request.url)
 
     // Parse date range from query params (defaults to last 30 days)
