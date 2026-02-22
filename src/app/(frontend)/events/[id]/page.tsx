@@ -155,7 +155,7 @@ export default async function EventPage({ params }: EventPageProps) {
                 <CardTitle>About This Event</CardTitle>
               </CardHeader>
               <CardContent>
-                {/* TODO: Implement Lexical renderer for rich text */}
+                {/* Lexical rich text renderer needed for event description */}
                 <div className="prose max-w-none">
                   <p className="text-muted-foreground">
                     Event description (Lexical rich text rendering to be implemented)

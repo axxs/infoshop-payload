@@ -8,9 +8,11 @@ import { AddToCartButton } from '../cart/AddToCartButton'
 
 interface BookCardProps {
   book: Book
+  contactEmail?: string
+  contactPageUrl?: string
 }
 
-export function BookCard({ book }: BookCardProps) {
+export function BookCard({ book, contactEmail, contactPageUrl }: BookCardProps) {
   const coverUrl =
     typeof book.coverImage === 'object' &&
     book.coverImage !== null &&
@@ -22,7 +24,11 @@ export function BookCard({ book }: BookCardProps) {
   const isOutOfStock = book.stockStatus === 'OUT_OF_STOCK'
   const isDiscontinued = book.stockStatus === 'DISCONTINUED'
   const isLowStock = book.stockStatus === 'LOW_STOCK'
-  const canPurchase = !isOutOfStock && !isDiscontinued && book.stockQuantity > 0
+  const isUnpriced = !book.sellPrice || book.sellPrice === 0
+  const canPurchase = !isOutOfStock && !isDiscontinued && !isUnpriced && book.stockQuantity > 0
+
+  // Build contact link for unpriced/out-of-stock books
+  const contactHref = contactPageUrl || (contactEmail ? `mailto:${contactEmail}` : '/contact')
 
   return (
     <Card className="group flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lg">
@@ -59,13 +65,19 @@ export function BookCard({ book }: BookCardProps) {
       <CardFooter className="flex flex-col gap-3 p-4 pt-0">
         <div className="flex w-full items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-lg font-bold">
-              {formatPrice(book.sellPrice ?? 0, book.currency)}
-            </span>
-            {(book.memberPrice ?? 0) < (book.sellPrice ?? 0) && (
-              <span className="text-sm text-muted-foreground">
-                Member: {formatPrice(book.memberPrice ?? 0, book.currency)}
-              </span>
+            {isUnpriced ? (
+              <span className="text-lg font-semibold text-muted-foreground">Price on request</span>
+            ) : (
+              <>
+                <span className="text-lg font-bold">
+                  {formatPrice(book.sellPrice ?? 0, book.currency)}
+                </span>
+                {(book.memberPrice ?? 0) < (book.sellPrice ?? 0) && (
+                  <span className="text-sm text-muted-foreground">
+                    Member: {formatPrice(book.memberPrice ?? 0, book.currency)}
+                  </span>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -74,10 +86,19 @@ export function BookCard({ book }: BookCardProps) {
             bookId={book.id}
             title={book.title}
             stockQuantity={book.stockQuantity}
+            sellPrice={book.sellPrice}
             variant="outline"
             size="sm"
             className="w-full"
           />
+        )}
+        {(isUnpriced || isOutOfStock) && !isDiscontinued && (
+          <a
+            href={contactHref}
+            className="w-full rounded-md border border-primary bg-transparent px-4 py-2 text-center text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+          >
+            {isUnpriced ? 'Contact for Pricing' : 'Contact Us'}
+          </a>
         )}
       </CardFooter>
     </Card>

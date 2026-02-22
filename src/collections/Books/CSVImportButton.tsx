@@ -33,6 +33,7 @@ export const CSVImportButton: React.FC = () => {
     downloadCoverImages: true,
     defaultCurrency: 'USD',
     batchSize: 10,
+    continueWithErrors: false,
   })
 
   /**
@@ -116,8 +117,10 @@ export const CSVImportButton: React.FC = () => {
       return
     }
 
-    if (preview.hasErrors) {
-      setError('Cannot import CSV with validation errors. Please fix errors and re-upload.')
+    if (preview.hasErrors && !options.continueWithErrors) {
+      setError(
+        'Cannot import CSV with validation errors. Fix errors or enable "Continue with errors" to skip invalid rows.',
+      )
       return
     }
 
@@ -160,6 +163,40 @@ export const CSVImportButton: React.FC = () => {
       setError(err instanceof Error ? err.message : 'Failed to execute import')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  /**
+   * Downloads error report as CSV
+   */
+  const handleDownloadErrors = async () => {
+    if (!preview || preview.invalidOperations === 0) return
+
+    try {
+      const response = await fetch('/api/books/csv-import/error-report', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ preview }),
+      })
+
+      if (!response.ok) {
+        setError('Failed to generate error report')
+        return
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `import-errors-${Date.now()}.csv`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (_err) {
+      setError('Failed to download error report')
     }
   }
 
@@ -266,6 +303,15 @@ export const CSVImportButton: React.FC = () => {
               />
               <span className="text-sm">Download cover images</span>
             </label>
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={options.continueWithErrors}
+                onChange={(e) => setOptions({ ...options, continueWithErrors: e.target.checked })}
+                className="mr-2"
+              />
+              <span className="text-sm">Continue with errors (skip invalid rows)</span>
+            </label>
           </div>
           <div className="mt-4">
             <label className="block text-sm font-medium mb-2">Duplicate Strategy</label>
@@ -353,6 +399,20 @@ export const CSVImportButton: React.FC = () => {
               </div>
             </div>
 
+            {/* Download Errors Button */}
+            {preview.invalidOperations > 0 && (
+              <div className="mb-4">
+                <Button
+                  onClick={handleDownloadErrors}
+                  buttonStyle="secondary"
+                  size="small"
+                  type="button"
+                >
+                  Download Error Report ({preview.invalidOperations} rows)
+                </Button>
+              </div>
+            )}
+
             {/* Issues List */}
             {preview.issues.length > 0 && (
               <div className="mb-4 max-h-60 overflow-y-auto">
@@ -388,8 +448,13 @@ export const CSVImportButton: React.FC = () => {
             )}
 
             {/* Execute Button */}
-            {!preview.hasErrors && (
+            {(!preview.hasErrors || options.continueWithErrors) && (
               <div className="mt-6">
+                {preview.hasErrors && options.continueWithErrors && (
+                  <p className="mb-3 text-sm text-orange-600">
+                    ⚠️ {preview.invalidOperations} rows with errors will be skipped
+                  </p>
+                )}
                 <Button
                   onClick={handleExecute}
                   disabled={isLoading}

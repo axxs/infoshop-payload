@@ -6,10 +6,21 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { getPayload } from 'payload'
+import config from '@payload-config'
 import { generateTemplate } from '@/lib/csv/parser'
 import { checkRateLimit, getRateLimitHeaders } from '@/lib/rateLimit'
+import { requireRole } from '@/lib/access'
 
 export async function GET(request: NextRequest) {
+  // Authorization check - only admin/volunteer can download templates
+  try {
+    const payload = await getPayload({ config })
+    const auth = await requireRole(payload, request.headers, ['admin', 'volunteer'])
+    if (!auth.authorized) return auth.response
+  } catch {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+  }
   // Rate limiting: 20 requests per minute for template downloads
   const rateLimit = checkRateLimit(request, {
     maxRequests: 20,

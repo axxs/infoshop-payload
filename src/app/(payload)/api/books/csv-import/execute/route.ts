@@ -11,6 +11,7 @@ import config from '@payload-config'
 import { executeCSVImport } from '@/lib/csv/importer'
 import type { PreviewResult, CSVImportOptions } from '@/lib/csv/types'
 import { checkRateLimit, getRateLimitHeaders } from '@/lib/rateLimit'
+import { requireRole } from '@/lib/access'
 
 export async function POST(request: NextRequest) {
   // Rate limiting: 5 requests per minute (stricter for database writes)
@@ -37,6 +38,10 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await getPayload({ config })
 
+    // Authorization check - only admin/volunteer can execute imports
+    const auth = await requireRole(payload, request.headers, ['admin', 'volunteer'])
+    if (!auth.authorized) return auth.response
+
     // Parse request body
     const body = await request.json()
     const { preview, options } = body as {
@@ -54,12 +59,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if preview has errors
-    if (preview.hasErrors) {
+    // Check if preview has errors (unless continueWithErrors is enabled)
+    if (preview.hasErrors && !options?.continueWithErrors) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Cannot execute import with validation errors. Please fix errors and try again.',
+          error:
+            'Cannot execute import with validation errors. Fix errors or enable "Continue with errors" to skip invalid rows.',
         },
         { status: 400 },
       )

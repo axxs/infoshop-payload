@@ -66,8 +66,11 @@ Infoshop Payload is a Next.js 15 application with Payload CMS 3.62.0 for content
 
 **Public Routes** (`/app/(frontend)/`):
 
-- Customer-facing storefront
-- To be built in Phase 4 of migration
+- Customer-facing storefront with theming
+- Shop pages (`/shop`, `/shop/[slug]`)
+- Events pages (`/events`, `/events/[slug]`)
+- Cart and checkout (`/cart`, `/checkout`)
+- Account pages (`/account/orders`, `/account/events`)
 
 ### Data Flow
 
@@ -134,26 +137,49 @@ access: {
 
 ## Migration Context
 
-This is a **Phase 1** setup for migrating from:
+Migrating from:
 
 - **Old**: Express + Prisma + React (separate backend/frontend)
 - **New**: Payload CMS + Next.js (unified stack)
 
 ### Migration Phases
 
-1. ✅ **Phase 0**: POC validated (current state)
-2. 🔄 **Phase 1**: Foundation setup (in progress)
-3. ⏳ **Phase 2**: Data migration
-4. ⏳ **Phase 3**: Core features (Square sync, book lookup)
-5. ⏳ **Phase 4**: Customer storefront
-6. ⏳ **Phase 5**: Production deployment
+1. ✅ **Phase 1**: Foundation setup
+2. ✅ **Phase 2**: Data migration (N/A - clean slate)
+3. ✅ **Phase 3**: Core features (Square sync, ISBN lookup, CSV import)
+4. ✅ **Phase 4**: Sales system (cart, checkout, orders)
+5. ✅ **Phase 5**: Events system (registration, calendar, capacity)
+6. ✅ **Phase 6**: Theme system (CSS vars, blocks, dark mode)
+7. 📅 **Phase 7**: Public Storefront/CMS (pages, navigation, SEO)
+8. 📅 **Phase 8**: Advanced features (as needed)
+
+## Key Systems
+
+### Theme System
+
+- Payload Globals for theme configuration (colors, fonts)
+- CSS variables with Tailwind v4
+- Block-based content composition (Hero, BookShowcase, Content, CTA, Media, Archive)
+- Dark mode support (auto/light/dark)
+
+### Sales System
+
+- Server-side cart (encrypted cookies)
+- Square Web Payments SDK integration
+- Order management with status tracking
+
+### Events System
+
+- Event registration with capacity management
+- Waitlist support
+- Check-in functionality
 
 ## References
 
 - Payload Docs: https://payloadcms.com/docs
 - Next.js App Router: https://nextjs.org/docs/app
-- Migration Plan: `/home/axxs/infoshop-payload/MIGRATION_PLAN.md`
+- Migration Roadmap: `MIGRATION_ROADMAP.md`
 
 ---
 
-Last Updated: 2025-11-01
+Last Updated: 2026-02-01

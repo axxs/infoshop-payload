@@ -9,10 +9,21 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Format price with currency symbol
+ * Map of currency codes to their appropriate locale for formatting
  */
-export function formatPrice(price: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
+const CURRENCY_LOCALE_MAP: Record<string, string> = {
+  AUD: 'en-AU',
+  USD: 'en-US',
+  EUR: 'de-DE',
+  GBP: 'en-GB',
+}
+
+/**
+ * Format price with currency symbol using the appropriate locale
+ */
+export function formatPrice(price: number, currency: string = 'AUD'): string {
+  const locale = CURRENCY_LOCALE_MAP[currency] || 'en-AU'
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
   }).format(price)

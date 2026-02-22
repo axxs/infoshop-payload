@@ -218,6 +218,27 @@ export interface CSVImportOptions {
    * @default false
    */
   stopOnError?: boolean
+
+  /**
+   * Continue importing valid rows even when some rows have validation errors.
+   * Invalid rows will be skipped and reported in the error report.
+   *
+   * @default false
+   */
+  continueWithErrors?: boolean
+}
+
+/**
+ * Quick format validation result (first N rows only)
+ */
+export interface QuickFormatResult {
+  isValid: boolean
+  totalRows: number
+  sampleRows: number
+  detectedColumns: string[]
+  missingRequiredColumns: string[]
+  issues: ValidationIssue[]
+  sampleData: BookOperation[]
 }
 
 /**
@@ -236,6 +257,18 @@ export interface PreviewResult {
   issues: ValidationIssue[]
   hasErrors: boolean
   hasWarnings: boolean
+}
+
+/**
+ * Error report row for failed imports
+ */
+export interface ErrorReportRow {
+  row: number
+  title: string
+  isbn: string
+  field: string
+  error: string
+  originalValue: string
 }
 
 /**

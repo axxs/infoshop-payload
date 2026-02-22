@@ -21,16 +21,8 @@ export async function Header() {
   const navigation = layout.navigation || []
   const ctaButton = layout.ctaButton
 
-  // Debug: log navigation items with children
-  navigation.forEach((item, i) => {
-    if (item.children && item.children.length > 0) {
-      console.log(`[Header] Item ${i} "${item.label}" has ${item.children.length} children`)
-    }
-  })
-
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      {/* Debug: {JSON.stringify(navigation.map(n => ({ label: n.label, hasChildren: !!n.children, childCount: n.children?.length || 0 })))} */}
       <div className="container mx-auto flex h-16 items-center px-4">
         <Link href="/" className="flex items-center space-x-2">
           <BookOpen className="h-6 w-6" />
@@ -39,25 +31,6 @@ export async function Header() {
 
         <nav className="ml-auto flex items-center space-x-6">
           {navigation.map((item, index) => {
-            // DEBUG: Force Categories to be dropdown
-            if (item.label === 'Categories') {
-              const testChildren =
-                item.children && item.children.length > 0
-                  ? item.children
-                  : [
-                      { label: 'Test 1', href: '/test1' },
-                      { label: 'Test 2', href: '/test2' },
-                    ]
-              return (
-                <NavigationDropdown
-                  key={index}
-                  label={item.label}
-                  href={item.href}
-                  items={testChildren}
-                />
-              )
-            }
-
             // If item has children, render dropdown
             if (item.children && item.children.length > 0) {
               return (

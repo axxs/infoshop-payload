@@ -11,7 +11,11 @@ import { ValidationSeverity, ValidationCode } from './types'
 /**
  * Valid currency codes
  */
-const VALID_CURRENCIES = ['USD', 'EUR', 'GBP', 'AUD', 'CAD']
+/**
+ * Valid currency codes - must match the Books collection schema options
+ * @see src/collections/Books.ts currency field
+ */
+const VALID_CURRENCIES = ['USD', 'EUR', 'GBP', 'AUD']
 
 /**
  * Valid stock status values
@@ -116,19 +120,21 @@ export function validateBookOperation(operation: BookOperation): ValidationIssue
     })
   }
 
-  // 2. Pricing validation: all or none
+  // 2. Pricing validation: partial pricing is allowed (books can be imported without prices)
   const hasCostPrice = operation.costPrice !== undefined
   const hasSellPrice = operation.sellPrice !== undefined
   const hasMemberPrice = operation.memberPrice !== undefined
 
   const pricingFieldsProvided = [hasCostPrice, hasSellPrice, hasMemberPrice].filter(Boolean).length
 
+  // INFO: Partial pricing is now allowed - books can be imported without complete pricing
+  // to be priced later. The frontend will show "Price on request" for unpriced books.
   if (pricingFieldsProvided > 0 && pricingFieldsProvided < 3) {
     issues.push({
-      severity: ValidationSeverity.ERROR,
+      severity: ValidationSeverity.INFO,
       field: 'pricing',
       message:
-        'Pricing must be complete: provide all of costPrice, sellPrice, and memberPrice, or none',
+        'Partial pricing provided - book will be imported with available prices only. Consider adding all prices (costPrice, sellPrice, memberPrice) later.',
       code: ValidationCode.INCOMPLETE_PRICING,
       rowIndex: operation.rowIndex,
     })

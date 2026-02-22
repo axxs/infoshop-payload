@@ -5,6 +5,7 @@ import {
   deductStock,
   validateSaleItems,
 } from './Sales/hooks'
+import { isAdminOrVolunteer, isAdminOrVolunteerOrSelf } from '@/lib/access'
 
 export const Sales: CollectionConfig = {
   slug: 'sales',
@@ -14,10 +15,10 @@ export const Sales: CollectionConfig = {
     description: 'Point of sale transactions and online orders',
   },
   access: {
-    read: ({ req: { user } }) => !!user, // Only authenticated users can view sales
-    create: ({ req: { user } }) => !!user,
-    update: ({ req: { user } }) => !!user,
-    delete: ({ req: { user } }) => !!user,
+    read: isAdminOrVolunteerOrSelf('customer'),
+    create: isAdminOrVolunteer,
+    update: isAdminOrVolunteer,
+    delete: isAdminOrVolunteer,
   },
   fields: [
     {

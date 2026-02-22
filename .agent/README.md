@@ -100,32 +100,35 @@ This directory contains token-optimised documentation for Claude Code to quickly
 - Adding collections
 - Troubleshooting guide
 
-## Recent Updates (2025-02-01)
+## Recent Updates (2026-02-01)
 
-**Documentation Refresh**:
+**Phase 6 Complete - Theme System**:
 
-- Updated `database-schema.md` with all 10 collections + 2 globals
-- Updated `api-endpoints.md` with all custom endpoints
-- Marked `prisma-to-payload-mapping.md` as historical reference
-- Synchronized with Phase 5 completion status
+- CSS variable theming with Tailwind v4
+- Block-based content composition (6 block types)
+- Two production themes: Default (blue) and Radical (red/black)
+- Dark mode support (auto/light/dark)
+- Seed script for quick setup (`pnpm seed:theme`)
 
-**Completed Features**:
+**All Completed Phases**:
 
-- Phase 5: Events system with public pages and calendar
-- Theme system with live preview and draft/publish workflow
-- CSV bulk import with validation and duplicate detection
-- Square POS integration (catalog sync + payments)
-- Sales analytics dashboard with reporting
+- ✅ Phase 1: Foundation (Payload CMS 3.62.0, Next.js 15.4.4)
+- ✅ Phase 2: Data migration (N/A - clean slate)
+- ✅ Phase 3: Core integrations (Square, ISBN lookup, CSV import)
+- ✅ Phase 4: Sales system (cart, checkout, orders)
+- ✅ Phase 5: Events system (registration, calendar, capacity)
+- ✅ Phase 6: Theme system (CSS vars, blocks, dark mode)
+- 📅 Phase 7: Public Storefront/CMS (next)
 
 **Key Implementation Guides**:
 
-- `task/csv-bulk-import.md` - CSV import system
-- `task/phase-3-7-isbn-enhancements.md` - ISBN lookup with subjects/covers
-- `task/phase-4-6-shopping-cart.md` - Shopping cart implementation
+- `task/theme-system.md` - Theme architecture documentation
+- `task/theme-setup-guide.md` - Quick setup guide
 - `task/phase-5-events-system.md` - Event registration system
-- `task/week-7-completion.md` - Theme system implementation
+- `task/phase-4-6-shopping-cart.md` - Shopping cart implementation
+- `task/csv-bulk-import.md` - CSV import system
 
 ---
 
-Last Updated: 2025-02-01
+Last Updated: 2026-02-01
 Project: Infoshop Payload CMS Migration

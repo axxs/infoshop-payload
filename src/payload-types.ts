@@ -1077,6 +1077,22 @@ export interface Theme {
    */
   default_radius?: string | null
   /**
+   * Display out-of-stock books on the shop page (will show "Out of Stock" badge)
+   */
+  showOutOfStockBooks?: boolean | null
+  /**
+   * Display books without pricing on the shop page (will show "Price on request" with contact link)
+   */
+  showUnpricedBooks?: boolean | null
+  /**
+   * Email address for "Contact Us" links on unpriced/out-of-stock books
+   */
+  contactEmail?: string | null
+  /**
+   * URL for contact page (optional - if set, will link to this page instead of email)
+   */
+  contactPageUrl?: string | null
+  /**
    * Bold red primary colour
    */
   radical_light_primary?: string | null
@@ -1573,6 +1589,10 @@ export interface ThemeSelect<T extends boolean = true> {
   default_fontFamily?: T
   default_headingFontFamily?: T
   default_radius?: T
+  showOutOfStockBooks?: T
+  showUnpricedBooks?: T
+  contactEmail?: T
+  contactPageUrl?: T
   radical_light_primary?: T
   radical_light_background?: T
   radical_light_foreground?: T

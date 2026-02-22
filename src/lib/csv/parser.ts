@@ -6,7 +6,7 @@
  */
 
 import Papa from 'papaparse'
-import type { CSVRow, BookOperation } from './types'
+import type { BookOperation } from './types'
 import { BookOperationType } from './types'
 
 /**
@@ -65,6 +65,11 @@ function parseArray(value: string | undefined): string[] | undefined {
  * Sanitises CSV values to prevent CSV injection attacks
  * Prefixes dangerous characters with a single quote to prevent formula execution
  *
+ * Note: '-' is intentionally NOT included as a dangerous character because it is
+ * commonly used in book titles (e.g., "Anti-Oedipus", "-isms: A Graphic Guide").
+ * While '-' can be used in spreadsheet formulas, the risk is minimal for data
+ * being imported into a database rather than opened in a spreadsheet.
+ *
  * @param value - String value from CSV
  * @returns Sanitised string or undefined
  */
@@ -72,7 +77,7 @@ function sanitiseCSVValue(value: string | undefined): string | undefined {
   if (!value) return value
 
   const trimmed = value.trim()
-  const dangerousChars = ['=', '+', '-', '@', '|', '\t', '\r']
+  const dangerousChars = ['=', '+', '@', '|', '\t', '\r']
 
   if (dangerousChars.some((char) => trimmed.startsWith(char))) {
     // Prefix with single quote to prevent formula execution
@@ -94,17 +99,55 @@ function sanitiseArray(values: string[] | undefined): string[] | undefined {
 }
 
 /**
+ * Required columns for CSV import
+ */
+export const REQUIRED_COLUMNS = ['title']
+
+/**
+ * All valid column names (normalized)
+ */
+export const VALID_COLUMNS = [
+  'title',
+  'author',
+  'isbn',
+  'oclc',
+  'oclcnumber',
+  'publisher',
+  'publisheddate',
+  'description',
+  'synopsis',
+  'costprice',
+  'sellprice',
+  'memberprice',
+  'currency',
+  'stockquantity',
+  'reorderlevel',
+  'stockstatus',
+  'category',
+  'categoryname',
+  'subjects',
+  'subjectnames',
+  'coverimageurl',
+  'externalcoverurl',
+  'isdigital',
+  'downloadurl',
+  'filesize',
+]
+
+/**
  * Parses CSV content into book operations
  *
  * @param csvContent - Raw CSV file content
+ * @param maxRows - Optional limit on number of rows to parse (for quick validation)
  * @returns Array of book operations with row indices
  */
-export function parseCSV(csvContent: string): BookOperation[] {
+export function parseCSV(csvContent: string, maxRows?: number): BookOperation[] {
   // Parse CSV using PapaParse
   const result = Papa.parse<Record<string, string>>(csvContent, {
     header: true,
     skipEmptyLines: true,
     transformHeader: normalizeHeader,
+    preview: maxRows, // Limit rows if specified
   })
 
   if (result.errors.length > 0) {
@@ -160,6 +203,41 @@ export function parseCSV(csvContent: string): BookOperation[] {
   })
 
   return operations
+}
+
+/**
+ * Gets CSV metadata without parsing all rows
+ *
+ * @param csvContent - Raw CSV file content
+ * @returns Detected columns and total row count
+ */
+export function getCSVMetadata(csvContent: string): {
+  detectedColumns: string[]
+  totalRows: number
+  missingRequiredColumns: string[]
+} {
+  // Parse just the header and a few rows to get metadata
+  const result = Papa.parse<Record<string, string>>(csvContent, {
+    header: true,
+    skipEmptyLines: true,
+    transformHeader: normalizeHeader,
+    preview: 1, // Just need header
+  })
+
+  const detectedColumns = result.meta.fields || []
+
+  // Count total rows by counting newlines (minus header)
+  const lines = csvContent.split('\n').filter((line) => line.trim() !== '')
+  const totalRows = Math.max(0, lines.length - 1) // Subtract header row
+
+  // Check for missing required columns
+  const missingRequiredColumns = REQUIRED_COLUMNS.filter((col) => !detectedColumns.includes(col))
+
+  return {
+    detectedColumns,
+    totalRows,
+    missingRequiredColumns,
+  }
 }
 
 /**

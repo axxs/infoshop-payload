@@ -9,6 +9,7 @@ import {
   processSubjectsFromISBN,
 } from './Books/hooks'
 import type { SupportedCurrency } from '@/lib/square/constants'
+import { publicRead, isAdminOrVolunteer } from '@/lib/access'
 
 export const Books: CollectionConfig = {
   slug: 'books',
@@ -16,14 +17,17 @@ export const Books: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'isbn', 'costPrice', 'sellPrice', 'memberPrice', 'stockQuantity'],
     components: {
-      beforeListTable: ['@/collections/Books/CSVImportButton#CSVImportButton'],
+      beforeListTable: [
+        '@/collections/Books/CSVImportButton#CSVImportButton',
+        '@/collections/Books/ExportButton#ExportButton',
+      ],
     },
   },
   access: {
-    read: () => true, // Public read access for storefront
-    create: ({ req: { user } }) => !!user, // Authenticated users (volunteers) can create
-    update: ({ req: { user } }) => !!user,
-    delete: ({ req: { user } }) => !!user,
+    read: publicRead,
+    create: isAdminOrVolunteer,
+    update: isAdminOrVolunteer,
+    delete: isAdminOrVolunteer,
   },
   fields: [
     {

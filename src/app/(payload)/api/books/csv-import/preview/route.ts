@@ -8,10 +8,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { previewCSVImport } from '@/lib/csv/importer'
+import { previewCSVImport, quickValidateFormat } from '@/lib/csv/importer'
 import type { CSVImportOptions } from '@/lib/csv/types'
 import { DuplicateStrategy } from '@/lib/csv/types'
 import { checkRateLimit, getRateLimitHeaders } from '@/lib/rateLimit'
+import { requireRole } from '@/lib/access'
 
 export async function POST(request: NextRequest) {
   // Rate limiting: 10 requests per minute
@@ -38,10 +39,15 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await getPayload({ config })
 
+    // Authorization check - only admin/volunteer can preview imports
+    const auth = await requireRole(payload, request.headers, ['admin', 'volunteer'])
+    if (!auth.authorized) return auth.response
+
     // Parse form data
     const formData = await request.formData()
     const file = formData.get('file') as File | null
     const optionsJson = formData.get('options') as string | null
+    const quickMode = formData.get('quickMode') === 'true'
 
     if (!file) {
       return NextResponse.json(
@@ -108,7 +114,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Preview import
+    // Quick mode: fast format validation only (first 5 rows)
+    if (quickMode) {
+      const quickResult = quickValidateFormat(csvContent, 5)
+      return NextResponse.json(
+        {
+          success: true,
+          quickPreview: quickResult,
+        },
+        {
+          headers: rateLimitHeaders,
+        },
+      )
+    }
+
+    // Full preview: validate all rows and detect duplicates
     const result = await previewCSVImport(csvContent, options, payload)
 
     return NextResponse.json(
