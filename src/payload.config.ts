@@ -61,7 +61,10 @@ export default buildConfig({
   },
   db: (() => {
     if (process.env.DATABASE_URI?.startsWith('postgres')) {
-      return postgresAdapter({ pool: { connectionString: process.env.DATABASE_URI } })
+      return postgresAdapter({
+        push: true,
+        pool: { connectionString: process.env.DATABASE_URI },
+      })
     }
     // Dynamic path prevents webpack from bundling sqlite's native libsql dependency
     // into the standalone build where it can't resolve. Only used in local dev.
