@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { Suspense } from 'react'
 import { getPayload } from 'payload'
 import type { Where } from 'payload'
