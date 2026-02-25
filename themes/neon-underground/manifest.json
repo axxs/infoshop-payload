@@ -1,0 +1,26 @@
+{
+  "name": "Neon Underground",
+  "slug": "neon-underground",
+  "version": "1.0.0",
+  "author": "Infoshop",
+  "description": "Cyberpunk digital resistance aesthetic — neon, rebellious, futuristic",
+  "fonts": {
+    "body": {
+      "family": "Inter",
+      "google": "Inter:wght@300;400;500;600;700"
+    },
+    "heading": {
+      "family": "Orbitron",
+      "google": "Orbitron:wght@400;500;600;700;800"
+    },
+    "drama": {
+      "family": "Italiana",
+      "google": "Italiana"
+    },
+    "mono": {
+      "family": "JetBrains Mono",
+      "google": "JetBrains+Mono:ital,wght@0,400;0,500;1,400"
+    }
+  },
+  "supports": ["light", "dark"]
+}

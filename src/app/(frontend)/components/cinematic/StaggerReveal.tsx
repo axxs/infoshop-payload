@@ -1,11 +1,8 @@
 'use client'
 
 import { useRef } from 'react'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
-
-gsap.registerPlugin(ScrollTrigger)
+import { gsap } from '@/lib/gsap'
 
 interface StaggerRevealProps {
   children: React.ReactNode
@@ -54,7 +51,7 @@ export function StaggerReveal({
   )
 
   return (
-    <div ref={ref} className={className}>
+    <div ref={ref} className={className} style={{ opacity: 0 }}>
       {children}
     </div>
   )

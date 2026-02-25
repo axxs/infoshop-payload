@@ -26,6 +26,7 @@ import { StockStatusCell as StockStatusCell_2c07ab628c47b06a4ccb5d4060d31d0e } f
 import { CSVImportButton as CSVImportButton_f0fcb9c73ffc3e12906853b99205ef14 } from '@/collections/Books/CSVImportButton'
 import { ExportButton as ExportButton_62b6c95bfd8e06f5048c5440ec5ca494 } from '@/collections/Books/ExportButton'
 import { ThemeResetButton as ThemeResetButton_09ecb106c251d11d9ee583486a5b31fb } from '@/globals/ThemeResetButton'
+import { ColorPickerField as ColorPickerField_9ceb490f83c3a9334bc1ebc2dc6be5d6 } from '@/globals/components/ColorPickerField'
 
 export const importMap = {
   "@/collections/Books/ISBNLookupField#ISBNLookupField": ISBNLookupField_3ee92a96abc82709b6a37a9ef0cca6fd,
@@ -55,5 +56,6 @@ export const importMap = {
   "@/collections/Books/StockStatusCell#StockStatusCell": StockStatusCell_2c07ab628c47b06a4ccb5d4060d31d0e,
   "@/collections/Books/CSVImportButton#CSVImportButton": CSVImportButton_f0fcb9c73ffc3e12906853b99205ef14,
   "@/collections/Books/ExportButton#ExportButton": ExportButton_62b6c95bfd8e06f5048c5440ec5ca494,
-  "@/globals/ThemeResetButton#ThemeResetButton": ThemeResetButton_09ecb106c251d11d9ee583486a5b31fb
+  "@/globals/ThemeResetButton#ThemeResetButton": ThemeResetButton_09ecb106c251d11d9ee583486a5b31fb,
+  "@/globals/components/ColorPickerField#ColorPickerField": ColorPickerField_9ceb490f83c3a9334bc1ebc2dc6be5d6
 }

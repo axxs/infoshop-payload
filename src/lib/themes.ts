@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import fsPromises from 'node:fs/promises'
 import path from 'node:path'
 
 export interface ThemeFont {
@@ -19,9 +20,13 @@ export interface ThemeManifest {
     mono: ThemeFont
   }
   supports: string[]
+  hasOverrides: boolean
 }
 
-/** Cached theme manifests — populated once at module load */
+/**
+ * Cached theme manifests — populated once per Node.js process lifetime.
+ * In serverless environments, cache lifetime equals function cold start lifecycle.
+ */
 let cachedThemes: ThemeManifest[] | null = null
 
 function getThemesDir(): string {
@@ -29,10 +34,10 @@ function getThemesDir(): string {
 }
 
 /**
- * Discover all themes from the themes/ directory.
- * Synchronous filesystem scan, cached after first call.
+ * Discover all themes from the themes/ directory (synchronous).
+ * Used at config load time where async is not supported.
  */
-export function discoverThemes(): ThemeManifest[] {
+export function discoverThemesSync(): ThemeManifest[] {
   if (cachedThemes) return cachedThemes
 
   const themesDir = getThemesDir()
@@ -51,9 +56,17 @@ export function discoverThemes(): ThemeManifest[] {
     const manifestPath = path.join(themesDir, entry.name, 'manifest.json')
     if (!fs.existsSync(manifestPath)) continue
 
-    const raw = fs.readFileSync(manifestPath, 'utf-8')
-    const manifest: ThemeManifest = JSON.parse(raw)
-    themes.push(manifest)
+    try {
+      const raw = fs.readFileSync(manifestPath, 'utf-8')
+      const manifest = JSON.parse(raw) as Omit<ThemeManifest, 'hasOverrides'>
+      const overridesPath = path.join(themesDir, entry.name, 'overrides.css')
+      themes.push({
+        ...manifest,
+        hasOverrides: fs.existsSync(overridesPath),
+      })
+    } catch (error) {
+      console.error(`[themes] Failed to parse manifest for theme "${entry.name}":`, error)
+    }
   }
 
   cachedThemes = themes
@@ -61,25 +74,82 @@ export function discoverThemes(): ThemeManifest[] {
 }
 
 /**
- * Get a specific theme manifest by slug.
+ * Discover all themes from the themes/ directory (async).
+ * Used at request time in layout.tsx and other async contexts.
  */
-export function getThemeManifest(slug: string): ThemeManifest | undefined {
-  return discoverThemes().find((t) => t.slug === slug)
+export async function discoverThemes(): Promise<ThemeManifest[]> {
+  if (cachedThemes) return cachedThemes
+
+  const themesDir = getThemesDir()
+
+  try {
+    await fsPromises.access(themesDir)
+  } catch {
+    cachedThemes = []
+    return cachedThemes
+  }
+
+  const entries = await fsPromises.readdir(themesDir, { withFileTypes: true })
+  const themes: ThemeManifest[] = []
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue
+
+    const manifestPath = path.join(themesDir, entry.name, 'manifest.json')
+
+    try {
+      const raw = await fsPromises.readFile(manifestPath, 'utf-8')
+      const manifest = JSON.parse(raw) as Omit<ThemeManifest, 'hasOverrides'>
+      let hasOverrides = false
+      try {
+        await fsPromises.access(path.join(themesDir, entry.name, 'overrides.css'))
+        hasOverrides = true
+      } catch {
+        // No overrides.css for this theme
+      }
+      themes.push({ ...manifest, hasOverrides })
+    } catch (error) {
+      console.error(`[themes] Failed to parse manifest for theme "${entry.name}":`, error)
+    }
+  }
+
+  cachedThemes = themes
+  return cachedThemes
+}
+
+/**
+ * Get a specific theme manifest by slug (async).
+ */
+export async function getThemeManifest(slug: string): Promise<ThemeManifest | undefined> {
+  const themes = await discoverThemes()
+  return themes.find((t) => t.slug === slug)
 }
 
 /**
  * Get theme options for Payload select field: {label, value}[]
+ * Synchronous — used at config load time.
  */
 export function getThemeOptions(): Array<{ label: string; value: string }> {
-  return discoverThemes().map((t) => ({
+  return discoverThemesSync().map((t) => ({
     label: t.name,
     value: t.slug,
   }))
 }
 
 /**
+ * Get all known theme slugs (async). Used for validating activeTheme values.
+ */
+export async function getValidThemeSlugs(): Promise<string[]> {
+  const themes = await discoverThemes()
+  return themes.map((t) => t.slug)
+}
+
+/**
  * Build a Google Fonts URL from a theme manifest.
  * Returns null if the theme uses no Google Fonts.
+ *
+ * Note: `font.google` values must be pre-encoded for URL use
+ * (spaces as `+`, e.g. "Plus+Jakarta+Sans:wght@300;400").
  */
 export function buildGoogleFontsUrl(manifest: ThemeManifest): string | null {
   const families: string[] = []

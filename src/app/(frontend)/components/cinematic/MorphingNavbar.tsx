@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 
 interface MorphingNavbarProps {
   children: React.ReactNode
@@ -8,7 +8,6 @@ interface MorphingNavbarProps {
 }
 
 export function MorphingNavbar({ children, className = '' }: MorphingNavbarProps) {
-  const ref = useRef<HTMLDivElement>(null)
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -23,7 +22,6 @@ export function MorphingNavbar({ children, className = '' }: MorphingNavbarProps
 
   return (
     <div
-      ref={ref}
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
         scrolled
           ? 'border-b bg-background/80 backdrop-blur-xl shadow-sm'

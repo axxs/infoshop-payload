@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useCallback } from 'react'
+import { useRef, useCallback, useEffect } from 'react'
 import gsap from 'gsap'
 
 interface MagneticButtonProps {
@@ -11,11 +11,15 @@ interface MagneticButtonProps {
 
 export function MagneticButton({ children, strength = 0.3, className = '' }: MagneticButtonProps) {
   const ref = useRef<HTMLDivElement>(null)
+  const prefersReducedMotion = useRef(false)
+
+  useEffect(() => {
+    prefersReducedMotion.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  }, [])
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
-      if (!ref.current) return
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+      if (!ref.current || prefersReducedMotion.current) return
 
       const rect = ref.current.getBoundingClientRect()
       const x = e.clientX - rect.left - rect.width / 2

@@ -1,0 +1,61 @@
+/* Zine Theme — DIY punk zine aesthetic */
+
+[data-theme="zine"] {
+  /* Colors — Light mode */
+  --color-primary: hsl(0 0% 10%);
+  --color-primary-foreground: hsl(0 0% 100%);
+  --color-secondary: hsl(48 100% 50%);
+  --color-secondary-foreground: hsl(0 0% 10%);
+  --color-background: hsl(45 20% 93%);
+  --color-foreground: hsl(0 0% 8%);
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(0 0% 8%);
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(0 0% 8%);
+  --color-muted: hsl(45 10% 88%);
+  --color-muted-foreground: hsl(0 0% 35%);
+  --color-accent: hsl(48 100% 85%);
+  --color-accent-foreground: hsl(0 0% 8%);
+  --color-destructive: hsl(0 80% 50%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  --color-border: hsl(0 0% 15%);
+  --color-input: hsl(0 0% 15%);
+  --color-ring: hsl(48 100% 50%);
+
+  /* Typography */
+  --font-family: 'Space Mono', monospace;
+  --font-heading: 'Bebas Neue', Impact, sans-serif;
+  --font-drama: 'Special Elite', 'Courier New', monospace;
+  --font-mono: 'Space Mono', monospace;
+
+  /* Spacing */
+  --radius: 0rem;
+
+  /* Noise overlay */
+  --noise-opacity: 0.08;
+}
+
+/* Dark mode */
+[data-theme="zine"].dark {
+  --color-primary: hsl(48 100% 55%);
+  --color-primary-foreground: hsl(0 0% 5%);
+  --color-secondary: hsl(0 0% 18%);
+  --color-secondary-foreground: hsl(45 20% 90%);
+  --color-background: hsl(0 0% 5%);
+  --color-foreground: hsl(45 20% 90%);
+  --color-card: hsl(0 0% 9%);
+  --color-card-foreground: hsl(45 20% 90%);
+  --color-popover: hsl(0 0% 9%);
+  --color-popover-foreground: hsl(45 20% 90%);
+  --color-muted: hsl(0 0% 14%);
+  --color-muted-foreground: hsl(45 10% 55%);
+  --color-accent: hsl(48 80% 15%);
+  --color-accent-foreground: hsl(48 100% 65%);
+  --color-destructive: hsl(0 85% 55%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  --color-border: hsl(0 0% 25%);
+  --color-input: hsl(0 0% 25%);
+  --color-ring: hsl(48 100% 55%);
+
+  --noise-opacity: 0.1;
+}

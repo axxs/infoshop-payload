@@ -27,10 +27,12 @@ describe('Event Registration System', () => {
     // Create test user
     testUser = await payload.create({
       collection: 'users',
+      draft: false,
       data: {
         email: `test-${Date.now()}@example.com`,
         password: 'password123',
         name: 'Test User',
+        role: 'customer',
       },
     })
 
@@ -243,19 +245,23 @@ describe('Event Registration System', () => {
       // Create two users and register both
       const user1 = await payload.create({
         collection: 'users',
+
         data: {
           email: `user1-${Date.now()}@example.com`,
           password: 'password123',
           name: 'User 1',
+          role: 'customer',
         },
       })
 
       const user2 = await payload.create({
         collection: 'users',
+
         data: {
           email: `user2-${Date.now()}@example.com`,
           password: 'password123',
           name: 'User 2',
+          role: 'customer',
         },
       })
 
@@ -310,28 +316,34 @@ describe('Event Registration System', () => {
       // Fill capacity with 2 users
       const user1 = await payload.create({
         collection: 'users',
+
         data: {
           email: `user1-${Date.now()}@example.com`,
           password: 'password123',
           name: 'User 1',
+          role: 'customer',
         },
       })
 
       const user2 = await payload.create({
         collection: 'users',
+
         data: {
           email: `user2-${Date.now()}@example.com`,
           password: 'password123',
           name: 'User 2',
+          role: 'customer',
         },
       })
 
       const user3 = await payload.create({
         collection: 'users',
+
         data: {
           email: `user3-${Date.now()}@example.com`,
           password: 'password123',
           name: 'User 3',
+          role: 'customer',
         },
       })
 
@@ -524,19 +536,23 @@ describe('Event Registration System', () => {
       // Register multiple users
       const user1 = await payload.create({
         collection: 'users',
+
         data: {
           email: `query-user1-${Date.now()}@example.com`,
           password: 'password123',
           name: 'Query User 1',
+          role: 'customer',
         },
       })
 
       const user2 = await payload.create({
         collection: 'users',
+
         data: {
           email: `query-user2-${Date.now()}@example.com`,
           password: 'password123',
           name: 'Query User 2',
+          role: 'customer',
         },
       })
 
@@ -588,19 +604,23 @@ describe('Event Registration System', () => {
     test('should filter attendees by status', async () => {
       const user1 = await payload.create({
         collection: 'users',
+
         data: {
           email: `status-user1-${Date.now()}@example.com`,
           password: 'password123',
           name: 'Status User 1',
+          role: 'customer',
         },
       })
 
       const user2 = await payload.create({
         collection: 'users',
+
         data: {
           email: `status-user2-${Date.now()}@example.com`,
           password: 'password123',
           name: 'Status User 2',
+          role: 'customer',
         },
       })
 

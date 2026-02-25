@@ -8,12 +8,16 @@ import { ThemeProvider } from './components/ThemeProvider'
 import { NoiseOverlay } from './components/cinematic/NoiseOverlay'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { getThemeManifest, buildGoogleFontsUrl } from '@/lib/themes'
+import { getThemeManifest, getValidThemeSlugs, buildGoogleFontsUrl } from '@/lib/themes'
 
 interface ThemeData {
   activeTheme: string
   colorMode: 'auto' | 'light' | 'dark'
-  [key: string]: unknown
+  override_fontFamily?: string | null
+  override_headingFontFamily?: string | null
+  override_dramaFontFamily?: string | null
+  override_radius?: string | null
+  [key: `override_${'light' | 'dark'}_${string}`]: string | null | undefined
 }
 
 export const metadata = {
@@ -46,10 +50,14 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   const { children } = props
   const theme = await getTheme()
 
-  const activeTheme = theme.activeTheme || 'organic-tech'
+  // Validate activeTheme against known theme slugs
+  const validSlugs = await getValidThemeSlugs()
+  const requestedTheme = theme.activeTheme || 'organic-tech'
+  const activeTheme = validSlugs.includes(requestedTheme) ? requestedTheme : 'organic-tech'
+
   const colorMode = (theme.colorMode as 'auto' | 'light' | 'dark') || 'auto'
   const overrides = extractOverrides(theme)
-  const manifest = getThemeManifest(activeTheme)
+  const manifest = await getThemeManifest(activeTheme)
   const googleFontsUrl = manifest ? buildGoogleFontsUrl(manifest) : null
 
   return (
@@ -63,7 +71,9 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
           </>
         )}
         <link rel="stylesheet" href={`/themes/${activeTheme}/variables.css`} />
-        <link rel="stylesheet" href={`/themes/${activeTheme}/overrides.css`} />
+        {manifest?.hasOverrides && (
+          <link rel="stylesheet" href={`/themes/${activeTheme}/overrides.css`} />
+        )}
       </head>
       <body className="min-h-screen bg-background text-foreground font-sans antialiased">
         <ThemeProvider activeTheme={activeTheme} colorMode={colorMode} overrides={overrides}>

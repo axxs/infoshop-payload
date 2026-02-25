@@ -28,9 +28,13 @@ function buildColorOverrideFields(mode: 'light' | 'dark') {
   return COLOR_TOKENS.map(({ name, label }) => ({
     name: `override_${mode}_${name}`,
     type: 'text' as const,
+    label: `${label}`,
     admin: {
       description: `Override ${label} colour for ${mode} mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.`,
       placeholder: 'e.g. 150 27% 22%',
+      components: {
+        Field: '@/globals/components/ColorPickerField#ColorPickerField',
+      },
     },
   }))
 }
@@ -73,9 +77,11 @@ export const Theme: GlobalConfig = {
               required: true,
               defaultValue: 'organic-tech',
               admin: {
-                description: 'Select the active theme. Themes are loaded from the themes/ directory.',
+                description:
+                  'Select the active theme. Themes are loaded from the themes/ directory.',
               },
-              options: themeOptions.length > 0 ? themeOptions : [{ label: 'Default', value: 'default' }],
+              options:
+                themeOptions.length > 0 ? themeOptions : [{ label: 'Default', value: 'default' }],
             },
             {
               name: 'colorMode',
@@ -95,12 +101,14 @@ export const Theme: GlobalConfig = {
         },
         {
           label: 'Light Mode Overrides',
-          description: 'Override individual colour tokens for light mode. Leave blank to use the theme defaults.',
+          description:
+            'Override individual colour tokens for light mode. Leave blank to use the theme defaults.',
           fields: buildColorOverrideFields('light'),
         },
         {
           label: 'Dark Mode Overrides',
-          description: 'Override individual colour tokens for dark mode. Leave blank to use the theme defaults.',
+          description:
+            'Override individual colour tokens for dark mode. Leave blank to use the theme defaults.',
           fields: buildColorOverrideFields('dark'),
         },
         {
@@ -126,7 +134,8 @@ export const Theme: GlobalConfig = {
               name: 'override_dramaFontFamily',
               type: 'text',
               admin: {
-                description: 'Override drama/display font family. Leave blank to use theme default.',
+                description:
+                  'Override drama/display font family. Leave blank to use theme default.',
                 placeholder: "e.g. 'Cormorant Garamond', Georgia, serif",
               },
             },

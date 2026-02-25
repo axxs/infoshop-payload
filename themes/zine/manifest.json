@@ -1,0 +1,26 @@
+{
+  "name": "Zine",
+  "slug": "zine",
+  "version": "1.0.0",
+  "author": "Infoshop",
+  "description": "DIY punk zine aesthetic — raw, photocopied, underground press",
+  "fonts": {
+    "body": {
+      "family": "Space Mono",
+      "google": "Space+Mono:ital,wght@0,400;0,700;1,400"
+    },
+    "heading": {
+      "family": "Bebas Neue",
+      "google": "Bebas+Neue"
+    },
+    "drama": {
+      "family": "Special Elite",
+      "google": "Special+Elite"
+    },
+    "mono": {
+      "family": "Space Mono",
+      "google": null
+    }
+  },
+  "supports": ["light", "dark"]
+}

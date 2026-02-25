@@ -14,11 +14,11 @@ import { getPayload } from 'payload'
 import payloadConfig from '../payload.config'
 
 async function seedTheme() {
-  console.log('🌱 Starting theme seed...')
+  console.log('Starting theme seed...')
 
   // Debug: Check if env vars are loaded
   if (!process.env.PAYLOAD_SECRET) {
-    console.error('❌ PAYLOAD_SECRET not found in environment variables')
+    console.error('PAYLOAD_SECRET not found in environment variables')
     console.log(
       'Available env vars:',
       Object.keys(process.env).filter((k) => k.includes('PAYLOAD')),
@@ -26,86 +26,24 @@ async function seedTheme() {
     process.exit(1)
   }
 
-  console.log('✓ Environment variables loaded')
+  console.log('Environment variables loaded')
 
   const payload = await getPayload({ config: payloadConfig })
 
   try {
     // Seed Theme Global
-    console.log('📝 Seeding Theme Global...')
+    console.log('Seeding Theme Global...')
     await payload.updateGlobal({
       slug: 'theme',
       data: {
-        activeTheme: 'default',
+        activeTheme: 'organic-tech',
         colorMode: 'auto',
-
-        // Default Theme - Light Mode (11 fields)
-        default_light_primary: '221 83% 53%',
-        default_light_background: '0 0% 100%',
-        default_light_foreground: '222 84% 5%',
-        default_light_card: '0 0% 100%',
-        default_light_card_foreground: '222 84% 5%',
-        default_light_muted: '210 40% 96%',
-        default_light_muted_foreground: '215 16% 47%',
-        default_light_accent: '210 40% 96%',
-        default_light_accent_foreground: '222 47% 11%',
-        default_light_destructive: '0 84% 60%',
-        default_light_border: '214 32% 91%',
-
-        // Default Theme - Dark Mode (11 fields)
-        default_dark_primary: '217 91% 60%',
-        default_dark_background: '222 84% 5%',
-        default_dark_foreground: '210 40% 98%',
-        default_dark_card: '222 84% 5%',
-        default_dark_card_foreground: '210 40% 98%',
-        default_dark_muted: '217 33% 18%',
-        default_dark_muted_foreground: '215 20% 65%',
-        default_dark_accent: '217 33% 18%',
-        default_dark_accent_foreground: '210 40% 98%',
-        default_dark_destructive: '0 63% 31%',
-        default_dark_border: '217 33% 18%',
-
-        // Default Theme - Typography
-        default_fontFamily: 'system-ui, -apple-system, sans-serif',
-        default_headingFontFamily: 'system-ui, -apple-system, sans-serif',
-        default_radius: '0.5rem',
-
-        // Radical Theme - Light Mode (11 fields)
-        radical_light_primary: '0 84% 50%',
-        radical_light_background: '0 0% 100%',
-        radical_light_foreground: '0 0% 9%',
-        radical_light_card: '0 0% 98%',
-        radical_light_card_foreground: '0 0% 9%',
-        radical_light_muted: '0 0% 96%',
-        radical_light_muted_foreground: '0 0% 45%',
-        radical_light_accent: '0 84% 95%',
-        radical_light_accent_foreground: '0 84% 20%',
-        radical_light_destructive: '0 84% 50%',
-        radical_light_border: '0 0% 90%',
-
-        // Radical Theme - Dark Mode (11 fields)
-        radical_dark_primary: '0 84% 60%',
-        radical_dark_background: '0 0% 9%',
-        radical_dark_foreground: '0 0% 98%',
-        radical_dark_card: '0 0% 12%',
-        radical_dark_card_foreground: '0 0% 98%',
-        radical_dark_muted: '0 0% 18%',
-        radical_dark_muted_foreground: '0 0% 65%',
-        radical_dark_accent: '0 84% 20%',
-        radical_dark_accent_foreground: '0 84% 95%',
-        radical_dark_destructive: '0 63% 40%',
-        radical_dark_border: '0 0% 18%',
-
-        // Radical Theme - Typography
-        radical_fontFamily: 'system-ui, -apple-system, sans-serif',
-        radical_headingFontFamily: 'Georgia, serif',
-        radical_radius: '0.25rem',
       },
     })
-    console.log('✅ Theme Global seeded successfully')
+    console.log('Theme Global seeded successfully')
 
     // Seed Layout Global
-    console.log('📝 Seeding Layout Global...')
+    console.log('Seeding Layout Global...')
     await payload.updateGlobal({
       slug: 'layout',
       data: {
@@ -189,7 +127,7 @@ async function seedTheme() {
             url: 'https://instagram.com/infoshop',
           },
         ],
-        copyright: '© 2025 Infoshop. All rights reserved.',
+        copyright: '2025 Infoshop. All rights reserved.',
         // Homepage blocks
         blocks: [
           // Block 1: Hero Section
@@ -350,20 +288,20 @@ async function seedTheme() {
         ],
       },
     })
-    console.log('✅ Layout Global seeded successfully')
+    console.log('Layout Global seeded successfully')
 
-    console.log('\n🎉 Theme seed completed successfully!')
-    console.log('\n📋 Next steps:')
+    console.log('\nTheme seed completed successfully!')
+    console.log('\nNext steps:')
     console.log('1. Start the dev server: pnpm dev')
     console.log('2. Visit http://localhost:3000 to see the themed homepage')
     console.log('3. Visit http://localhost:3000/admin/globals/theme to customise themes')
     console.log('4. Visit http://localhost:3000/admin/globals/layout to customise blocks')
-    console.log('\n💡 Try switching between themes:')
-    console.log('   - Go to Admin → Globals → Theme')
-    console.log('   - Change "Active Theme" to "Radical (Red & Black)"')
+    console.log('\nTry switching between themes:')
+    console.log('   - Go to Admin > Globals > Theme')
+    console.log('   - Change "Active Theme" to switch between available themes')
     console.log('   - Change "Color Mode" to test light/dark modes')
   } catch (error) {
-    console.error('❌ Error seeding theme:', error)
+    console.error('Error seeding theme:', error)
     process.exit(1)
   }
 

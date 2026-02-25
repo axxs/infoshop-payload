@@ -935,7 +935,7 @@ export interface Theme {
   /**
    * Select the active theme. Themes are loaded from the themes/ directory.
    */
-  activeTheme: 'default' | 'organic-tech' | 'radical';
+  activeTheme: 'default' | 'neon-underground' | 'organic-tech' | 'radical' | 'solidarity' | 'zine';
   /**
    * Force light or dark mode, or use system preference
    */
