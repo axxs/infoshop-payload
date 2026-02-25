@@ -6,6 +6,7 @@ import config from '@payload-config'
 import { NavigationDropdown } from './NavigationDropdown'
 import type { Layout } from '@/payload-types'
 import { unstable_noStore } from 'next/cache'
+import { MorphingNavbar } from '../cinematic/MorphingNavbar'
 
 async function getLayout(): Promise<Layout> {
   unstable_noStore() // Disable caching to ensure fresh data
@@ -22,11 +23,11 @@ export async function Header() {
   const ctaButton = layout.ctaButton
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <MorphingNavbar>
       <div className="container mx-auto flex h-16 items-center px-4">
         <Link href="/" className="flex items-center space-x-2">
           <BookOpen className="h-6 w-6" />
-          <span className="text-xl font-bold">Infoshop</span>
+          <span className="font-heading text-xl font-bold">Infoshop</span>
         </Link>
 
         <nav className="ml-auto flex items-center space-x-6">
@@ -76,6 +77,6 @@ export async function Header() {
           )}
         </div>
       </div>
-    </header>
+    </MorphingNavbar>
   )
 }

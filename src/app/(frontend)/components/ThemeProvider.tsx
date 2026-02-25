@@ -1,132 +1,100 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { Theme } from '@/payload-types'
+
+interface ThemeOverrides {
+  [key: string]: string | null | undefined
+}
 
 interface ThemeProviderProps {
   children: React.ReactNode
-  initialTheme: Theme
+  activeTheme: string
+  colorMode: 'auto' | 'light' | 'dark'
+  overrides: ThemeOverrides
 }
 
-export function ThemeProvider({ children, initialTheme }: ThemeProviderProps) {
-  const [theme] = useState<Theme>(initialTheme)
+export function ThemeProvider({ children, activeTheme, colorMode, overrides }: ThemeProviderProps) {
   const [mounted, setMounted] = useState(false)
-  const [, forceUpdate] = useState(0)
 
-  // Handle client-side mounting
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Apply theme CSS variables
+  // Apply theme and color mode
   useEffect(() => {
     if (!mounted) return
 
     const root = document.documentElement
-    const activeTheme = theme.activeTheme
-    const colorMode = theme.colorMode
 
-    // Determine if we should use dark mode
+    // Set data-theme attribute (activates theme CSS selectors)
+    root.setAttribute('data-theme', activeTheme)
+
+    // Determine dark mode
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     const useDarkMode = colorMode === 'dark' || (colorMode === 'auto' && prefersDark)
-
-    // Apply theme class
-    root.setAttribute('data-theme', activeTheme)
     root.classList.toggle('dark', useDarkMode)
 
-    // Build theme prefix for accessing color tokens
+    // Apply admin overrides as inline style (specificity wins over theme CSS)
     const modePrefix = useDarkMode ? 'dark' : 'light'
-    const themePrefix = `${activeTheme}_${modePrefix}`
 
-    // Apply CSS variables based on active theme and mode
-    const cssVars: Record<string, string | null> = {}
+    for (const [key, value] of Object.entries(overrides)) {
+      // Only process keys for the current mode
+      const lightMatch = key.match(/^override_light_(.+)$/)
+      const darkMatch = key.match(/^override_dark_(.+)$/)
 
-    // Color tokens (must match Theme.ts field names with underscores)
-    const colorKeys = [
-      'primary',
-      'background',
-      'foreground',
-      'card',
-      'card_foreground',
-      'popover',
-      'popover_foreground',
-      'secondary',
-      'secondary_foreground',
-      'muted',
-      'muted_foreground',
-      'accent',
-      'accent_foreground',
-      'destructive',
-      'destructive_foreground',
-      'border',
-      'input',
-      'ring',
-    ]
-
-    colorKeys.forEach((key) => {
-      const themeKey = `${themePrefix}_${key}` as keyof Theme
-      const value = theme[themeKey]
-      const cssVarName = `--color-${key.replace(/_/g, '-')}`
-
-      if (value && typeof value === 'string') {
-        // Use --color-* prefix for Tailwind v4 compatibility
-        // Convert snake_case to kebab-case for CSS variables
-        // Wrap in hsl() for Tailwind v4
-        cssVars[cssVarName] = `hsl(${value})`
-      } else {
-        // If value is null/undefined, mark for removal to use CSS defaults
-        cssVars[cssVarName] = null
+      if (lightMatch && modePrefix === 'light' && value) {
+        const cssVar = `--color-${lightMatch[1].replace(/_/g, '-')}`
+        root.style.setProperty(cssVar, `hsl(${value})`)
+      } else if (darkMatch && modePrefix === 'dark' && value) {
+        const cssVar = `--color-${darkMatch[1].replace(/_/g, '-')}`
+        root.style.setProperty(cssVar, `hsl(${value})`)
+      } else if (lightMatch && modePrefix === 'light' && !value) {
+        const cssVar = `--color-${lightMatch[1].replace(/_/g, '-')}`
+        root.style.removeProperty(cssVar)
+      } else if (darkMatch && modePrefix === 'dark' && !value) {
+        const cssVar = `--color-${darkMatch[1].replace(/_/g, '-')}`
+        root.style.removeProperty(cssVar)
       }
-    })
-
-    // Typography (theme-specific)
-    const fontFamilyKey = `${activeTheme}_fontFamily` as keyof Theme
-    const headingFontFamilyKey = `${activeTheme}_headingFontFamily` as keyof Theme
-    const radiusKey = `${activeTheme}_radius` as keyof Theme
-
-    const fontFamily = theme[fontFamilyKey]
-    const headingFontFamily = theme[headingFontFamilyKey]
-    const radius = theme[radiusKey]
-
-    if (fontFamily && typeof fontFamily === 'string') {
-      cssVars['--font-family'] = fontFamily
-    }
-    if (headingFontFamily && typeof headingFontFamily === 'string') {
-      cssVars['--font-heading'] = headingFontFamily
-    }
-    if (radius && typeof radius === 'string') {
-      cssVars['--radius'] = radius
     }
 
-    // Apply or remove CSS variables from root
-    Object.entries(cssVars).forEach(([key, value]) => {
-      if (value === null) {
-        // Remove inline style to use CSS defaults from globals.css
-        root.style.removeProperty(key)
-      } else {
-        root.style.setProperty(key, value)
-      }
-    })
-  }, [theme, mounted])
+    // Typography overrides
+    if (overrides.override_fontFamily) {
+      root.style.setProperty('--font-family', overrides.override_fontFamily)
+    } else {
+      root.style.removeProperty('--font-family')
+    }
+    if (overrides.override_headingFontFamily) {
+      root.style.setProperty('--font-heading', overrides.override_headingFontFamily)
+    } else {
+      root.style.removeProperty('--font-heading')
+    }
+    if (overrides.override_dramaFontFamily) {
+      root.style.setProperty('--font-drama', overrides.override_dramaFontFamily)
+    } else {
+      root.style.removeProperty('--font-drama')
+    }
+    if (overrides.override_radius) {
+      root.style.setProperty('--radius', overrides.override_radius)
+    } else {
+      root.style.removeProperty('--radius')
+    }
+  }, [activeTheme, colorMode, overrides, mounted])
 
-  // Listen for system color scheme changes
+  // Listen for system color scheme changes when in auto mode
   useEffect(() => {
-    if (!mounted || theme.colorMode !== 'auto') return
+    if (!mounted || colorMode !== 'auto') return
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleChange = () => {
-      // Trigger re-render by incrementing counter (more efficient than object spreading)
-      forceUpdate((n) => n + 1)
+    const handleChange = (e: MediaQueryListEvent) => {
+      const root = document.documentElement
+      root.classList.toggle('dark', e.matches)
     }
 
     mediaQuery.addEventListener('change', handleChange)
     return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [theme.colorMode, mounted])
+  }, [colorMode, mounted])
 
-  // Prevent flash of unstyled content
-  if (!mounted) {
-    return null
-  }
+  if (!mounted) return null
 
   return <>{children}</>
 }

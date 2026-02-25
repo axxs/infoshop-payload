@@ -7,6 +7,7 @@ import config from '@payload-config'
 import { EventGrid } from '../components/events/EventGrid'
 import { EventFilters } from '../components/events/EventFilters'
 import { sanitizeSearchInput } from '@/lib/utils'
+import { ScrollReveal } from '../components/cinematic/ScrollReveal'
 
 interface EventsPageProps {
   searchParams: Promise<{
@@ -56,7 +57,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
     where,
     limit,
     page,
-    sort: 'startDate', // Soonest events first
+    sort: 'startDate',
     depth: 0,
   })
 
@@ -64,12 +65,12 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Upcoming Events</h1>
+      <ScrollReveal className="mb-8">
+        <h1 className="font-heading text-3xl font-bold">Upcoming Events</h1>
         <p className="mt-2 text-muted-foreground">
           Join us for book signings, readings, discussions, and more at Infoshop
         </p>
-      </div>
+      </ScrollReveal>
 
       <div className="mb-6">
         <Suspense fallback={<div className="h-20 w-full animate-pulse rounded-md bg-muted" />}>

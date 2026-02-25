@@ -933,145 +933,181 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 export interface Theme {
   id: number;
   /**
-   * Select the currently active theme for the site
+   * Select the active theme. Themes are loaded from the themes/ directory.
    */
-  activeTheme: 'default' | 'radical';
+  activeTheme: 'default' | 'organic-tech' | 'radical';
   /**
    * Force light or dark mode, or use system preference
    */
   colorMode: 'auto' | 'light' | 'dark';
   /**
-   * Primary brand colour (raw HSL values without hsl() wrapper)
+   * Override Primary colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_light_primary?: string | null;
+  override_light_primary?: string | null;
   /**
-   * Page background colour
+   * Override Primary Foreground colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_light_background?: string | null;
+  override_light_primary_foreground?: string | null;
   /**
-   * Main text colour
+   * Override Secondary colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_light_foreground?: string | null;
+  override_light_secondary?: string | null;
   /**
-   * Card background colour
+   * Override Secondary Foreground colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_light_card?: string | null;
+  override_light_secondary_foreground?: string | null;
   /**
-   * Card text colour
+   * Override Background colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_light_card_foreground?: string | null;
+  override_light_background?: string | null;
   /**
-   * Muted background colour
+   * Override Foreground colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_light_muted?: string | null;
+  override_light_foreground?: string | null;
   /**
-   * Muted text colour
+   * Override Card colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_light_muted_foreground?: string | null;
+  override_light_card?: string | null;
   /**
-   * Accent background colour
+   * Override Card Foreground colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_light_accent?: string | null;
+  override_light_card_foreground?: string | null;
   /**
-   * Accent text colour
+   * Override Popover colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_light_accent_foreground?: string | null;
+  override_light_popover?: string | null;
   /**
-   * Destructive/error colour
+   * Override Popover Foreground colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_light_destructive?: string | null;
+  override_light_popover_foreground?: string | null;
   /**
-   * Border colour
+   * Override Muted colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_light_border?: string | null;
+  override_light_muted?: string | null;
   /**
-   * Input border colour
+   * Override Muted Foreground colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_light_input?: string | null;
+  override_light_muted_foreground?: string | null;
   /**
-   * Focus ring colour
+   * Override Accent colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_light_ring?: string | null;
+  override_light_accent?: string | null;
   /**
-   * Popover background colour
+   * Override Accent Foreground colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_light_popover?: string | null;
+  override_light_accent_foreground?: string | null;
   /**
-   * Popover text colour
+   * Override Destructive colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_light_popover_foreground?: string | null;
+  override_light_destructive?: string | null;
   /**
-   * Secondary background colour
+   * Override Destructive Foreground colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_light_secondary?: string | null;
+  override_light_destructive_foreground?: string | null;
   /**
-   * Secondary text colour
+   * Override Border colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_light_secondary_foreground?: string | null;
+  override_light_border?: string | null;
   /**
-   * Destructive/error text colour
+   * Override Input colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_light_destructive_foreground?: string | null;
+  override_light_input?: string | null;
   /**
-   * Primary brand colour (HSL format)
+   * Override Ring colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_dark_primary?: string | null;
+  override_light_ring?: string | null;
   /**
-   * Page background colour
+   * Override Primary colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_dark_background?: string | null;
+  override_dark_primary?: string | null;
   /**
-   * Main text colour
+   * Override Primary Foreground colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_dark_foreground?: string | null;
-  default_dark_card?: string | null;
-  default_dark_card_foreground?: string | null;
-  default_dark_muted?: string | null;
-  default_dark_muted_foreground?: string | null;
-  default_dark_accent?: string | null;
-  default_dark_accent_foreground?: string | null;
-  default_dark_destructive?: string | null;
-  default_dark_border?: string | null;
+  override_dark_primary_foreground?: string | null;
   /**
-   * Input border colour
+   * Override Secondary colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_dark_input?: string | null;
+  override_dark_secondary?: string | null;
   /**
-   * Focus ring colour
+   * Override Secondary Foreground colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_dark_ring?: string | null;
+  override_dark_secondary_foreground?: string | null;
   /**
-   * Popover background colour
+   * Override Background colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_dark_popover?: string | null;
+  override_dark_background?: string | null;
   /**
-   * Popover text colour
+   * Override Foreground colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_dark_popover_foreground?: string | null;
+  override_dark_foreground?: string | null;
   /**
-   * Secondary background colour
+   * Override Card colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_dark_secondary?: string | null;
+  override_dark_card?: string | null;
   /**
-   * Secondary text colour
+   * Override Card Foreground colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_dark_secondary_foreground?: string | null;
+  override_dark_card_foreground?: string | null;
   /**
-   * Destructive/error text colour
+   * Override Popover colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_dark_destructive_foreground?: string | null;
+  override_dark_popover?: string | null;
   /**
-   * Main font family
+   * Override Popover Foreground colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_fontFamily?: string | null;
+  override_dark_popover_foreground?: string | null;
   /**
-   * Heading font family
+   * Override Muted colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_headingFontFamily?: string | null;
+  override_dark_muted?: string | null;
   /**
-   * Border radius for components
+   * Override Muted Foreground colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
    */
-  default_radius?: string | null;
+  override_dark_muted_foreground?: string | null;
+  /**
+   * Override Accent colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   */
+  override_dark_accent?: string | null;
+  /**
+   * Override Accent Foreground colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   */
+  override_dark_accent_foreground?: string | null;
+  /**
+   * Override Destructive colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   */
+  override_dark_destructive?: string | null;
+  /**
+   * Override Destructive Foreground colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   */
+  override_dark_destructive_foreground?: string | null;
+  /**
+   * Override Border colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   */
+  override_dark_border?: string | null;
+  /**
+   * Override Input colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   */
+  override_dark_input?: string | null;
+  /**
+   * Override Ring colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   */
+  override_dark_ring?: string | null;
+  /**
+   * Override body font family. Leave blank to use theme default.
+   */
+  override_fontFamily?: string | null;
+  /**
+   * Override heading font family. Leave blank to use theme default.
+   */
+  override_headingFontFamily?: string | null;
+  /**
+   * Override drama/display font family. Leave blank to use theme default.
+   */
+  override_dramaFontFamily?: string | null;
+  /**
+   * Override border radius. Leave blank to use theme default.
+   */
+  override_radius?: string | null;
   /**
    * Display out-of-stock books on the shop page (will show "Out of Stock" badge)
    */
@@ -1088,114 +1124,6 @@ export interface Theme {
    * URL for contact page (optional - if set, will link to this page instead of email)
    */
   contactPageUrl?: string | null;
-  /**
-   * Bold red primary colour
-   */
-  radical_light_primary?: string | null;
-  /**
-   * Warm off-white background
-   */
-  radical_light_background?: string | null;
-  /**
-   * Near black text
-   */
-  radical_light_foreground?: string | null;
-  radical_light_card?: string | null;
-  radical_light_card_foreground?: string | null;
-  radical_light_muted?: string | null;
-  radical_light_muted_foreground?: string | null;
-  radical_light_accent?: string | null;
-  radical_light_accent_foreground?: string | null;
-  radical_light_destructive?: string | null;
-  radical_light_border?: string | null;
-  /**
-   * Input border colour
-   */
-  radical_light_input?: string | null;
-  /**
-   * Focus ring colour
-   */
-  radical_light_ring?: string | null;
-  /**
-   * Popover background colour
-   */
-  radical_light_popover?: string | null;
-  /**
-   * Popover text colour
-   */
-  radical_light_popover_foreground?: string | null;
-  /**
-   * Secondary background colour
-   */
-  radical_light_secondary?: string | null;
-  /**
-   * Secondary text colour
-   */
-  radical_light_secondary_foreground?: string | null;
-  /**
-   * Destructive/error text colour
-   */
-  radical_light_destructive_foreground?: string | null;
-  /**
-   * Brighter red for dark mode
-   */
-  radical_dark_primary?: string | null;
-  /**
-   * Very dark grey
-   */
-  radical_dark_background?: string | null;
-  /**
-   * Warm white
-   */
-  radical_dark_foreground?: string | null;
-  radical_dark_card?: string | null;
-  radical_dark_card_foreground?: string | null;
-  radical_dark_muted?: string | null;
-  radical_dark_muted_foreground?: string | null;
-  radical_dark_accent?: string | null;
-  radical_dark_accent_foreground?: string | null;
-  radical_dark_destructive?: string | null;
-  radical_dark_border?: string | null;
-  /**
-   * Input border colour
-   */
-  radical_dark_input?: string | null;
-  /**
-   * Focus ring colour
-   */
-  radical_dark_ring?: string | null;
-  /**
-   * Popover background colour
-   */
-  radical_dark_popover?: string | null;
-  /**
-   * Popover text colour
-   */
-  radical_dark_popover_foreground?: string | null;
-  /**
-   * Secondary background colour
-   */
-  radical_dark_secondary?: string | null;
-  /**
-   * Secondary text colour
-   */
-  radical_dark_secondary_foreground?: string | null;
-  /**
-   * Destructive/error text colour
-   */
-  radical_dark_destructive_foreground?: string | null;
-  /**
-   * Serif font for radical aesthetic
-   */
-  radical_fontFamily?: string | null;
-  /**
-   * Bold sans-serif for headings
-   */
-  radical_headingFontFamily?: string | null;
-  /**
-   * Sharp corners for edgy look
-   */
-  radical_radius?: string | null;
   _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -1546,88 +1474,52 @@ export interface Layout {
 export interface ThemeSelect<T extends boolean = true> {
   activeTheme?: T;
   colorMode?: T;
-  default_light_primary?: T;
-  default_light_background?: T;
-  default_light_foreground?: T;
-  default_light_card?: T;
-  default_light_card_foreground?: T;
-  default_light_muted?: T;
-  default_light_muted_foreground?: T;
-  default_light_accent?: T;
-  default_light_accent_foreground?: T;
-  default_light_destructive?: T;
-  default_light_border?: T;
-  default_light_input?: T;
-  default_light_ring?: T;
-  default_light_popover?: T;
-  default_light_popover_foreground?: T;
-  default_light_secondary?: T;
-  default_light_secondary_foreground?: T;
-  default_light_destructive_foreground?: T;
-  default_dark_primary?: T;
-  default_dark_background?: T;
-  default_dark_foreground?: T;
-  default_dark_card?: T;
-  default_dark_card_foreground?: T;
-  default_dark_muted?: T;
-  default_dark_muted_foreground?: T;
-  default_dark_accent?: T;
-  default_dark_accent_foreground?: T;
-  default_dark_destructive?: T;
-  default_dark_border?: T;
-  default_dark_input?: T;
-  default_dark_ring?: T;
-  default_dark_popover?: T;
-  default_dark_popover_foreground?: T;
-  default_dark_secondary?: T;
-  default_dark_secondary_foreground?: T;
-  default_dark_destructive_foreground?: T;
-  default_fontFamily?: T;
-  default_headingFontFamily?: T;
-  default_radius?: T;
+  override_light_primary?: T;
+  override_light_primary_foreground?: T;
+  override_light_secondary?: T;
+  override_light_secondary_foreground?: T;
+  override_light_background?: T;
+  override_light_foreground?: T;
+  override_light_card?: T;
+  override_light_card_foreground?: T;
+  override_light_popover?: T;
+  override_light_popover_foreground?: T;
+  override_light_muted?: T;
+  override_light_muted_foreground?: T;
+  override_light_accent?: T;
+  override_light_accent_foreground?: T;
+  override_light_destructive?: T;
+  override_light_destructive_foreground?: T;
+  override_light_border?: T;
+  override_light_input?: T;
+  override_light_ring?: T;
+  override_dark_primary?: T;
+  override_dark_primary_foreground?: T;
+  override_dark_secondary?: T;
+  override_dark_secondary_foreground?: T;
+  override_dark_background?: T;
+  override_dark_foreground?: T;
+  override_dark_card?: T;
+  override_dark_card_foreground?: T;
+  override_dark_popover?: T;
+  override_dark_popover_foreground?: T;
+  override_dark_muted?: T;
+  override_dark_muted_foreground?: T;
+  override_dark_accent?: T;
+  override_dark_accent_foreground?: T;
+  override_dark_destructive?: T;
+  override_dark_destructive_foreground?: T;
+  override_dark_border?: T;
+  override_dark_input?: T;
+  override_dark_ring?: T;
+  override_fontFamily?: T;
+  override_headingFontFamily?: T;
+  override_dramaFontFamily?: T;
+  override_radius?: T;
   showOutOfStockBooks?: T;
   showUnpricedBooks?: T;
   contactEmail?: T;
   contactPageUrl?: T;
-  radical_light_primary?: T;
-  radical_light_background?: T;
-  radical_light_foreground?: T;
-  radical_light_card?: T;
-  radical_light_card_foreground?: T;
-  radical_light_muted?: T;
-  radical_light_muted_foreground?: T;
-  radical_light_accent?: T;
-  radical_light_accent_foreground?: T;
-  radical_light_destructive?: T;
-  radical_light_border?: T;
-  radical_light_input?: T;
-  radical_light_ring?: T;
-  radical_light_popover?: T;
-  radical_light_popover_foreground?: T;
-  radical_light_secondary?: T;
-  radical_light_secondary_foreground?: T;
-  radical_light_destructive_foreground?: T;
-  radical_dark_primary?: T;
-  radical_dark_background?: T;
-  radical_dark_foreground?: T;
-  radical_dark_card?: T;
-  radical_dark_card_foreground?: T;
-  radical_dark_muted?: T;
-  radical_dark_muted_foreground?: T;
-  radical_dark_accent?: T;
-  radical_dark_accent_foreground?: T;
-  radical_dark_destructive?: T;
-  radical_dark_border?: T;
-  radical_dark_input?: T;
-  radical_dark_ring?: T;
-  radical_dark_popover?: T;
-  radical_dark_popover_foreground?: T;
-  radical_dark_secondary?: T;
-  radical_dark_secondary_foreground?: T;
-  radical_dark_destructive_foreground?: T;
-  radical_fontFamily?: T;
-  radical_headingFontFamily?: T;
-  radical_radius?: T;
   _status?: T;
   updatedAt?: T;
   createdAt?: T;

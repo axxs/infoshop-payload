@@ -1,16 +1,51 @@
 import type { GlobalConfig } from 'payload'
+import { getThemeOptions } from '@/lib/themes'
+
+/** Color tokens that can be overridden per mode */
+const COLOR_TOKENS = [
+  { name: 'primary', label: 'Primary' },
+  { name: 'primary_foreground', label: 'Primary Foreground' },
+  { name: 'secondary', label: 'Secondary' },
+  { name: 'secondary_foreground', label: 'Secondary Foreground' },
+  { name: 'background', label: 'Background' },
+  { name: 'foreground', label: 'Foreground' },
+  { name: 'card', label: 'Card' },
+  { name: 'card_foreground', label: 'Card Foreground' },
+  { name: 'popover', label: 'Popover' },
+  { name: 'popover_foreground', label: 'Popover Foreground' },
+  { name: 'muted', label: 'Muted' },
+  { name: 'muted_foreground', label: 'Muted Foreground' },
+  { name: 'accent', label: 'Accent' },
+  { name: 'accent_foreground', label: 'Accent Foreground' },
+  { name: 'destructive', label: 'Destructive' },
+  { name: 'destructive_foreground', label: 'Destructive Foreground' },
+  { name: 'border', label: 'Border' },
+  { name: 'input', label: 'Input' },
+  { name: 'ring', label: 'Ring' },
+]
+
+function buildColorOverrideFields(mode: 'light' | 'dark') {
+  return COLOR_TOKENS.map(({ name, label }) => ({
+    name: `override_${mode}_${name}`,
+    type: 'text' as const,
+    admin: {
+      description: `Override ${label} colour for ${mode} mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.`,
+      placeholder: 'e.g. 150 27% 22%',
+    },
+  }))
+}
+
+const themeOptions = getThemeOptions()
 
 export const Theme: GlobalConfig = {
   slug: 'theme',
   access: {
-    read: () => true, // Public read for frontend theme application
-    update: ({ req: { user } }) => !!user, // Authenticated users can update
+    read: () => true,
+    update: ({ req: { user } }) => !!user,
   },
   admin: {
     livePreview: {
-      url: () => {
-        return `${process.env.NEXT_PUBLIC_SERVER_URL}/`
-      },
+      url: () => `${process.env.NEXT_PUBLIC_SERVER_URL}/`,
     },
   },
   versions: {
@@ -36,14 +71,11 @@ export const Theme: GlobalConfig = {
               name: 'activeTheme',
               type: 'select',
               required: true,
-              defaultValue: 'default',
+              defaultValue: 'organic-tech',
               admin: {
-                description: 'Select the currently active theme for the site',
+                description: 'Select the active theme. Themes are loaded from the themes/ directory.',
               },
-              options: [
-                { label: 'Default (Blue)', value: 'default' },
-                { label: 'Radical (Red & Black)', value: 'radical' },
-              ],
+              options: themeOptions.length > 0 ? themeOptions : [{ label: 'Default', value: 'default' }],
             },
             {
               name: 'colorMode',
@@ -62,328 +94,49 @@ export const Theme: GlobalConfig = {
           ],
         },
         {
-          label: 'Default Theme',
+          label: 'Light Mode Overrides',
+          description: 'Override individual colour tokens for light mode. Leave blank to use the theme defaults.',
+          fields: buildColorOverrideFields('light'),
+        },
+        {
+          label: 'Dark Mode Overrides',
+          description: 'Override individual colour tokens for dark mode. Leave blank to use the theme defaults.',
+          fields: buildColorOverrideFields('dark'),
+        },
+        {
+          label: 'Typography Overrides',
           fields: [
             {
-              type: 'collapsible',
-              label: 'Light Mode Colours',
+              name: 'override_fontFamily',
+              type: 'text',
               admin: {
-                initCollapsed: false,
+                description: 'Override body font family. Leave blank to use theme default.',
+                placeholder: "e.g. 'Plus Jakarta Sans', system-ui, sans-serif",
               },
-              fields: [
-                {
-                  name: 'default_light_primary',
-                  type: 'text',
-                  defaultValue: '221.2 83.2% 53.3%',
-                  admin: {
-                    description: 'Primary brand colour (raw HSL values without hsl() wrapper)',
-                    placeholder: '221.2 83.2% 53.3%',
-                  },
-                },
-                {
-                  name: 'default_light_background',
-                  type: 'text',
-                  defaultValue: '0 0% 100%',
-                  admin: {
-                    description: 'Page background colour',
-                    placeholder: '0 0% 100%',
-                  },
-                },
-                {
-                  name: 'default_light_foreground',
-                  type: 'text',
-                  defaultValue: '222.2 84% 4.9%',
-                  admin: {
-                    description: 'Main text colour',
-                    placeholder: '222.2 84% 4.9%',
-                  },
-                },
-                {
-                  name: 'default_light_card',
-                  type: 'text',
-                  defaultValue: '0 0% 100%',
-                  admin: {
-                    description: 'Card background colour',
-                  },
-                },
-                {
-                  name: 'default_light_card_foreground',
-                  type: 'text',
-                  defaultValue: '222.2 84% 4.9%',
-                  admin: {
-                    description: 'Card text colour',
-                  },
-                },
-                {
-                  name: 'default_light_muted',
-                  type: 'text',
-                  defaultValue: '210 40% 96.1%',
-                  admin: {
-                    description: 'Muted background colour',
-                  },
-                },
-                {
-                  name: 'default_light_muted_foreground',
-                  type: 'text',
-                  defaultValue: '215.4 16.3% 46.9%',
-                  admin: {
-                    description: 'Muted text colour',
-                  },
-                },
-                {
-                  name: 'default_light_accent',
-                  type: 'text',
-                  defaultValue: '210 40% 96.1%',
-                  admin: {
-                    description: 'Accent background colour',
-                  },
-                },
-                {
-                  name: 'default_light_accent_foreground',
-                  type: 'text',
-                  defaultValue: '222.2 47.4% 11.2%',
-                  admin: {
-                    description: 'Accent text colour',
-                  },
-                },
-                {
-                  name: 'default_light_destructive',
-                  type: 'text',
-                  defaultValue: '0 84.2% 60.2%',
-                  admin: {
-                    description: 'Destructive/error colour',
-                  },
-                },
-                {
-                  name: 'default_light_border',
-                  type: 'text',
-                  defaultValue: '214.3 31.8% 91.4%',
-                  admin: {
-                    description: 'Border colour',
-                  },
-                },
-                {
-                  name: 'default_light_input',
-                  type: 'text',
-                  defaultValue: '214.3 31.8% 91.4%',
-                  admin: {
-                    description: 'Input border colour',
-                  },
-                },
-                {
-                  name: 'default_light_ring',
-                  type: 'text',
-                  defaultValue: '221.2 83.2% 53.3%',
-                  admin: {
-                    description: 'Focus ring colour',
-                  },
-                },
-                {
-                  name: 'default_light_popover',
-                  type: 'text',
-                  defaultValue: '0 0% 100%',
-                  admin: {
-                    description: 'Popover background colour',
-                  },
-                },
-                {
-                  name: 'default_light_popover_foreground',
-                  type: 'text',
-                  defaultValue: '222.2 84% 4.9%',
-                  admin: {
-                    description: 'Popover text colour',
-                  },
-                },
-                {
-                  name: 'default_light_secondary',
-                  type: 'text',
-                  defaultValue: '210 40% 96.1%',
-                  admin: {
-                    description: 'Secondary background colour',
-                  },
-                },
-                {
-                  name: 'default_light_secondary_foreground',
-                  type: 'text',
-                  defaultValue: '222.2 47.4% 11.2%',
-                  admin: {
-                    description: 'Secondary text colour',
-                  },
-                },
-                {
-                  name: 'default_light_destructive_foreground',
-                  type: 'text',
-                  defaultValue: '210 40% 98%',
-                  admin: {
-                    description: 'Destructive/error text colour',
-                  },
-                },
-              ],
             },
             {
-              type: 'collapsible',
-              label: 'Dark Mode Colours',
+              name: 'override_headingFontFamily',
+              type: 'text',
               admin: {
-                initCollapsed: true,
+                description: 'Override heading font family. Leave blank to use theme default.',
+                placeholder: "e.g. 'Outfit', system-ui, sans-serif",
               },
-              fields: [
-                {
-                  name: 'default_dark_primary',
-                  type: 'text',
-                  defaultValue: '217.2 91.2% 59.8%',
-                  admin: {
-                    description: 'Primary brand colour (HSL format)',
-                  },
-                },
-                {
-                  name: 'default_dark_background',
-                  type: 'text',
-                  defaultValue: '222.2 47% 8%',
-                  admin: {
-                    description: 'Page background colour',
-                  },
-                },
-                {
-                  name: 'default_dark_foreground',
-                  type: 'text',
-                  defaultValue: '210 40% 98%',
-                  admin: {
-                    description: 'Main text colour',
-                  },
-                },
-                {
-                  name: 'default_dark_card',
-                  type: 'text',
-                  defaultValue: '222.2 47% 11%',
-                },
-                {
-                  name: 'default_dark_card_foreground',
-                  type: 'text',
-                  defaultValue: '210 40% 98%',
-                },
-                {
-                  name: 'default_dark_muted',
-                  type: 'text',
-                  defaultValue: '217.2 32.6% 20%',
-                },
-                {
-                  name: 'default_dark_muted_foreground',
-                  type: 'text',
-                  defaultValue: '215 20.2% 70%',
-                },
-                {
-                  name: 'default_dark_accent',
-                  type: 'text',
-                  defaultValue: '217.2 32.6% 20%',
-                },
-                {
-                  name: 'default_dark_accent_foreground',
-                  type: 'text',
-                  defaultValue: '210 40% 98%',
-                },
-                {
-                  name: 'default_dark_destructive',
-                  type: 'text',
-                  defaultValue: '0 62.8% 50%',
-                },
-                {
-                  name: 'default_dark_border',
-                  type: 'text',
-                  defaultValue: '217.2 32.6% 25%',
-                },
-                {
-                  name: 'default_dark_input',
-                  type: 'text',
-                  defaultValue: '217.2 32.6% 25%',
-                  admin: {
-                    description: 'Input border colour',
-                  },
-                },
-                {
-                  name: 'default_dark_ring',
-                  type: 'text',
-                  defaultValue: '217.2 91.2% 59.8%',
-                  admin: {
-                    description: 'Focus ring colour',
-                  },
-                },
-                {
-                  name: 'default_dark_popover',
-                  type: 'text',
-                  defaultValue: '222.2 47% 11%',
-                  admin: {
-                    description: 'Popover background colour',
-                  },
-                },
-                {
-                  name: 'default_dark_popover_foreground',
-                  type: 'text',
-                  defaultValue: '210 40% 98%',
-                  admin: {
-                    description: 'Popover text colour',
-                  },
-                },
-                {
-                  name: 'default_dark_secondary',
-                  type: 'text',
-                  defaultValue: '217.2 32.6% 20%',
-                  admin: {
-                    description: 'Secondary background colour',
-                  },
-                },
-                {
-                  name: 'default_dark_secondary_foreground',
-                  type: 'text',
-                  defaultValue: '210 40% 98%',
-                  admin: {
-                    description: 'Secondary text colour',
-                  },
-                },
-                {
-                  name: 'default_dark_destructive_foreground',
-                  type: 'text',
-                  defaultValue: '210 40% 98%',
-                  admin: {
-                    description: 'Destructive/error text colour',
-                  },
-                },
-              ],
             },
             {
-              type: 'collapsible',
-              label: 'Typography',
+              name: 'override_dramaFontFamily',
+              type: 'text',
               admin: {
-                initCollapsed: true,
+                description: 'Override drama/display font family. Leave blank to use theme default.',
+                placeholder: "e.g. 'Cormorant Garamond', Georgia, serif",
               },
-              fields: [
-                {
-                  name: 'default_fontFamily',
-                  type: 'text',
-                  defaultValue: 'system-ui, sans-serif',
-                  admin: {
-                    description: 'Main font family',
-                    placeholder: 'system-ui, sans-serif',
-                  },
-                },
-                {
-                  name: 'default_headingFontFamily',
-                  type: 'text',
-                  defaultValue: 'system-ui, sans-serif',
-                  admin: {
-                    description: 'Heading font family',
-                    placeholder: 'system-ui, sans-serif',
-                  },
-                },
-                {
-                  name: 'default_radius',
-                  type: 'text',
-                  defaultValue: '0.5rem',
-                  admin: {
-                    description: 'Border radius for components',
-                    placeholder: '0.5rem',
-                  },
-                },
-              ],
+            },
+            {
+              name: 'override_radius',
+              type: 'text',
+              admin: {
+                description: 'Override border radius. Leave blank to use theme default.',
+                placeholder: 'e.g. 2rem',
+              },
             },
           ],
         },
@@ -424,302 +177,6 @@ export const Theme: GlobalConfig = {
                   'URL for contact page (optional - if set, will link to this page instead of email)',
                 placeholder: '/contact',
               },
-            },
-          ],
-        },
-        {
-          label: 'Radical Theme',
-          fields: [
-            {
-              type: 'collapsible',
-              label: 'Light Mode Colours',
-              admin: {
-                initCollapsed: false,
-              },
-              fields: [
-                {
-                  name: 'radical_light_primary',
-                  type: 'text',
-                  defaultValue: '0 84% 60%',
-                  admin: {
-                    description: 'Bold red primary colour',
-                  },
-                },
-                {
-                  name: 'radical_light_background',
-                  type: 'text',
-                  defaultValue: '43 100% 98%',
-                  admin: {
-                    description: 'Warm off-white background',
-                  },
-                },
-                {
-                  name: 'radical_light_foreground',
-                  type: 'text',
-                  defaultValue: '0 0% 10%',
-                  admin: {
-                    description: 'Near black text',
-                  },
-                },
-                {
-                  name: 'radical_light_card',
-                  type: 'text',
-                  defaultValue: '0 0% 100%',
-                },
-                {
-                  name: 'radical_light_card_foreground',
-                  type: 'text',
-                  defaultValue: '0 0% 10%',
-                },
-                {
-                  name: 'radical_light_muted',
-                  type: 'text',
-                  defaultValue: '43 30% 90%',
-                },
-                {
-                  name: 'radical_light_muted_foreground',
-                  type: 'text',
-                  defaultValue: '0 0% 40%',
-                },
-                {
-                  name: 'radical_light_accent',
-                  type: 'text',
-                  defaultValue: '43 100% 85%',
-                },
-                {
-                  name: 'radical_light_accent_foreground',
-                  type: 'text',
-                  defaultValue: '0 0% 10%',
-                },
-                {
-                  name: 'radical_light_destructive',
-                  type: 'text',
-                  defaultValue: '0 84% 60%',
-                },
-                {
-                  name: 'radical_light_border',
-                  type: 'text',
-                  defaultValue: '0 0% 20%',
-                },
-                {
-                  name: 'radical_light_input',
-                  type: 'text',
-                  defaultValue: '0 0% 20%',
-                  admin: {
-                    description: 'Input border colour',
-                  },
-                },
-                {
-                  name: 'radical_light_ring',
-                  type: 'text',
-                  defaultValue: '0 84% 60%',
-                  admin: {
-                    description: 'Focus ring colour',
-                  },
-                },
-                {
-                  name: 'radical_light_popover',
-                  type: 'text',
-                  defaultValue: '0 0% 100%',
-                  admin: {
-                    description: 'Popover background colour',
-                  },
-                },
-                {
-                  name: 'radical_light_popover_foreground',
-                  type: 'text',
-                  defaultValue: '0 0% 10%',
-                  admin: {
-                    description: 'Popover text colour',
-                  },
-                },
-                {
-                  name: 'radical_light_secondary',
-                  type: 'text',
-                  defaultValue: '43 30% 90%',
-                  admin: {
-                    description: 'Secondary background colour',
-                  },
-                },
-                {
-                  name: 'radical_light_secondary_foreground',
-                  type: 'text',
-                  defaultValue: '0 0% 10%',
-                  admin: {
-                    description: 'Secondary text colour',
-                  },
-                },
-                {
-                  name: 'radical_light_destructive_foreground',
-                  type: 'text',
-                  defaultValue: '0 0% 100%',
-                  admin: {
-                    description: 'Destructive/error text colour',
-                  },
-                },
-              ],
-            },
-            {
-              type: 'collapsible',
-              label: 'Dark Mode Colours',
-              admin: {
-                initCollapsed: true,
-              },
-              fields: [
-                {
-                  name: 'radical_dark_primary',
-                  type: 'text',
-                  defaultValue: '0 90% 65%',
-                  admin: {
-                    description: 'Brighter red for dark mode',
-                  },
-                },
-                {
-                  name: 'radical_dark_background',
-                  type: 'text',
-                  defaultValue: '0 0% 8%',
-                  admin: {
-                    description: 'Very dark grey',
-                  },
-                },
-                {
-                  name: 'radical_dark_foreground',
-                  type: 'text',
-                  defaultValue: '43 100% 95%',
-                  admin: {
-                    description: 'Warm white',
-                  },
-                },
-                {
-                  name: 'radical_dark_card',
-                  type: 'text',
-                  defaultValue: '0 0% 12%',
-                },
-                {
-                  name: 'radical_dark_card_foreground',
-                  type: 'text',
-                  defaultValue: '43 100% 95%',
-                },
-                {
-                  name: 'radical_dark_muted',
-                  type: 'text',
-                  defaultValue: '0 5% 15%',
-                },
-                {
-                  name: 'radical_dark_muted_foreground',
-                  type: 'text',
-                  defaultValue: '43 20% 70%',
-                },
-                {
-                  name: 'radical_dark_accent',
-                  type: 'text',
-                  defaultValue: '0 10% 20%',
-                },
-                {
-                  name: 'radical_dark_accent_foreground',
-                  type: 'text',
-                  defaultValue: '43 100% 95%',
-                },
-                {
-                  name: 'radical_dark_destructive',
-                  type: 'text',
-                  defaultValue: '0 90% 65%',
-                },
-                {
-                  name: 'radical_dark_border',
-                  type: 'text',
-                  defaultValue: '0 5% 25%',
-                },
-                {
-                  name: 'radical_dark_input',
-                  type: 'text',
-                  defaultValue: '0 5% 25%',
-                  admin: {
-                    description: 'Input border colour',
-                  },
-                },
-                {
-                  name: 'radical_dark_ring',
-                  type: 'text',
-                  defaultValue: '0 90% 65%',
-                  admin: {
-                    description: 'Focus ring colour',
-                  },
-                },
-                {
-                  name: 'radical_dark_popover',
-                  type: 'text',
-                  defaultValue: '0 0% 12%',
-                  admin: {
-                    description: 'Popover background colour',
-                  },
-                },
-                {
-                  name: 'radical_dark_popover_foreground',
-                  type: 'text',
-                  defaultValue: '43 100% 95%',
-                  admin: {
-                    description: 'Popover text colour',
-                  },
-                },
-                {
-                  name: 'radical_dark_secondary',
-                  type: 'text',
-                  defaultValue: '0 5% 15%',
-                  admin: {
-                    description: 'Secondary background colour',
-                  },
-                },
-                {
-                  name: 'radical_dark_secondary_foreground',
-                  type: 'text',
-                  defaultValue: '43 100% 95%',
-                  admin: {
-                    description: 'Secondary text colour',
-                  },
-                },
-                {
-                  name: 'radical_dark_destructive_foreground',
-                  type: 'text',
-                  defaultValue: '43 100% 95%',
-                  admin: {
-                    description: 'Destructive/error text colour',
-                  },
-                },
-              ],
-            },
-            {
-              type: 'collapsible',
-              label: 'Typography',
-              admin: {
-                initCollapsed: true,
-              },
-              fields: [
-                {
-                  name: 'radical_fontFamily',
-                  type: 'text',
-                  defaultValue: 'Georgia, serif',
-                  admin: {
-                    description: 'Serif font for radical aesthetic',
-                  },
-                },
-                {
-                  name: 'radical_headingFontFamily',
-                  type: 'text',
-                  defaultValue: 'Impact, sans-serif',
-                  admin: {
-                    description: 'Bold sans-serif for headings',
-                  },
-                },
-                {
-                  name: 'radical_radius',
-                  type: 'text',
-                  defaultValue: '0rem',
-                  admin: {
-                    description: 'Sharp corners for edgy look',
-                  },
-                },
-              ],
             },
           ],
         },

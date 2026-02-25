@@ -3,6 +3,10 @@ import { Button } from '../ui/button'
 import Image from 'next/image'
 import type { Media as MediaType } from '@/payload-types'
 import { BookOpen, Library, Sparkles } from 'lucide-react'
+import { ScrollReveal } from '../cinematic/ScrollReveal'
+import { StaggerReveal } from '../cinematic/StaggerReveal'
+import { MagneticButton } from '../cinematic/MagneticButton'
+import { ParallaxSection } from '../cinematic/ParallaxSection'
 
 interface HeroProps {
   variant: 'default' | 'minimal' | 'fullHeight'
@@ -59,7 +63,7 @@ export function Hero({
       className={`relative flex ${variantClasses[variant]} ${alignmentClasses[alignment]} flex-col justify-center overflow-hidden`}
     >
       {backgroundImageUrl && (
-        <div className="absolute inset-0 z-0">
+        <ParallaxSection className="absolute inset-0 z-0">
           <Image
             src={backgroundImageUrl}
             alt=""
@@ -67,30 +71,42 @@ export function Hero({
             className="object-cover opacity-20"
             priority
           />
-        </div>
+        </ParallaxSection>
       )}
 
       <div className="container relative z-10 mx-auto px-4">
         <div className={`mx-auto flex max-w-4xl flex-col gap-6 ${alignmentClasses[alignment]}`}>
           {Icon && (
-            <div className="text-primary">
-              <Icon className="h-12 w-12" />
-            </div>
+            <ScrollReveal>
+              <div className="text-primary">
+                <Icon className="h-12 w-12" />
+              </div>
+            </ScrollReveal>
           )}
 
           <div className="space-y-4">
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">{title}</h1>
-            {subtitle && <p className="text-xl text-muted-foreground sm:text-2xl">{subtitle}</p>}
+            <ScrollReveal>
+              <h1 className="font-heading text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+                {title}
+              </h1>
+            </ScrollReveal>
+            {subtitle && (
+              <ScrollReveal delay={0.2}>
+                <p className="text-xl text-muted-foreground sm:text-2xl">{subtitle}</p>
+              </ScrollReveal>
+            )}
           </div>
 
           {ctaButtons && ctaButtons.length > 0 && (
-            <div className="flex flex-wrap gap-4">
+            <StaggerReveal className="flex flex-wrap gap-4">
               {ctaButtons.map((button, index) => (
-                <Button key={button.id || index} variant={button.variant} size="lg" asChild>
-                  <a href={button.href}>{button.label}</a>
-                </Button>
+                <MagneticButton key={button.id || index}>
+                  <Button variant={button.variant} size="lg" asChild>
+                    <a href={button.href}>{button.label}</a>
+                  </Button>
+                </MagneticButton>
               ))}
-            </div>
+            </StaggerReveal>
           )}
         </div>
       </div>

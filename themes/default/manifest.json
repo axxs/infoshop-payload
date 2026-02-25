@@ -1,0 +1,26 @@
+{
+  "name": "Default",
+  "slug": "default",
+  "version": "1.0.0",
+  "author": "Infoshop",
+  "description": "Clean blue theme with modern aesthetics",
+  "fonts": {
+    "body": {
+      "family": "system-ui",
+      "google": null
+    },
+    "heading": {
+      "family": "system-ui",
+      "google": null
+    },
+    "drama": {
+      "family": "Georgia",
+      "google": null
+    },
+    "mono": {
+      "family": "monospace",
+      "google": null
+    }
+  },
+  "supports": ["light", "dark"]
+}

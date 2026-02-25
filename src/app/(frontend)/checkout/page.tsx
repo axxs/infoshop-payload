@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { CheckoutForm } from '../components/checkout/CheckoutForm'
 import { getCart } from '@/lib/cart'
 import { formatPrice } from '@/lib/utils'
+import { ScrollReveal } from '../components/cinematic/ScrollReveal'
 
 export default async function CheckoutPage() {
   const result = await getCart()
@@ -50,7 +51,9 @@ export default async function CheckoutPage() {
         Back to Cart
       </Link>
 
-      <h1 className="mb-8 text-3xl font-bold">Checkout</h1>
+      <ScrollReveal>
+        <h1 className="mb-8 font-heading text-3xl font-bold">Checkout</h1>
+      </ScrollReveal>
 
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Checkout Form */}

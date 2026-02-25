@@ -1,0 +1,61 @@
+'use client'
+
+import { useRef } from 'react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useGSAP } from '@gsap/react'
+
+gsap.registerPlugin(ScrollTrigger)
+
+interface StaggerRevealProps {
+  children: React.ReactNode
+  stagger?: number
+  duration?: number
+  distance?: number
+  className?: string
+}
+
+export function StaggerReveal({
+  children,
+  stagger = 0.1,
+  duration = 0.7,
+  distance = 30,
+  className = '',
+}: StaggerRevealProps) {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useGSAP(
+    () => {
+      if (!ref.current) return
+
+      // Respect reduced motion
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+      const items = ref.current.children
+
+      gsap.fromTo(
+        items,
+        { opacity: 0, y: distance },
+        {
+          opacity: 1,
+          y: 0,
+          duration,
+          stagger,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: ref.current,
+            start: 'top 85%',
+            once: true,
+          },
+        },
+      )
+    },
+    { scope: ref },
+  )
+
+  return (
+    <div ref={ref} className={className}>
+      {children}
+    </div>
+  )
+}

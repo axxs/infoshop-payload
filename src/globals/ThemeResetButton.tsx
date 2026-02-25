@@ -4,19 +4,13 @@ import { Button } from '@payloadcms/ui'
 import { useState } from 'react'
 import { resetThemeToDefaults } from './actions/resetTheme'
 
-/**
- * Reset Theme to Defaults Button
- *
- * Provides a button in the Theme admin UI to reset all color values
- * to their default values from Theme.ts
- */
 export function ThemeResetButton() {
   const [isResetting, setIsResetting] = useState(false)
 
   const handleReset = async () => {
     if (
       !confirm(
-        'Are you sure you want to reset the theme to default values? This will clear all customised dark mode colors.',
+        'Are you sure you want to reset all overrides? This will clear any custom colour and typography overrides, reverting to the active theme defaults.',
       )
     ) {
       return
@@ -28,14 +22,13 @@ export function ThemeResetButton() {
       const result = await resetThemeToDefaults()
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to reset theme')
+        throw new Error(result.error || 'Failed to reset overrides')
       }
 
-      // Reload the page to show the reset values
       window.location.reload()
     } catch (error) {
-      console.error('Error resetting theme:', error)
-      alert('Failed to reset theme. Please try again.')
+      console.error('Error resetting theme overrides:', error)
+      alert('Failed to reset overrides. Please try again.')
     } finally {
       setIsResetting(false)
     }
@@ -51,10 +44,10 @@ export function ThemeResetButton() {
       }}
     >
       <p style={{ marginBottom: '0.5rem', color: 'var(--theme-elevation-800)' }}>
-        Reset all color values to their default values from the theme configuration.
+        Clear all colour and typography overrides, reverting to the active theme defaults.
       </p>
       <Button onClick={handleReset} disabled={isResetting} buttonStyle="secondary">
-        {isResetting ? 'Resetting...' : 'Reset to Defaults'}
+        {isResetting ? 'Resetting...' : 'Reset All Overrides'}
       </Button>
     </div>
   )

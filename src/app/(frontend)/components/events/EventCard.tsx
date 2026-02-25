@@ -81,13 +81,13 @@ export function EventCard({ event }: EventCardProps) {
   const spotsLeft = maxAttendees > 0 ? maxAttendees - currentAttendees : null
 
   return (
-    <Card className="group flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lg">
+    <Card className="card-hover-lift group flex h-full flex-col overflow-hidden">
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <Badge variant="outline">{getEventTypeLabel(event.eventType)}</Badge>
           <Badge variant={getStatusVariant(event.status)}>{event.status}</Badge>
         </div>
-        <CardTitle className="mt-2 line-clamp-2">{event.title}</CardTitle>
+        <CardTitle className="mt-2 font-heading line-clamp-2">{event.title}</CardTitle>
       </CardHeader>
 
       <CardContent className="flex-1 space-y-3">

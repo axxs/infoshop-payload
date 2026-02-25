@@ -7,6 +7,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 import { formatDate, formatPrice } from '@/lib/utils'
+import { ScrollReveal } from '../cinematic/ScrollReveal'
+import { StaggerReveal } from '../cinematic/StaggerReveal'
 
 interface ArchiveProps {
   title?: string | null
@@ -71,13 +73,13 @@ export async function Archive(props: ArchiveProps) {
     <section className="py-16">
       <div className="container mx-auto px-4">
         {props.title && (
-          <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold">{props.title}</h2>
-          </div>
+          <ScrollReveal className="mb-12 text-center">
+            <h2 className="font-heading text-3xl font-bold">{props.title}</h2>
+          </ScrollReveal>
         )}
 
         {items.length > 0 ? (
-          <div className={gridClasses}>
+          <StaggerReveal className={gridClasses}>
             {items.map((item) => {
               if (props.collection === 'books') {
                 const book = item as Book
@@ -88,7 +90,7 @@ export async function Archive(props: ArchiveProps) {
                   <Link
                     key={book.id}
                     href={`/books/${book.id}`}
-                    className="group transition-all hover:scale-105"
+                    className="card-hover-lift group"
                   >
                     <Card>
                       {coverImage?.url && props.layout === 'grid' && (
@@ -102,12 +104,12 @@ export async function Archive(props: ArchiveProps) {
                         </div>
                       )}
                       <CardHeader>
-                        <CardTitle className="line-clamp-2">{book.title}</CardTitle>
+                        <CardTitle className="font-heading line-clamp-2">{book.title}</CardTitle>
                         {book.author && <CardDescription>{book.author}</CardDescription>}
                       </CardHeader>
                       {book.sellPrice && (
                         <CardContent>
-                          <p className="font-semibold text-primary">
+                          <p className="font-mono font-semibold text-primary">
                             {formatPrice(book.sellPrice, book.currency)}
                           </p>
                         </CardContent>
@@ -122,11 +124,11 @@ export async function Archive(props: ArchiveProps) {
                   <Link
                     key={event.id}
                     href={`/events/${event.id}`}
-                    className="group transition-all hover:scale-105"
+                    className="card-hover-lift group"
                   >
                     <Card>
                       <CardHeader>
-                        <CardTitle className="line-clamp-2">{event.title}</CardTitle>
+                        <CardTitle className="font-heading line-clamp-2">{event.title}</CardTitle>
                         {event.startDate && (
                           <CardDescription>
                             {formatDate(new Date(event.startDate))}
@@ -139,7 +141,7 @@ export async function Archive(props: ArchiveProps) {
                 )
               }
             })}
-          </div>
+          </StaggerReveal>
         ) : (
           <p className="text-center text-muted-foreground">No items to display</p>
         )}
