@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useCallback } from 'react'
-import gsap from 'gsap'
+import { gsap } from '@/lib/gsap'
 
 interface MagneticButtonProps {
   children: React.ReactNode
@@ -11,13 +11,20 @@ interface MagneticButtonProps {
 
 export function MagneticButton({ children, strength = 0.3, className = '' }: MagneticButtonProps) {
   const ref = useRef<HTMLDivElement>(null)
+  const rectRef = useRef<DOMRect | null>(null)
+
+  const handleMouseEnter = useCallback(() => {
+    if (ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect()
+    }
+  }, [])
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
-      if (!ref.current) return
+      if (!ref.current || !rectRef.current) return
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
-      const rect = ref.current.getBoundingClientRect()
+      const rect = rectRef.current
       const x = e.clientX - rect.left - rect.width / 2
       const y = e.clientY - rect.top - rect.height / 2
 
@@ -33,6 +40,7 @@ export function MagneticButton({ children, strength = 0.3, className = '' }: Mag
 
   const handleMouseLeave = useCallback(() => {
     if (!ref.current) return
+    rectRef.current = null
 
     gsap.to(ref.current, {
       x: 0,
@@ -46,6 +54,7 @@ export function MagneticButton({ children, strength = 0.3, className = '' }: Mag
     <div
       ref={ref}
       className={className}
+      onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{ display: 'inline-block' }}

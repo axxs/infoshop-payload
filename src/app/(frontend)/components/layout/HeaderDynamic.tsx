@@ -20,6 +20,7 @@ export async function HeaderDynamic() {
     return <HeaderFallback />
   }
 
+  const siteName = layout.siteName ?? 'Infoshop'
   const navigation = layout.navigation || []
   const ctaButton = layout.ctaButton
   const logo = layout.logo && typeof layout.logo === 'object' ? (layout.logo as Media) : null
@@ -32,7 +33,7 @@ export async function HeaderDynamic() {
           {logo?.url ? (
             <Image
               src={logo.url}
-              alt="Infoshop"
+              alt={siteName}
               width={logo.width || 120}
               height={logo.height || 32}
               className="h-8 w-auto"
@@ -40,7 +41,7 @@ export async function HeaderDynamic() {
           ) : (
             <>
               <BookOpen className="h-6 w-6" />
-              <span className="font-heading text-xl font-bold">Infoshop</span>
+              <span className="font-heading text-xl font-bold">{siteName}</span>
             </>
           )}
         </Link>

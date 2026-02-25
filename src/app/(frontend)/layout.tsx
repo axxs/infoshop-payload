@@ -20,6 +20,22 @@ interface ThemeData {
   [key: `override_${'light' | 'dark'}_${string}`]: string | null | undefined
 }
 
+const THEME_DEFAULTS: ThemeData = { activeTheme: 'organic-tech', colorMode: 'auto' }
+
+function parseThemeData(raw: Record<string, unknown>): ThemeData {
+  const activeTheme = typeof raw.activeTheme === 'string' ? raw.activeTheme : 'organic-tech'
+  const colorMode = raw.colorMode === 'light' || raw.colorMode === 'dark' ? raw.colorMode : 'auto'
+
+  const overrides: Record<string, string | null> = {}
+  for (const [key, value] of Object.entries(raw)) {
+    if (key.startsWith('override_') && (typeof value === 'string' || value === null)) {
+      overrides[key] = value
+    }
+  }
+
+  return { activeTheme, colorMode, ...overrides } as ThemeData
+}
+
 export const metadata = {
   description: 'Infoshop - Community bookstore collective',
   title: 'Infoshop Bookstore',
@@ -30,9 +46,9 @@ async function getTheme(): Promise<ThemeData> {
 
   try {
     const theme = await payload.findGlobal({ slug: 'theme' })
-    return theme as unknown as ThemeData
+    return parseThemeData({ ...theme })
   } catch {
-    return { activeTheme: 'organic-tech', colorMode: 'auto' }
+    return THEME_DEFAULTS
   }
 }
 

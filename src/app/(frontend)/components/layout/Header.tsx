@@ -19,6 +19,7 @@ async function getLayout(): Promise<Layout> {
 
 export async function Header() {
   const layout = await getLayout()
+  const siteName = layout.siteName ?? 'Infoshop'
   const navigation = layout.navigation || []
   const ctaButton = layout.ctaButton
 
@@ -27,7 +28,7 @@ export async function Header() {
       <div className="container mx-auto flex h-16 items-center px-4">
         <Link href="/" className="flex items-center space-x-2">
           <BookOpen className="h-6 w-6" />
-          <span className="font-heading text-xl font-bold">Infoshop</span>
+          <span className="font-heading text-xl font-bold">{siteName}</span>
         </Link>
 
         <nav className="ml-auto flex items-center space-x-6">

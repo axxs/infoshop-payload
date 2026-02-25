@@ -17,10 +17,11 @@ export async function FooterDynamic() {
     return <FooterFallback />
   }
 
+  const siteName = layout.siteName ?? 'Infoshop'
   const columns = layout.columns || []
   const socialLinks = layout.socialLinks || []
   const copyright =
-    layout.copyright || `\u00A9 ${new Date().getFullYear()} Infoshop. All rights reserved.`
+    layout.copyright || `\u00A9 ${new Date().getFullYear()} ${siteName}. All rights reserved.`
 
   return (
     <footer className="border-t bg-background">

@@ -25,9 +25,16 @@ export interface ThemeManifest {
 
 /**
  * Cached theme manifests — populated once per Node.js process lifetime.
- * In serverless environments, cache lifetime equals function cold start lifecycle.
+ * In serverless/edge runtimes, this cache persists across warm invocations but
+ * the filesystem may have changed. Adding or removing themes at runtime requires
+ * a cold start or an explicit call to `clearThemeCache()`.
  */
 let cachedThemes: ThemeManifest[] | null = null
+
+/** Clear the in-memory theme cache, forcing re-discovery on next access. */
+export function clearThemeCache(): void {
+  cachedThemes = null
+}
 
 function getThemesDir(): string {
   return path.resolve(process.cwd(), 'themes')

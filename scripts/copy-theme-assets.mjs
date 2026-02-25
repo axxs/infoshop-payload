@@ -34,6 +34,13 @@ function copyDirIfExists(src, dest) {
   return false
 }
 
+// Guard: ensure PUBLIC_DIR is inside the project root before deleting
+const projectRoot = process.cwd()
+if (!PUBLIC_DIR.startsWith(path.resolve(projectRoot, 'public'))) {
+  console.error(`[themes] PUBLIC_DIR "${PUBLIC_DIR}" is outside public/ — aborting.`)
+  process.exit(1)
+}
+
 // Clean existing public/themes
 if (fs.existsSync(PUBLIC_DIR)) {
   fs.rmSync(PUBLIC_DIR, { recursive: true })

@@ -2,6 +2,11 @@
 
 import { useEffect, useCallback } from 'react'
 
+/** Lightweight check that a string looks like an HSL value: "H S% L%" */
+function isValidHsl(value: string): boolean {
+  return /^\d{1,3}(\.\d+)?\s+\d{1,3}(\.\d+)?%\s+\d{1,3}(\.\d+)?%$/.test(value.trim())
+}
+
 interface ThemeOverrides {
   [key: string]: string | null | undefined
 }
@@ -35,10 +40,10 @@ export function ThemeProvider({ children, activeTheme, colorMode, overrides }: T
         const lightMatch = key.match(/^override_light_(.+)$/)
         const darkMatch = key.match(/^override_dark_(.+)$/)
 
-        if (lightMatch && modePrefix === 'light' && value) {
+        if (lightMatch && modePrefix === 'light' && value && isValidHsl(value)) {
           const cssVar = `--color-${lightMatch[1].replace(/_/g, '-')}`
           root.style.setProperty(cssVar, `hsl(${value})`)
-        } else if (darkMatch && modePrefix === 'dark' && value) {
+        } else if (darkMatch && modePrefix === 'dark' && value && isValidHsl(value)) {
           const cssVar = `--color-${darkMatch[1].replace(/_/g, '-')}`
           root.style.setProperty(cssVar, `hsl(${value})`)
         }

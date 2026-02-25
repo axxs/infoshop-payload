@@ -1135,6 +1135,10 @@ export interface Theme {
 export interface Layout {
   id: number;
   /**
+   * Site name displayed in the header and footer
+   */
+  siteName?: string | null;
+  /**
    * Site logo (recommended: SVG or PNG with transparency)
    */
   logo?: (number | null) | Media;
@@ -1530,6 +1534,7 @@ export interface ThemeSelect<T extends boolean = true> {
  * via the `definition` "layout_select".
  */
 export interface LayoutSelect<T extends boolean = true> {
+  siteName?: T;
   logo?: T;
   navigation?:
     | T
