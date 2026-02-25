@@ -12,6 +12,9 @@ interface MagneticButtonProps {
 export function MagneticButton({ children, strength = 0.3, className = '' }: MagneticButtonProps) {
   const ref = useRef<HTMLDivElement>(null)
   const rectRef = useRef<DOMRect | null>(null)
+  const reducedMotion = useRef(
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  )
 
   const handleMouseEnter = useCallback(() => {
     if (ref.current) {
@@ -22,7 +25,7 @@ export function MagneticButton({ children, strength = 0.3, className = '' }: Mag
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
       if (!ref.current || !rectRef.current) return
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+      if (reducedMotion.current) return
 
       const rect = rectRef.current
       const x = e.clientX - rect.left - rect.width / 2

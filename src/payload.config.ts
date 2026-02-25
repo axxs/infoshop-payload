@@ -1,5 +1,4 @@
 // storage-adapter-import-placeholder
-import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { payloadCloudPlugin } from '@payloadcms/payload-cloud'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
@@ -67,6 +66,11 @@ export default buildConfig({
         pool: { connectionString: process.env.DATABASE_URI },
       })
     }
+    // Dynamic path prevents webpack from bundling sqlite's native libsql dependency
+    // into the standalone build where it can't resolve. Only used in local dev.
+    const pkg = '@payloadcms/db-' + 'sqlite'
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { sqliteAdapter } = require(pkg)
     return sqliteAdapter({ client: { url: process.env.DATABASE_URI || '' } })
   })(),
   sharp,

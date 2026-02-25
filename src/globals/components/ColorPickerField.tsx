@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { FieldLabel, TextInput, useField, useForm } from '@payloadcms/ui'
 import type { TextFieldClientProps } from 'payload'
 
@@ -140,12 +140,16 @@ export const ColorPickerField: React.FC<TextFieldClientProps> = ({
   })
   const [themeDefault, setThemeDefault] = useState<string | null>(null)
 
+  // Stable ref for getData to avoid re-running effect on every render
+  const getDataRef = useRef(getData)
+  getDataRef.current = getData
+
   // Fetch the theme's default colour from its variables.css
   useEffect(() => {
     const parsed = parseFieldPath(fieldPath)
     if (!parsed) return
 
-    const formData = getData()
+    const formData = getDataRef.current()
     const activeTheme =
       typeof formData.activeTheme === 'string' ? formData.activeTheme : 'organic-tech'
 
@@ -159,7 +163,7 @@ export const ColorPickerField: React.FC<TextFieldClientProps> = ({
     return () => {
       cancelled = true
     }
-  }, [fieldPath, getData])
+  }, [fieldPath])
 
   const label =
     typeof field?.label === 'string' ? field.label : (field?.name ?? '').replace(/_/g, ' ')

@@ -30,6 +30,9 @@ export function StaggerReveal({
 
       const items = ref.current.children
 
+      // Hide children immediately to prevent FOUC before ScrollTrigger fires
+      gsap.set(items, { opacity: 0 })
+
       gsap.fromTo(
         items,
         { opacity: 0, y: distance },

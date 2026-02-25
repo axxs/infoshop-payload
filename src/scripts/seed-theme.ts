@@ -127,7 +127,7 @@ async function seedTheme() {
             url: 'https://instagram.com/infoshop',
           },
         ],
-        copyright: '2025 Infoshop. All rights reserved.',
+        copyright: '\u00A9 2025 Infoshop. All rights reserved.',
         // Homepage blocks
         blocks: [
           // Block 1: Hero Section
