@@ -1,11 +1,8 @@
 'use client'
 
 import React, { useState, useCallback } from 'react'
-import { TextInput, useField } from '@payloadcms/ui'
-
-interface ColorPickerFieldProps {
-  path: string
-}
+import { FieldLabel, TextInput, useField } from '@payloadcms/ui'
+import type { TextFieldClientProps } from 'payload'
 
 /** Convert HSL string "H S% L%" to hex "#RRGGBB" */
 function hslToHex(hslStr: string): string {
@@ -57,8 +54,12 @@ function hexToHsl(hex: string): string {
   return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`
 }
 
-export const ColorPickerField: React.FC<ColorPickerFieldProps> = ({ path }) => {
-  const { value, setValue } = useField<string>({ path })
+export const ColorPickerField: React.FC<TextFieldClientProps> = ({
+  field,
+  path: pathFromProps,
+}) => {
+  const fieldPath = pathFromProps ?? field?.name ?? ''
+  const { value, setValue } = useField<string>({ path: fieldPath })
   const [pickerValue, setPickerValue] = useState(() => {
     if (value && value.trim()) {
       try {
@@ -69,6 +70,11 @@ export const ColorPickerField: React.FC<ColorPickerFieldProps> = ({ path }) => {
     }
     return '#000000'
   })
+
+  const label =
+    typeof field?.label === 'string' ? field.label : (field?.name ?? '').replace(/_/g, ' ')
+  const description =
+    typeof field?.admin?.description === 'string' ? field.admin.description : undefined
 
   const handlePickerChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,54 +109,59 @@ export const ColorPickerField: React.FC<ColorPickerFieldProps> = ({ path }) => {
   const hasValue = typeof value === 'string' && value.trim().length > 0
 
   return (
-    <div style={{ marginBottom: '1rem' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.75rem' }}>
-        <div
+    <div style={{ marginBottom: '0.75rem' }}>
+      <FieldLabel label={label} path={fieldPath} />
+      {description && (
+        <p
           style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '0.25rem',
+            fontSize: '0.8rem',
+            color: 'var(--theme-elevation-600)',
+            margin: '0.15rem 0 0.5rem',
+            lineHeight: 1.4,
           }}
         >
-          <div
+          {description}
+        </p>
+      )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div
+          style={{
+            width: '36px',
+            height: '36px',
+            borderRadius: '4px',
+            border: '2px solid var(--theme-elevation-400)',
+            backgroundColor: hasValue ? `hsl(${value})` : 'transparent',
+            backgroundImage: hasValue
+              ? 'none'
+              : 'repeating-conic-gradient(#ccc 0% 25%, transparent 0% 50%)',
+            backgroundSize: hasValue ? 'auto' : '8px 8px',
+            position: 'relative',
+            overflow: 'hidden',
+            flexShrink: 0,
+          }}
+        >
+          <input
+            type="color"
+            value={pickerValue}
+            onChange={handlePickerChange}
             style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '4px',
-              border: '2px solid var(--theme-elevation-400)',
-              backgroundColor: hasValue ? `hsl(${value})` : 'transparent',
-              backgroundImage: hasValue
-                ? 'none'
-                : 'repeating-conic-gradient(#ccc 0% 25%, transparent 0% 50%)',
-              backgroundSize: hasValue ? 'auto' : '8px 8px',
-              position: 'relative',
-              overflow: 'hidden',
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              opacity: 0,
+              cursor: 'pointer',
+              border: 'none',
+              padding: 0,
             }}
-          >
-            <input
-              type="color"
-              value={pickerValue}
-              onChange={handlePickerChange}
-              style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                opacity: 0,
-                cursor: 'pointer',
-                border: 'none',
-                padding: 0,
-              }}
-            />
-          </div>
+          />
         </div>
         <div style={{ flex: 1 }}>
           <TextInput
-            path={path}
+            path={fieldPath}
             value={value ?? ''}
             onChange={handleTextChange}
-            placeholder={hasValue ? undefined : 'Using theme default'}
+            placeholder={hasValue ? undefined : 'Using theme default — click swatch or type HSL'}
           />
         </div>
         {hasValue && (
@@ -158,7 +169,7 @@ export const ColorPickerField: React.FC<ColorPickerFieldProps> = ({ path }) => {
             type="button"
             onClick={handleClear}
             style={{
-              padding: '0.5rem 0.75rem',
+              padding: '0.4rem 0.6rem',
               border: '1px solid var(--theme-elevation-400)',
               borderRadius: '4px',
               background: 'none',
@@ -166,24 +177,12 @@ export const ColorPickerField: React.FC<ColorPickerFieldProps> = ({ path }) => {
               color: 'var(--theme-elevation-800)',
               fontSize: '0.8rem',
               whiteSpace: 'nowrap',
-              marginBottom: '0.25rem',
             }}
           >
             Clear
           </button>
         )}
       </div>
-      {!hasValue && (
-        <p
-          style={{
-            fontSize: '0.75rem',
-            color: 'var(--theme-elevation-600)',
-            marginTop: '0.25rem',
-          }}
-        >
-          Click the swatch to pick a colour, or type HSL values (e.g. &quot;150 27% 22%&quot;)
-        </p>
-      )}
     </div>
   )
 }

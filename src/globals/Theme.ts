@@ -3,34 +3,74 @@ import { getThemeOptions } from '@/lib/themes'
 
 /** Color tokens that can be overridden per mode */
 const COLOR_TOKENS = [
-  { name: 'primary', label: 'Primary' },
-  { name: 'primary_foreground', label: 'Primary Foreground' },
-  { name: 'secondary', label: 'Secondary' },
-  { name: 'secondary_foreground', label: 'Secondary Foreground' },
-  { name: 'background', label: 'Background' },
-  { name: 'foreground', label: 'Foreground' },
-  { name: 'card', label: 'Card' },
-  { name: 'card_foreground', label: 'Card Foreground' },
-  { name: 'popover', label: 'Popover' },
-  { name: 'popover_foreground', label: 'Popover Foreground' },
-  { name: 'muted', label: 'Muted' },
-  { name: 'muted_foreground', label: 'Muted Foreground' },
-  { name: 'accent', label: 'Accent' },
-  { name: 'accent_foreground', label: 'Accent Foreground' },
-  { name: 'destructive', label: 'Destructive' },
-  { name: 'destructive_foreground', label: 'Destructive Foreground' },
-  { name: 'border', label: 'Border' },
-  { name: 'input', label: 'Input' },
-  { name: 'ring', label: 'Ring' },
+  { name: 'primary', label: 'Primary', description: 'Main buttons, links, and active elements' },
+  {
+    name: 'primary_foreground',
+    label: 'Primary Foreground',
+    description: 'Text and icons on primary-coloured elements',
+  },
+  {
+    name: 'secondary',
+    label: 'Secondary',
+    description: 'Secondary buttons and highlighted sections',
+  },
+  {
+    name: 'secondary_foreground',
+    label: 'Secondary Foreground',
+    description: 'Text and icons on secondary-coloured elements',
+  },
+  { name: 'background', label: 'Background', description: 'Main page background colour' },
+  { name: 'foreground', label: 'Foreground', description: 'Main body text colour' },
+  { name: 'card', label: 'Card', description: 'Card and panel background colour' },
+  {
+    name: 'card_foreground',
+    label: 'Card Foreground',
+    description: 'Text colour inside cards and panels',
+  },
+  { name: 'popover', label: 'Popover', description: 'Dropdown menu and tooltip background' },
+  {
+    name: 'popover_foreground',
+    label: 'Popover Foreground',
+    description: 'Text colour in dropdowns and tooltips',
+  },
+  {
+    name: 'muted',
+    label: 'Muted',
+    description: 'Subtle background for secondary content areas',
+  },
+  {
+    name: 'muted_foreground',
+    label: 'Muted Foreground',
+    description: 'De-emphasised text like captions and metadata',
+  },
+  { name: 'accent', label: 'Accent', description: 'Highlighted backgrounds and hover states' },
+  {
+    name: 'accent_foreground',
+    label: 'Accent Foreground',
+    description: 'Text on accent-coloured backgrounds',
+  },
+  {
+    name: 'destructive',
+    label: 'Destructive',
+    description: 'Delete buttons, error messages, and warning states',
+  },
+  {
+    name: 'destructive_foreground',
+    label: 'Destructive Foreground',
+    description: 'Text on destructive-coloured elements',
+  },
+  { name: 'border', label: 'Border', description: 'Borders, dividers, and separator lines' },
+  { name: 'input', label: 'Input', description: 'Form input field borders' },
+  { name: 'ring', label: 'Ring', description: 'Focus ring around interactive elements' },
 ]
 
 function buildColorOverrideFields(mode: 'light' | 'dark') {
-  return COLOR_TOKENS.map(({ name, label }) => ({
+  return COLOR_TOKENS.map(({ name, label, description }) => ({
     name: `override_${mode}_${name}`,
     type: 'text' as const,
     label: `${label}`,
     admin: {
-      description: `Override ${label} colour for ${mode} mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.`,
+      description: `${description}. Leave blank to use theme default.`,
       placeholder: 'e.g. 150 27% 22%',
       components: {
         Field: '@/globals/components/ColorPickerField#ColorPickerField',
