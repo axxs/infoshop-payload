@@ -1,0 +1,26 @@
+{
+  "name": "Organic Tech",
+  "slug": "organic-tech",
+  "version": "1.0.0",
+  "author": "Infoshop",
+  "description": "Bridge between biological research lab and avant-garde luxury magazine",
+  "fonts": {
+    "body": {
+      "family": "Plus Jakarta Sans",
+      "google": "Plus+Jakarta+Sans:wght@300;400;500;600;700"
+    },
+    "heading": {
+      "family": "Outfit",
+      "google": "Outfit:wght@400;500;600;700;800"
+    },
+    "drama": {
+      "family": "Cormorant Garamond",
+      "google": "Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600"
+    },
+    "mono": {
+      "family": "IBM Plex Mono",
+      "google": "IBM+Plex+Mono:wght@400;500"
+    }
+  },
+  "supports": ["light", "dark"]
+}

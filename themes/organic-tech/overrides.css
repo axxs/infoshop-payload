@@ -1,0 +1,34 @@
+/* Organic Tech — Optional extras */
+
+[data-theme="organic-tech"] {
+  /* Custom scrollbar */
+  scrollbar-color: hsl(150 27% 22% / 0.3) transparent;
+}
+
+[data-theme="organic-tech"] ::-webkit-scrollbar {
+  width: 8px;
+}
+
+[data-theme="organic-tech"] ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+[data-theme="organic-tech"] ::-webkit-scrollbar-thumb {
+  background: hsl(150 27% 22% / 0.3);
+  border-radius: 4px;
+}
+
+[data-theme="organic-tech"] ::-webkit-scrollbar-thumb:hover {
+  background: hsl(150 27% 22% / 0.5);
+}
+
+/* Selection color */
+[data-theme="organic-tech"] ::selection {
+  background: hsl(150 27% 22% / 0.2);
+  color: hsl(0 0% 10%);
+}
+
+[data-theme="organic-tech"].dark ::selection {
+  background: hsl(150 35% 40% / 0.3);
+  color: hsl(39 20% 90%);
+}

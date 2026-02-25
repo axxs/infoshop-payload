@@ -31,7 +31,7 @@ export function BookCard({ book, contactEmail, contactPageUrl }: BookCardProps) 
   const contactHref = contactPageUrl || (contactEmail ? `mailto:${contactEmail}` : '/contact')
 
   return (
-    <Card className="group flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lg">
+    <Card className="card-hover-lift group flex h-full flex-col overflow-hidden">
       <Link href={`/shop/${book.id}`} className="flex-1">
         <div className="relative aspect-[2/3] overflow-hidden bg-muted">
           <BookCoverImage
@@ -55,7 +55,7 @@ export function BookCard({ book, contactEmail, contactPageUrl }: BookCardProps) 
           )}
         </div>
         <CardContent className="p-4">
-          <h3 className="line-clamp-2 font-semibold">{book.title}</h3>
+          <h3 className="font-heading line-clamp-2 font-semibold">{book.title}</h3>
           <p className="mt-1 text-sm text-muted-foreground">{book.author}</p>
           {book.synopsis && (
             <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{book.synopsis}</p>
@@ -69,7 +69,7 @@ export function BookCard({ book, contactEmail, contactPageUrl }: BookCardProps) 
               <span className="text-lg font-semibold text-muted-foreground">Price on request</span>
             ) : (
               <>
-                <span className="text-lg font-bold">
+                <span className="font-mono text-lg font-bold">
                   {formatPrice(book.sellPrice ?? 0, book.currency)}
                 </span>
                 {(book.memberPrice ?? 0) < (book.sellPrice ?? 0) && (

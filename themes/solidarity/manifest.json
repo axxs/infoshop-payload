@@ -1,0 +1,26 @@
+{
+  "name": "Solidarity",
+  "slug": "solidarity",
+  "version": "1.0.0",
+  "author": "Infoshop",
+  "description": "Warm cooperative and mutual aid aesthetic — trustworthy, community-focused, approachable",
+  "fonts": {
+    "body": {
+      "family": "Source Sans 3",
+      "google": "Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400"
+    },
+    "heading": {
+      "family": "Playfair Display",
+      "google": "Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400"
+    },
+    "drama": {
+      "family": "Lora",
+      "google": "Lora:ital,wght@0,400;0,600;1,400"
+    },
+    "mono": {
+      "family": "Source Code Pro",
+      "google": "Source+Code+Pro:wght@400;500"
+    }
+  },
+  "supports": ["light", "dark"]
+}

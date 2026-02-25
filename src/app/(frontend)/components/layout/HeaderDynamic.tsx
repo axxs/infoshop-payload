@@ -6,11 +6,8 @@ import { BookOpen, Search, ShoppingCart } from 'lucide-react'
 import { Button } from '../ui/button'
 import type { Media } from '@/payload-types'
 import { NavigationDropdown } from './NavigationDropdown'
+import { MorphingNavbar } from '../cinematic/MorphingNavbar'
 
-/**
- * Dynamic Header component that fetches navigation from Layout Global
- * Server Component - fetches data on each render
- */
 export async function HeaderDynamic() {
   const payload = await getPayload({ config })
 
@@ -19,24 +16,24 @@ export async function HeaderDynamic() {
     layout = await payload.findGlobal({
       slug: 'layout',
     })
-  } catch (_error) {
-    // Fallback if Layout Global doesn't exist
+  } catch {
     return <HeaderFallback />
   }
 
+  const siteName = layout.siteName ?? 'Infoshop'
   const navigation = layout.navigation || []
   const ctaButton = layout.ctaButton
   const logo = layout.logo && typeof layout.logo === 'object' ? (layout.logo as Media) : null
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <MorphingNavbar>
       <div className="container mx-auto flex h-16 items-center px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2">
           {logo?.url ? (
             <Image
               src={logo.url}
-              alt="Infoshop"
+              alt={siteName}
               width={logo.width || 120}
               height={logo.height || 32}
               className="h-8 w-auto"
@@ -44,7 +41,7 @@ export async function HeaderDynamic() {
           ) : (
             <>
               <BookOpen className="h-6 w-6" />
-              <span className="text-xl font-bold">Infoshop</span>
+              <span className="font-heading text-xl font-bold">{siteName}</span>
             </>
           )}
         </Link>
@@ -52,7 +49,6 @@ export async function HeaderDynamic() {
         {/* Main Navigation */}
         <nav className="ml-auto flex items-center space-x-6">
           {navigation.map((item, index) => {
-            // If item has children, render dropdown
             if (item.children && item.children.length > 0) {
               return (
                 <NavigationDropdown
@@ -64,7 +60,6 @@ export async function HeaderDynamic() {
               )
             }
 
-            // Otherwise render simple link
             return (
               <Link
                 key={item.id || `nav-${index}`}
@@ -98,20 +93,17 @@ export async function HeaderDynamic() {
           )}
         </div>
       </div>
-    </header>
+    </MorphingNavbar>
   )
 }
 
-/**
- * Fallback Header when Layout Global is not configured
- */
 function HeaderFallback() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <MorphingNavbar>
       <div className="container mx-auto flex h-16 items-center px-4">
         <Link href="/" className="flex items-center space-x-2">
           <BookOpen className="h-6 w-6" />
-          <span className="text-xl font-bold">Infoshop</span>
+          <span className="font-heading text-xl font-bold">Infoshop</span>
         </Link>
         <nav className="ml-auto flex items-center space-x-6">
           <Link href="/shop" className="text-sm font-medium transition-colors hover:text-primary">
@@ -145,6 +137,6 @@ function HeaderFallback() {
           </Button>
         </div>
       </div>
-    </header>
+    </MorphingNavbar>
   )
 }

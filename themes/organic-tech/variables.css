@@ -1,0 +1,61 @@
+/* Organic Tech Theme — Moss / Clay / Cream palette */
+
+[data-theme="organic-tech"] {
+  /* Colors — Light mode */
+  --color-primary: hsl(150 27% 22%);
+  --color-primary-foreground: hsl(39 33% 94%);
+  --color-secondary: hsl(17 66% 50%);
+  --color-secondary-foreground: hsl(0 0% 100%);
+  --color-background: hsl(39 33% 94%);
+  --color-foreground: hsl(0 0% 10%);
+  --color-card: hsl(39 25% 97%);
+  --color-card-foreground: hsl(0 0% 10%);
+  --color-popover: hsl(39 25% 97%);
+  --color-popover-foreground: hsl(0 0% 10%);
+  --color-muted: hsl(39 20% 90%);
+  --color-muted-foreground: hsl(0 0% 40%);
+  --color-accent: hsl(17 60% 92%);
+  --color-accent-foreground: hsl(17 66% 30%);
+  --color-destructive: hsl(0 72% 51%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  --color-border: hsl(39 15% 82%);
+  --color-input: hsl(39 15% 82%);
+  --color-ring: hsl(150 27% 22%);
+
+  /* Typography */
+  --font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-heading: 'Outfit', system-ui, sans-serif;
+  --font-drama: 'Cormorant Garamond', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  /* Spacing */
+  --radius: 2rem;
+
+  /* Noise overlay */
+  --noise-opacity: 0.04;
+}
+
+/* Dark mode */
+[data-theme="organic-tech"].dark {
+  --color-primary: hsl(150 35% 40%);
+  --color-primary-foreground: hsl(150 10% 6%);
+  --color-secondary: hsl(17 60% 55%);
+  --color-secondary-foreground: hsl(0 0% 100%);
+  --color-background: hsl(150 10% 6%);
+  --color-foreground: hsl(39 20% 90%);
+  --color-card: hsl(150 8% 10%);
+  --color-card-foreground: hsl(39 20% 90%);
+  --color-popover: hsl(150 8% 10%);
+  --color-popover-foreground: hsl(39 20% 90%);
+  --color-muted: hsl(150 6% 15%);
+  --color-muted-foreground: hsl(39 10% 60%);
+  --color-accent: hsl(17 30% 18%);
+  --color-accent-foreground: hsl(17 60% 75%);
+  --color-destructive: hsl(0 62% 50%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  --color-border: hsl(150 6% 20%);
+  --color-input: hsl(150 6% 20%);
+  --color-ring: hsl(150 35% 40%);
+
+  --noise-opacity: 0.06;
+}

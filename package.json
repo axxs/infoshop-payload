@@ -5,9 +5,11 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "prebuild": "node scripts/copy-theme-assets.mjs",
     "build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=8000\" next build",
+    "predev": "node scripts/copy-theme-assets.mjs",
     "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev",
-    "devsafe": "rm -rf .next && cross-env NODE_OPTIONS=--no-deprecation next dev",
+    "devsafe": "rm -rf .next && node scripts/copy-theme-assets.mjs && cross-env NODE_OPTIONS=--no-deprecation next dev",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx}\"",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
@@ -20,6 +22,7 @@
     "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts"
   },
   "dependencies": {
+    "@gsap/react": "^2.1.2",
     "@payloadcms/db-postgres": "3.62.0",
     "@payloadcms/db-sqlite": "3.62.0",
     "@payloadcms/next": "3.62.0",
@@ -36,6 +39,7 @@
     "date-fns": "^4.1.0",
     "dotenv": "16.4.7",
     "graphql": "^16.8.1",
+    "gsap": "^3.14.2",
     "jose": "^6.1.0",
     "lucide-react": "^0.552.0",
     "next": "15.4.8",

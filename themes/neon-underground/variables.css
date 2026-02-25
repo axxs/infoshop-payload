@@ -1,0 +1,61 @@
+/* Neon Underground Theme — Cyberpunk digital resistance */
+
+[data-theme="neon-underground"] {
+  /* Colors — Light mode */
+  --color-primary: hsl(185 100% 35%);
+  --color-primary-foreground: hsl(0 0% 100%);
+  --color-secondary: hsl(300 80% 55%);
+  --color-secondary-foreground: hsl(0 0% 100%);
+  --color-background: hsl(230 15% 95%);
+  --color-foreground: hsl(230 20% 12%);
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(230 20% 12%);
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(230 20% 12%);
+  --color-muted: hsl(230 10% 90%);
+  --color-muted-foreground: hsl(230 10% 40%);
+  --color-accent: hsl(185 40% 88%);
+  --color-accent-foreground: hsl(185 100% 22%);
+  --color-destructive: hsl(340 80% 50%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  --color-border: hsl(230 15% 80%);
+  --color-input: hsl(230 15% 80%);
+  --color-ring: hsl(185 100% 35%);
+
+  /* Typography */
+  --font-family: 'Inter', system-ui, sans-serif;
+  --font-heading: 'Orbitron', system-ui, sans-serif;
+  --font-drama: 'Italiana', Georgia, serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Spacing */
+  --radius: 0.5rem;
+
+  /* Noise overlay */
+  --noise-opacity: 0.03;
+}
+
+/* Dark mode */
+[data-theme="neon-underground"].dark {
+  --color-primary: hsl(185 100% 50%);
+  --color-primary-foreground: hsl(230 30% 5%);
+  --color-secondary: hsl(300 85% 65%);
+  --color-secondary-foreground: hsl(230 30% 5%);
+  --color-background: hsl(230 25% 7%);
+  --color-foreground: hsl(185 10% 90%);
+  --color-card: hsl(230 20% 11%);
+  --color-card-foreground: hsl(185 10% 90%);
+  --color-popover: hsl(230 20% 11%);
+  --color-popover-foreground: hsl(185 10% 90%);
+  --color-muted: hsl(230 15% 15%);
+  --color-muted-foreground: hsl(185 10% 55%);
+  --color-accent: hsl(300 30% 15%);
+  --color-accent-foreground: hsl(300 80% 75%);
+  --color-destructive: hsl(340 85% 55%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  --color-border: hsl(230 15% 20%);
+  --color-input: hsl(230 15% 20%);
+  --color-ring: hsl(185 100% 50%);
+
+  --noise-opacity: 0.06;
+}

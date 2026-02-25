@@ -25,6 +25,14 @@ export const Layout: GlobalConfig = {
           label: 'Header',
           fields: [
             {
+              name: 'siteName',
+              type: 'text',
+              defaultValue: 'Infoshop',
+              admin: {
+                description: 'Site name displayed in the header and footer',
+              },
+            },
+            {
               name: 'logo',
               type: 'upload',
               relationTo: 'media',

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { CartItem } from '../components/cart/CartItem'
 import { CartSummary } from '../components/cart/CartSummary'
 import { getCart } from '@/lib/cart'
+import { ScrollReveal } from '../components/cinematic/ScrollReveal'
 
 export default async function CartPage() {
   const result = await getCart()
@@ -76,7 +77,9 @@ export default async function CartPage() {
         Back to Shop
       </Link>
 
-      <h1 className="mb-8 text-3xl font-bold">Shopping Cart</h1>
+      <ScrollReveal>
+        <h1 className="mb-8 font-heading text-3xl font-bold">Shopping Cart</h1>
+      </ScrollReveal>
 
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Cart Items */}

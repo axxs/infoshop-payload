@@ -1,0 +1,26 @@
+{
+  "name": "Radical",
+  "slug": "radical",
+  "version": "1.0.0",
+  "author": "Infoshop",
+  "description": "Bold red and black aesthetic for radical literature",
+  "fonts": {
+    "body": {
+      "family": "Georgia",
+      "google": null
+    },
+    "heading": {
+      "family": "Impact",
+      "google": null
+    },
+    "drama": {
+      "family": "Georgia",
+      "google": null
+    },
+    "mono": {
+      "family": "monospace",
+      "google": null
+    }
+  },
+  "supports": ["light", "dark"]
+}

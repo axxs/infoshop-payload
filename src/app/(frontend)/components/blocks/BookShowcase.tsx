@@ -7,6 +7,8 @@ import type { Where } from 'payload'
 import Link from 'next/link'
 import Image from 'next/image'
 import { formatPrice } from '@/lib/utils'
+import { ScrollReveal } from '../cinematic/ScrollReveal'
+import { StaggerReveal } from '../cinematic/StaggerReveal'
 
 interface BookShowcaseProps {
   title: string
@@ -82,16 +84,16 @@ export async function BookShowcase(props: BookShowcaseProps) {
   return (
     <section className="py-16">
       <div className="container mx-auto px-4">
-        <div className="mb-12 text-center">
-          <h2 className="mb-4 text-3xl font-bold">{props.title}</h2>
+        <ScrollReveal className="mb-12 text-center">
+          <h2 className="mb-4 font-heading text-3xl font-bold">{props.title}</h2>
           {props.description && (
             <p className="mx-auto max-w-2xl text-lg text-muted-foreground">{props.description}</p>
           )}
-        </div>
+        </ScrollReveal>
 
         {books.length > 0 ? (
           <>
-            <div className={`grid gap-6 ${gridCols[props.columns]}`}>
+            <StaggerReveal className={`grid gap-6 ${gridCols[props.columns]}`}>
               {books.map((book) => {
                 const coverImage =
                   book.coverImage && typeof book.coverImage === 'object' ? book.coverImage : null
@@ -100,7 +102,7 @@ export async function BookShowcase(props: BookShowcaseProps) {
                   <Link
                     key={book.id}
                     href={`/books/${book.id}`}
-                    className="group overflow-hidden rounded-lg border bg-card transition-all hover:shadow-lg"
+                    className="card-hover-lift group overflow-hidden rounded-lg border bg-card"
                   >
                     {coverImage?.url && (
                       <div className="relative aspect-[2/3] overflow-hidden bg-muted">
@@ -113,12 +115,12 @@ export async function BookShowcase(props: BookShowcaseProps) {
                       </div>
                     )}
                     <div className="p-4">
-                      <h3 className="mb-2 font-semibold line-clamp-2">{book.title}</h3>
+                      <h3 className="mb-2 font-heading font-semibold line-clamp-2">{book.title}</h3>
                       {book.author && (
                         <p className="mb-2 text-sm text-muted-foreground">{book.author}</p>
                       )}
                       {book.sellPrice && (
-                        <p className="font-semibold text-primary">
+                        <p className="font-mono font-semibold text-primary">
                           {formatPrice(book.sellPrice, book.currency)}
                         </p>
                       )}
@@ -126,14 +128,14 @@ export async function BookShowcase(props: BookShowcaseProps) {
                   </Link>
                 )
               })}
-            </div>
+            </StaggerReveal>
 
             {props.showViewAllLink && props.viewAllHref && (
-              <div className="mt-12 text-center">
+              <ScrollReveal className="mt-12 text-center">
                 <Button asChild size="lg">
                   <Link href={props.viewAllHref}>View All Books</Link>
                 </Button>
-              </div>
+              </ScrollReveal>
             )}
           </>
         ) : (

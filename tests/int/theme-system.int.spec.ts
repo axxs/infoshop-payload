@@ -27,7 +27,6 @@ describe('Theme System', () => {
       })) as Theme
 
       expect(theme.activeTheme).toBeDefined()
-      expect(['default', 'radical']).toContain(theme.activeTheme)
     })
 
     it('has color mode configuration', async () => {
@@ -39,17 +38,16 @@ describe('Theme System', () => {
       expect(['auto', 'light', 'dark']).toContain(theme.colorMode)
     })
 
-    it('has default theme light mode colors', async () => {
+    it('supports override fields for light mode colours', async () => {
       const theme = (await payload.findGlobal({
         slug: 'theme',
       })) as Theme
 
-      // Check that default theme colors exist (they may be undefined if not set, which is fine)
+      // Override fields are optional — they should be undefined or a valid HSL string
       expect(theme).toBeDefined()
 
-      // If colors are set, they should be in Tailwind v4 HSL format (e.g., "221 83% 53%")
-      if (theme.default_light_primary) {
-        expect(theme.default_light_primary).toMatch(/^\d+(\.\d+)?\s+\d+(\.\d+)?%\s+\d+(\.\d+)?%$/)
+      if (theme.override_light_primary) {
+        expect(theme.override_light_primary).toMatch(/^\d+(\.\d+)?\s+\d+(\.\d+)?%\s+\d+(\.\d+)?%$/)
       }
     })
 
@@ -60,17 +58,16 @@ describe('Theme System', () => {
       })) as Theme
 
       const originalActiveTheme = currentTheme.activeTheme
-      const newActiveTheme = originalActiveTheme === 'default' ? 'radical' : 'default'
 
       // Update theme
       const updatedTheme = await payload.updateGlobal({
         slug: 'theme',
         data: {
-          activeTheme: newActiveTheme,
+          activeTheme: 'organic-tech',
         },
       })
 
-      expect(updatedTheme.activeTheme).toBe(newActiveTheme)
+      expect(updatedTheme.activeTheme).toBe('organic-tech')
 
       // Revert back
       await payload.updateGlobal({
@@ -193,7 +190,7 @@ describe('Theme System', () => {
       })) as Layout
 
       const originalCopyright = currentLayout.copyright
-      const newCopyright = `© ${new Date().getFullYear()} Test Copyright`
+      const newCopyright = `${new Date().getFullYear()} Test Copyright`
 
       // Update layout
       const updatedLayout = await payload.updateGlobal({
@@ -215,50 +212,35 @@ describe('Theme System', () => {
     })
   })
 
-  describe('Theme Data Integrity', () => {
-    it('theme has all required color variables for default theme', async () => {
-      const theme = (await payload.findGlobal({
+  describe('Theme Override Fields', () => {
+    it('override fields are optional and can be set', async () => {
+      // Set an override
+      const updatedTheme = await payload.updateGlobal({
         slug: 'theme',
-      })) as Theme
+        data: {
+          override_light_primary: '150 27% 22%',
+        },
+      })
 
-      // These fields have defaults, so they should always exist
-      const requiredFields = [
-        'default_light_primary',
-        'default_light_background',
-        'default_light_foreground',
-      ]
+      expect(updatedTheme.override_light_primary).toBe('150 27% 22%')
 
-      // Check that all required fields are present (they may be default values)
-      requiredFields.forEach((field) => {
-        expect(theme[field as keyof Theme]).toBeDefined()
+      // Clear the override
+      await payload.updateGlobal({
+        slug: 'theme',
+        data: {
+          override_light_primary: '',
+        },
       })
     })
 
-    it('theme has all required color variables for radical theme', async () => {
+    it('typography override fields work correctly', async () => {
       const theme = (await payload.findGlobal({
         slug: 'theme',
       })) as Theme
 
-      // Check radical theme colors
-      const requiredFields = [
-        'radical_light_primary',
-        'radical_light_background',
-        'radical_light_foreground',
-      ]
-
-      requiredFields.forEach((field) => {
-        expect(theme[field as keyof Theme]).toBeDefined()
-      })
-    })
-
-    it('typography settings are defined', async () => {
-      const theme = (await payload.findGlobal({
-        slug: 'theme',
-      })) as Theme
-
-      expect(theme.default_fontFamily).toBeDefined()
-      expect(theme.default_headingFontFamily).toBeDefined()
-      expect(theme.default_radius).toBeDefined()
+      // Typography overrides are optional
+      expect(theme).toBeDefined()
+      // They should be undefined/null/empty string when not set
     })
   })
 

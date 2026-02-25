@@ -7,6 +7,7 @@ import { SearchBar } from '../components/shop/SearchBar'
 import { SortSelect } from '../components/shop/SortSelect'
 import { sanitizeSearchInput } from '@/lib/utils'
 import type { Book } from '@/payload-types'
+import { ScrollReveal } from '../components/cinematic/ScrollReveal'
 
 interface ShopPageProps {
   searchParams: Promise<{
@@ -81,7 +82,6 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   if (params.sort === 'price-high') sort = '-sellPrice'
 
   // Fetch books - select only needed fields to avoid date serialization issues
-  // Some books have invalid date values that cause RSC serialization to fail
   const result = await payload.find({
     collection: 'books',
     where,
@@ -107,7 +107,6 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   })
 
   // Convert to plain JSON to ensure RSC serialization works correctly
-  // This also strips any Payload-specific properties that might cause issues
   const books: Book[] = JSON.parse(JSON.stringify(result.docs))
 
   const totalDocs = result.totalDocs
@@ -115,12 +114,12 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Shop Books</h1>
+      <ScrollReveal className="mb-8">
+        <h1 className="font-heading text-3xl font-bold">Shop Books</h1>
         <p className="mt-2 text-muted-foreground">
           {totalDocs} {totalDocs === 1 ? 'book' : 'books'} available
         </p>
-      </div>
+      </ScrollReveal>
 
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <Suspense fallback={<div className="h-10 flex-1 animate-pulse rounded-md bg-muted" />}>
