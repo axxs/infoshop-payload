@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useCallback, useEffect } from 'react'
-import { FieldLabel, TextInput, useField } from '@payloadcms/ui'
+import { FieldLabel, TextInput, useField, useForm } from '@payloadcms/ui'
 import type { TextFieldClientProps } from 'payload'
 
 /** Convert HSL string "H S% L%" to hex "#RRGGBB" */
@@ -55,14 +55,70 @@ function hexToHsl(hex: string): string {
 }
 
 /**
- * Extract the CSS variable name from the field path.
- * e.g. "override_light_primary" → "--color-primary"
- *      "override_dark_muted_foreground" → "--color-muted-foreground"
+ * Parse the field path to get the mode (light/dark) and CSS variable name.
+ * e.g. "override_light_primary" → { mode: "light", cssVar: "--color-primary" }
  */
-function fieldPathToCssVar(fieldPath: string): string | null {
-  const match = fieldPath.match(/^override_(?:light|dark)_(.+)$/)
+function parseFieldPath(fieldPath: string): { mode: string; cssVar: string } | null {
+  const match = fieldPath.match(/^override_(light|dark)_(.+)$/)
   if (!match) return null
-  return `--color-${match[1].replace(/_/g, '-')}`
+  return {
+    mode: match[1],
+    cssVar: `--color-${match[2].replace(/_/g, '-')}`,
+  }
+}
+
+/** Cache fetched CSS files so each theme is only fetched once */
+const cssCache = new Map<string, string>()
+
+/**
+ * Fetch a theme's variables.css and extract a CSS variable value for a given mode.
+ * Parses the light block (no .dark) and dark block (.dark) separately.
+ */
+async function getThemeDefault(
+  themeSlug: string,
+  cssVarName: string,
+  mode: string,
+): Promise<string | null> {
+  const cacheKey = themeSlug
+  let cssText = cssCache.get(cacheKey)
+
+  if (cssText === undefined) {
+    try {
+      const res = await fetch(`/themes/${encodeURIComponent(themeSlug)}/variables.css`)
+      if (!res.ok) return null
+      cssText = await res.text()
+      cssCache.set(cacheKey, cssText)
+    } catch {
+      return null
+    }
+  }
+
+  // Split CSS into blocks by selector
+  // Dark mode block contains ".dark" in its selector
+  // Light mode block does not contain ".dark"
+  const varPattern = new RegExp(
+    `${cssVarName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}:\\s*([^;]+);`,
+    'g',
+  )
+
+  // Find all blocks and their selectors
+  const blockPattern = /([^{]+)\{([^}]+)\}/g
+  let blockMatch
+  while ((blockMatch = blockPattern.exec(cssText)) !== null) {
+    const selector = blockMatch[1].trim()
+    const body = blockMatch[2]
+    const isDarkBlock = selector.includes('.dark')
+
+    if ((mode === 'dark') !== isDarkBlock) continue
+
+    varPattern.lastIndex = 0
+    const varMatch = varPattern.exec(body)
+    if (varMatch) {
+      return varMatch[1].trim()
+    }
+  }
+
+  return null
 }
 
 export const ColorPickerField: React.FC<TextFieldClientProps> = ({
@@ -71,6 +127,7 @@ export const ColorPickerField: React.FC<TextFieldClientProps> = ({
 }) => {
   const fieldPath = pathFromProps ?? field?.name ?? ''
   const { value, setValue } = useField<string>({ path: fieldPath })
+  const { getData } = useForm()
   const [pickerValue, setPickerValue] = useState(() => {
     if (value && value.trim()) {
       try {
@@ -83,16 +140,26 @@ export const ColorPickerField: React.FC<TextFieldClientProps> = ({
   })
   const [themeDefault, setThemeDefault] = useState<string | null>(null)
 
-  // Read the theme's default colour from the computed CSS variable
+  // Fetch the theme's default colour from its variables.css
   useEffect(() => {
-    const cssVar = fieldPathToCssVar(fieldPath)
-    if (!cssVar) return
+    const parsed = parseFieldPath(fieldPath)
+    if (!parsed) return
 
-    const computed = getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim()
-    if (computed) {
-      setThemeDefault(computed)
+    const formData = getData()
+    const activeTheme =
+      typeof formData.activeTheme === 'string' ? formData.activeTheme : 'organic-tech'
+
+    let cancelled = false
+    getThemeDefault(activeTheme, parsed.cssVar, parsed.mode).then((defaultColor) => {
+      if (!cancelled && defaultColor) {
+        setThemeDefault(defaultColor)
+      }
+    })
+
+    return () => {
+      cancelled = true
     }
-  }, [fieldPath])
+  }, [fieldPath, getData])
 
   const label =
     typeof field?.label === 'string' ? field.label : (field?.name ?? '').replace(/_/g, ' ')
@@ -155,11 +222,7 @@ export const ColorPickerField: React.FC<TextFieldClientProps> = ({
             border: hasValue
               ? '2px solid var(--theme-elevation-400)'
               : '2px dashed var(--theme-elevation-300)',
-            backgroundColor: hasValue
-              ? `hsl(${value})`
-              : themeDefault
-                ? themeDefault
-                : 'transparent',
+            backgroundColor: hasValue ? `hsl(${value})` : (themeDefault ?? 'transparent'),
             backgroundImage:
               hasValue || themeDefault
                 ? 'none'

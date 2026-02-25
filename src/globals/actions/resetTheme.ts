@@ -3,28 +3,7 @@
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { revalidatePath } from 'next/cache'
-
-const COLOR_TOKENS = [
-  'primary',
-  'primary_foreground',
-  'secondary',
-  'secondary_foreground',
-  'background',
-  'foreground',
-  'card',
-  'card_foreground',
-  'popover',
-  'popover_foreground',
-  'muted',
-  'muted_foreground',
-  'accent',
-  'accent_foreground',
-  'destructive',
-  'destructive_foreground',
-  'border',
-  'input',
-  'ring',
-]
+import { COLOR_TOKENS } from '@/globals/Theme'
 
 export async function resetThemeToDefaults() {
   try {
@@ -34,8 +13,8 @@ export async function resetThemeToDefaults() {
     const resetData: Record<string, null> = {}
 
     for (const mode of ['light', 'dark'] as const) {
-      for (const token of COLOR_TOKENS) {
-        resetData[`override_${mode}_${token}`] = null
+      for (const { name } of COLOR_TOKENS) {
+        resetData[`override_${mode}_${name}`] = null
       }
     }
 
@@ -54,7 +33,6 @@ export async function resetThemeToDefaults() {
 
     return { success: true }
   } catch (error) {
-    console.error('Failed to reset theme overrides:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

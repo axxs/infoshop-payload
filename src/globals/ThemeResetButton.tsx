@@ -26,8 +26,7 @@ export function ThemeResetButton() {
       }
 
       window.location.reload()
-    } catch (error) {
-      console.error('Error resetting theme overrides:', error)
+    } catch {
       alert('Failed to reset overrides. Please try again.')
     } finally {
       setIsResetting(false)

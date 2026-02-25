@@ -2,7 +2,7 @@ import type { GlobalConfig } from 'payload'
 import { getThemeOptions } from '@/lib/themes'
 
 /** Color tokens that can be overridden per mode */
-const COLOR_TOKENS = [
+export const COLOR_TOKENS = [
   { name: 'primary', label: 'Primary', description: 'Main buttons, links, and active elements' },
   {
     name: 'primary_foreground',

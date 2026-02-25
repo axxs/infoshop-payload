@@ -64,8 +64,8 @@ export function discoverThemesSync(): ThemeManifest[] {
         ...manifest,
         hasOverrides: fs.existsSync(overridesPath),
       })
-    } catch (error) {
-      console.error(`[themes] Failed to parse manifest for theme "${entry.name}":`, error)
+    } catch {
+      // Skip themes with invalid or unreadable manifests
     }
   }
 
@@ -108,8 +108,8 @@ export async function discoverThemes(): Promise<ThemeManifest[]> {
         // No overrides.css for this theme
       }
       themes.push({ ...manifest, hasOverrides })
-    } catch (error) {
-      console.error(`[themes] Failed to parse manifest for theme "${entry.name}":`, error)
+    } catch {
+      // Skip themes with invalid or unreadable manifests
     }
   }
 

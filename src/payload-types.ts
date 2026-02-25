@@ -941,155 +941,155 @@ export interface Theme {
    */
   colorMode: 'auto' | 'light' | 'dark';
   /**
-   * Override Primary colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Main buttons, links, and active elements. Leave blank to use theme default.
    */
   override_light_primary?: string | null;
   /**
-   * Override Primary Foreground colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Text and icons on primary-coloured elements. Leave blank to use theme default.
    */
   override_light_primary_foreground?: string | null;
   /**
-   * Override Secondary colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Secondary buttons and highlighted sections. Leave blank to use theme default.
    */
   override_light_secondary?: string | null;
   /**
-   * Override Secondary Foreground colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Text and icons on secondary-coloured elements. Leave blank to use theme default.
    */
   override_light_secondary_foreground?: string | null;
   /**
-   * Override Background colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Main page background colour. Leave blank to use theme default.
    */
   override_light_background?: string | null;
   /**
-   * Override Foreground colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Main body text colour. Leave blank to use theme default.
    */
   override_light_foreground?: string | null;
   /**
-   * Override Card colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Card and panel background colour. Leave blank to use theme default.
    */
   override_light_card?: string | null;
   /**
-   * Override Card Foreground colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Text colour inside cards and panels. Leave blank to use theme default.
    */
   override_light_card_foreground?: string | null;
   /**
-   * Override Popover colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Dropdown menu and tooltip background. Leave blank to use theme default.
    */
   override_light_popover?: string | null;
   /**
-   * Override Popover Foreground colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Text colour in dropdowns and tooltips. Leave blank to use theme default.
    */
   override_light_popover_foreground?: string | null;
   /**
-   * Override Muted colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Subtle background for secondary content areas. Leave blank to use theme default.
    */
   override_light_muted?: string | null;
   /**
-   * Override Muted Foreground colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * De-emphasised text like captions and metadata. Leave blank to use theme default.
    */
   override_light_muted_foreground?: string | null;
   /**
-   * Override Accent colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Highlighted backgrounds and hover states. Leave blank to use theme default.
    */
   override_light_accent?: string | null;
   /**
-   * Override Accent Foreground colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Text on accent-coloured backgrounds. Leave blank to use theme default.
    */
   override_light_accent_foreground?: string | null;
   /**
-   * Override Destructive colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Delete buttons, error messages, and warning states. Leave blank to use theme default.
    */
   override_light_destructive?: string | null;
   /**
-   * Override Destructive Foreground colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Text on destructive-coloured elements. Leave blank to use theme default.
    */
   override_light_destructive_foreground?: string | null;
   /**
-   * Override Border colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Borders, dividers, and separator lines. Leave blank to use theme default.
    */
   override_light_border?: string | null;
   /**
-   * Override Input colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Form input field borders. Leave blank to use theme default.
    */
   override_light_input?: string | null;
   /**
-   * Override Ring colour for light mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Focus ring around interactive elements. Leave blank to use theme default.
    */
   override_light_ring?: string | null;
   /**
-   * Override Primary colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Main buttons, links, and active elements. Leave blank to use theme default.
    */
   override_dark_primary?: string | null;
   /**
-   * Override Primary Foreground colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Text and icons on primary-coloured elements. Leave blank to use theme default.
    */
   override_dark_primary_foreground?: string | null;
   /**
-   * Override Secondary colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Secondary buttons and highlighted sections. Leave blank to use theme default.
    */
   override_dark_secondary?: string | null;
   /**
-   * Override Secondary Foreground colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Text and icons on secondary-coloured elements. Leave blank to use theme default.
    */
   override_dark_secondary_foreground?: string | null;
   /**
-   * Override Background colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Main page background colour. Leave blank to use theme default.
    */
   override_dark_background?: string | null;
   /**
-   * Override Foreground colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Main body text colour. Leave blank to use theme default.
    */
   override_dark_foreground?: string | null;
   /**
-   * Override Card colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Card and panel background colour. Leave blank to use theme default.
    */
   override_dark_card?: string | null;
   /**
-   * Override Card Foreground colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Text colour inside cards and panels. Leave blank to use theme default.
    */
   override_dark_card_foreground?: string | null;
   /**
-   * Override Popover colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Dropdown menu and tooltip background. Leave blank to use theme default.
    */
   override_dark_popover?: string | null;
   /**
-   * Override Popover Foreground colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Text colour in dropdowns and tooltips. Leave blank to use theme default.
    */
   override_dark_popover_foreground?: string | null;
   /**
-   * Override Muted colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Subtle background for secondary content areas. Leave blank to use theme default.
    */
   override_dark_muted?: string | null;
   /**
-   * Override Muted Foreground colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * De-emphasised text like captions and metadata. Leave blank to use theme default.
    */
   override_dark_muted_foreground?: string | null;
   /**
-   * Override Accent colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Highlighted backgrounds and hover states. Leave blank to use theme default.
    */
   override_dark_accent?: string | null;
   /**
-   * Override Accent Foreground colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Text on accent-coloured backgrounds. Leave blank to use theme default.
    */
   override_dark_accent_foreground?: string | null;
   /**
-   * Override Destructive colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Delete buttons, error messages, and warning states. Leave blank to use theme default.
    */
   override_dark_destructive?: string | null;
   /**
-   * Override Destructive Foreground colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Text on destructive-coloured elements. Leave blank to use theme default.
    */
   override_dark_destructive_foreground?: string | null;
   /**
-   * Override Border colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Borders, dividers, and separator lines. Leave blank to use theme default.
    */
   override_dark_border?: string | null;
   /**
-   * Override Input colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Form input field borders. Leave blank to use theme default.
    */
   override_dark_input?: string | null;
   /**
-   * Override Ring colour for dark mode (HSL, e.g. "150 27% 22%"). Leave blank to use theme default.
+   * Focus ring around interactive elements. Leave blank to use theme default.
    */
   override_dark_ring?: string | null;
   /**
