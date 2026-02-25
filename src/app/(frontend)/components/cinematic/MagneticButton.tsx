@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useCallback } from 'react'
+import { useRef, useCallback, useEffect } from 'react'
 import { gsap } from '@/lib/gsap'
 
 interface MagneticButtonProps {
@@ -15,6 +15,24 @@ export function MagneticButton({ children, strength = 0.3, className = '' }: Mag
   const reducedMotion = useRef(
     typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   )
+
+  // Listen for system reduced-motion preference changes
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const handler = (e: MediaQueryListEvent) => {
+      reducedMotion.current = e.matches
+    }
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
+  // Clean up any running GSAP tweens on unmount
+  useEffect(() => {
+    const el = ref.current
+    return () => {
+      if (el) gsap.killTweensOf(el)
+    }
+  }, [])
 
   const handleMouseEnter = useCallback(() => {
     if (ref.current) {

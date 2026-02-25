@@ -2,9 +2,11 @@
 
 import { useEffect, useCallback } from 'react'
 
-/** Lightweight check that a string looks like an HSL value: "H S% L%" */
+/** Lightweight check that a string looks like an HSL value: "H S% L%" (hue 0-360) */
 function isValidHsl(value: string): boolean {
-  return /^\d{1,3}(\.\d+)?\s+\d{1,3}(\.\d+)?%\s+\d{1,3}(\.\d+)?%$/.test(value.trim())
+  return /^(?:360|(?:3[0-5]\d|[12]\d{2}|[1-9]?\d)(\.\d+)?)\s+\d{1,3}(\.\d+)?%\s+\d{1,3}(\.\d+)?%$/.test(
+    value.trim(),
+  )
 }
 
 interface ThemeOverrides {

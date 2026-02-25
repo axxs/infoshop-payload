@@ -25,8 +25,11 @@ export function StaggerReveal({
     () => {
       if (!ref.current) return
 
-      // Respect reduced motion
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+      // Respect reduced motion — show children immediately without animation
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        gsap.set(ref.current.children, { opacity: 1 })
+        return
+      }
 
       const items = ref.current.children
 

@@ -140,22 +140,36 @@ export const ColorPickerField: React.FC<TextFieldClientProps> = ({
   })
   const [themeDefault, setThemeDefault] = useState<string | null>(null)
 
-  // Stable ref for getData to avoid re-running effect on every render
-  const getDataRef = useRef(getData)
-  getDataRef.current = getData
+  // Sync pickerValue when value changes externally (e.g. form reset)
+  const prevValueRef = useRef(value)
+  useEffect(() => {
+    if (value !== prevValueRef.current) {
+      prevValueRef.current = value
+      if (value && value.trim()) {
+        try {
+          setPickerValue(hslToHex(value))
+        } catch {
+          // Invalid HSL — keep existing picker value
+        }
+      } else {
+        setPickerValue('#000000')
+      }
+    }
+  }, [value])
+
+  // Track active theme to re-fetch defaults when it changes
+  const formData = getData()
+  const activeTheme =
+    typeof formData.activeTheme === 'string' ? formData.activeTheme : 'organic-tech'
 
   // Fetch the theme's default colour from its variables.css
   useEffect(() => {
     const parsed = parseFieldPath(fieldPath)
     if (!parsed) return
 
-    const formData = getDataRef.current()
-    const activeTheme =
-      typeof formData.activeTheme === 'string' ? formData.activeTheme : 'organic-tech'
-
     let cancelled = false
     getThemeDefault(activeTheme, parsed.cssVar, parsed.mode).then((defaultColor) => {
-      if (!cancelled && defaultColor) {
+      if (!cancelled) {
         setThemeDefault(defaultColor)
       }
     })
@@ -163,7 +177,7 @@ export const ColorPickerField: React.FC<TextFieldClientProps> = ({
     return () => {
       cancelled = true
     }
-  }, [fieldPath])
+  }, [fieldPath, activeTheme])
 
   const label =
     typeof field?.label === 'string' ? field.label : (field?.name ?? '').replace(/_/g, ' ')

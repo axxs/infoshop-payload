@@ -19,8 +19,11 @@ export function useScrollReveal<T extends HTMLElement>(options: UseScrollRevealO
     () => {
       if (!ref.current) return
 
-      // Respect reduced motion
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+      // Respect reduced motion — show content immediately without animation
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        gsap.set(ref.current, { opacity: 1 })
+        return
+      }
 
       const directionMap = {
         up: { y: distance, x: 0 },
