@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { FieldLabel, TextInput, useField } from '@payloadcms/ui'
 import type { TextFieldClientProps } from 'payload'
 
@@ -54,6 +54,17 @@ function hexToHsl(hex: string): string {
   return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`
 }
 
+/**
+ * Extract the CSS variable name from the field path.
+ * e.g. "override_light_primary" → "--color-primary"
+ *      "override_dark_muted_foreground" → "--color-muted-foreground"
+ */
+function fieldPathToCssVar(fieldPath: string): string | null {
+  const match = fieldPath.match(/^override_(?:light|dark)_(.+)$/)
+  if (!match) return null
+  return `--color-${match[1].replace(/_/g, '-')}`
+}
+
 export const ColorPickerField: React.FC<TextFieldClientProps> = ({
   field,
   path: pathFromProps,
@@ -70,6 +81,18 @@ export const ColorPickerField: React.FC<TextFieldClientProps> = ({
     }
     return '#000000'
   })
+  const [themeDefault, setThemeDefault] = useState<string | null>(null)
+
+  // Read the theme's default colour from the computed CSS variable
+  useEffect(() => {
+    const cssVar = fieldPathToCssVar(fieldPath)
+    if (!cssVar) return
+
+    const computed = getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim()
+    if (computed) {
+      setThemeDefault(computed)
+    }
+  }, [fieldPath])
 
   const label =
     typeof field?.label === 'string' ? field.label : (field?.name ?? '').replace(/_/g, ' ')
@@ -129,12 +152,19 @@ export const ColorPickerField: React.FC<TextFieldClientProps> = ({
             width: '36px',
             height: '36px',
             borderRadius: '4px',
-            border: '2px solid var(--theme-elevation-400)',
-            backgroundColor: hasValue ? `hsl(${value})` : 'transparent',
-            backgroundImage: hasValue
-              ? 'none'
-              : 'repeating-conic-gradient(#ccc 0% 25%, transparent 0% 50%)',
-            backgroundSize: hasValue ? 'auto' : '8px 8px',
+            border: hasValue
+              ? '2px solid var(--theme-elevation-400)'
+              : '2px dashed var(--theme-elevation-300)',
+            backgroundColor: hasValue
+              ? `hsl(${value})`
+              : themeDefault
+                ? themeDefault
+                : 'transparent',
+            backgroundImage:
+              hasValue || themeDefault
+                ? 'none'
+                : 'repeating-conic-gradient(#ccc 0% 25%, transparent 0% 50%)',
+            backgroundSize: hasValue || themeDefault ? 'auto' : '8px 8px',
             position: 'relative',
             overflow: 'hidden',
             flexShrink: 0,
