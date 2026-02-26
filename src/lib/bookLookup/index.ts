@@ -12,7 +12,10 @@
 import * as GoogleBooks from './googleBooks'
 import * as OpenLibrary from './openLibrary'
 import * as WorldCat from './worldCat'
+import { lookupBookByTitle, clearTitleCache } from './titleSearch'
 import type { BookLookupResult, BookData } from './types'
+
+export { lookupBookByTitle }
 
 /**
  * Merge book data from multiple sources, preferring non-empty values
@@ -204,4 +207,5 @@ export function clearAllCaches(): void {
   OpenLibrary.clearISBNCache()
   GoogleBooks.clearCache()
   WorldCat.clearCache()
+  clearTitleCache()
 }

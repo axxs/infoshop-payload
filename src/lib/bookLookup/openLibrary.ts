@@ -155,6 +155,106 @@ function transformOpenLibraryData(olBook: OpenLibraryBook, isbn: string): BookDa
 }
 
 /**
+ * Open Library Search API result document
+ */
+interface OpenLibrarySearchDoc {
+  title: string
+  author_name?: string[]
+  publisher?: string[]
+  first_publish_year?: number
+  isbn?: string[]
+  cover_i?: number
+  number_of_pages_median?: number
+  subject?: string[]
+}
+
+/**
+ * Open Library Search API response
+ */
+interface OpenLibrarySearchResponse {
+  numFound: number
+  docs: OpenLibrarySearchDoc[]
+}
+
+/**
+ * Transform an Open Library search doc into our standard BookData format
+ *
+ * The search API returns a different shape from the bibkeys/ISBN API,
+ * so we need a separate transform function.
+ */
+function transformSearchResult(doc: OpenLibrarySearchDoc): BookData {
+  const author = doc.author_name?.join(', ') ?? 'Unknown Author'
+  const publisher = doc.publisher?.[0]
+
+  let coverImageUrl: string | undefined
+  if (doc.cover_i) {
+    coverImageUrl = `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`
+  }
+
+  const publishedDate = doc.first_publish_year ? String(doc.first_publish_year) : undefined
+
+  const isbn = doc.isbn?.[0] ?? ''
+
+  const subjects = doc.subject
+    ?.filter((s) => s.trim().length > 0)
+    .slice(0, 10)
+
+  return {
+    title: doc.title,
+    author,
+    publisher,
+    publishedDate,
+    coverImageUrl,
+    isbn,
+    pages: doc.number_of_pages_median,
+    subjects,
+  }
+}
+
+/**
+ * Search Open Library by title and optional author
+ *
+ * Uses the Search API (different from the ISBN bibkeys API).
+ *
+ * @param title - Book title
+ * @param author - Optional author name
+ * @returns Array of BookData results (may be empty)
+ */
+export async function searchByTitle(title: string, author?: string): Promise<BookData[]> {
+  const params = new URLSearchParams({
+    title,
+    limit: '3',
+    fields: 'title,author_name,publisher,first_publish_year,isbn,cover_i,number_of_pages_median,subject',
+  })
+  if (author) params.set('author', author)
+
+  const url = `https://openlibrary.org/search.json?${params}`
+
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT.OPEN_LIBRARY)
+
+  try {
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'Infoshop-Payload/1.0 (Bookstore Inventory System)' },
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    if (!response.ok) return []
+
+    const data: OpenLibrarySearchResponse = await response.json()
+
+    if (data.numFound === 0 || data.docs.length === 0) return []
+
+    return data.docs.map(transformSearchResult)
+  } catch {
+    clearTimeout(timeoutId)
+    return []
+  }
+}
+
+/**
  * Look up book by ISBN
  *
  * @param isbn - ISBN-10 or ISBN-13 (with or without hyphens)
