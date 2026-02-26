@@ -50,6 +50,9 @@ RUN apk add --no-cache libc6-compat
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# Create media directory for file uploads (volume mount inherits these permissions)
+RUN mkdir -p /app/media && chown nextjs:nodejs /app/media
+
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/themes ./themes
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
