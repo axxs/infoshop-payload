@@ -25,12 +25,14 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const theme = (await payload.findGlobal({
     slug: 'theme',
   })) as {
+    orderingEnabled?: boolean
     showOutOfStockBooks?: boolean
     showUnpricedBooks?: boolean
     contactEmail?: string
     contactPageUrl?: string
   }
 
+  const orderingEnabled = theme?.orderingEnabled ?? true
   const showOutOfStockBooks = theme?.showOutOfStockBooks ?? false
   const showUnpricedBooks = theme?.showUnpricedBooks ?? false
   const contactEmail = theme?.contactEmail
@@ -131,7 +133,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
         </Suspense>
       </div>
 
-      <BookGrid books={books} contactEmail={contactEmail} contactPageUrl={contactPageUrl} />
+      <BookGrid books={books} contactEmail={contactEmail} contactPageUrl={contactPageUrl} orderingEnabled={orderingEnabled} />
 
       {totalPages > 1 && (
         <div className="mt-8 flex justify-center gap-2">

@@ -54,6 +54,12 @@ async function findBook(slug: string): Promise<Book | null> {
 
 export default async function BookPage({ params }: BookPageProps) {
   const { slug } = await params
+  const payload = await getPayload({ config })
+  const themeGlobal = (await payload.findGlobal({ slug: 'theme' })) as {
+    orderingEnabled?: boolean
+  }
+  const orderingEnabled = themeGlobal?.orderingEnabled ?? true
+
   const book = await findBook(slug)
 
   if (!book) {
@@ -173,7 +179,7 @@ export default async function BookPage({ params }: BookPageProps) {
               </div>
 
               <div className="mt-4">
-                {canPurchase ? (
+                {canPurchase && orderingEnabled ? (
                   <AddToCartButton
                     bookId={book.id}
                     title={book.title}

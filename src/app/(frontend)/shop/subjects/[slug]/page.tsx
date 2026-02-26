@@ -34,6 +34,16 @@ export default async function SubjectPage({ params, searchParams }: SubjectPageP
     notFound()
   }
 
+  // Fetch theme settings for ordering toggle + contact info
+  const theme = (await payload.findGlobal({ slug: 'theme' })) as {
+    orderingEnabled?: boolean
+    contactEmail?: string
+    contactPageUrl?: string
+  }
+  const orderingEnabled = theme?.orderingEnabled ?? true
+  const contactEmail = theme?.contactEmail
+  const contactPageUrl = theme?.contactPageUrl
+
   const page = Number(searchParamsResolved.page) || 1
   const limit = 20
 
@@ -77,7 +87,7 @@ export default async function SubjectPage({ params, searchParams }: SubjectPageP
         </p>
       </div>
 
-      <BookGrid books={books} />
+      <BookGrid books={books} orderingEnabled={orderingEnabled} contactEmail={contactEmail} contactPageUrl={contactPageUrl} />
 
       {totalPages > 1 && (
         <div className="mt-8 flex justify-center gap-2">

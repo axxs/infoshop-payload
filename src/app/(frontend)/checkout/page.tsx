@@ -6,8 +6,18 @@ import { CheckoutForm } from '../components/checkout/CheckoutForm'
 import { getCart } from '@/lib/cart'
 import { formatPrice } from '@/lib/utils'
 import { ScrollReveal } from '../components/cinematic/ScrollReveal'
+import { getPayload } from 'payload'
+import config from '@payload-config'
 
 export default async function CheckoutPage() {
+  const payload = await getPayload({ config })
+  const theme = (await payload.findGlobal({ slug: 'theme' })) as {
+    orderingEnabled?: boolean
+  }
+  if (!(theme?.orderingEnabled ?? true)) {
+    redirect('/shop')
+  }
+
   const result = await getCart()
 
   if (!result.success) {

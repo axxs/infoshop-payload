@@ -107,15 +107,14 @@ export function CheckoutForm({
             />
           </div>
 
-          {/* Square Web Payments SDK card input placeholder */}
-          <div className="rounded-lg border p-4">
-            <p className="text-sm text-muted-foreground">
-              Square Web Payments SDK integration coming soon.
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              For development: Click &quot;Complete Order&quot; to create a test order.
-            </p>
-          </div>
+          {/* Square Web Payments SDK card input — integration pending */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="rounded-lg border border-dashed p-3">
+              <p className="text-xs text-muted-foreground">
+                [DEV] Mock payment — click Complete Order to create a test order.
+              </p>
+            </div>
+          )}
 
           {error && (
             <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</div>

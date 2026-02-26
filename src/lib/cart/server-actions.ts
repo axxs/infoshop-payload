@@ -125,6 +125,14 @@ export async function addToCart(
   try {
     const payload = await getPayload({ config })
 
+    // Check if ordering is enabled
+    const theme = (await payload.findGlobal({ slug: 'theme' })) as {
+      orderingEnabled?: boolean
+    }
+    if (!(theme?.orderingEnabled ?? true)) {
+      return { success: false, error: 'Online ordering is not currently available' }
+    }
+
     // SECURITY: Verify member pricing authorization
     if (isMemberPrice) {
       const cookieStore = await cookies()

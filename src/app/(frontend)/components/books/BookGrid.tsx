@@ -5,9 +5,10 @@ interface BookGridProps {
   books: Book[]
   contactEmail?: string
   contactPageUrl?: string
+  orderingEnabled?: boolean
 }
 
-export function BookGrid({ books, contactEmail, contactPageUrl }: BookGridProps) {
+export function BookGrid({ books, contactEmail, contactPageUrl, orderingEnabled }: BookGridProps) {
   if (books.length === 0) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
@@ -27,6 +28,7 @@ export function BookGrid({ books, contactEmail, contactPageUrl }: BookGridProps)
           book={book}
           contactEmail={contactEmail}
           contactPageUrl={contactPageUrl}
+          orderingEnabled={orderingEnabled}
         />
       ))}
     </div>

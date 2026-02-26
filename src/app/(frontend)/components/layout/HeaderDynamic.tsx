@@ -12,10 +12,15 @@ export async function HeaderDynamic() {
   const payload = await getPayload({ config })
 
   let layout
+  let orderingEnabled = true
   try {
-    layout = await payload.findGlobal({
-      slug: 'layout',
-    })
+    const [layoutResult, themeResult] = await Promise.all([
+      payload.findGlobal({ slug: 'layout' }),
+      payload.findGlobal({ slug: 'theme' }),
+    ])
+    layout = layoutResult
+    orderingEnabled =
+      (themeResult as { orderingEnabled?: boolean })?.orderingEnabled ?? true
   } catch {
     return <HeaderFallback />
   }
@@ -80,12 +85,14 @@ export async function HeaderDynamic() {
               <span className="sr-only">Search</span>
             </Link>
           </Button>
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/cart">
-              <ShoppingCart className="h-5 w-5" />
-              <span className="sr-only">Cart</span>
-            </Link>
-          </Button>
+          {orderingEnabled && (
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/cart">
+                <ShoppingCart className="h-5 w-5" />
+                <span className="sr-only">Cart</span>
+              </Link>
+            </Button>
+          )}
           {ctaButton?.label && ctaButton?.href && (
             <Button asChild>
               <Link href={ctaButton.href}>{ctaButton.label}</Link>

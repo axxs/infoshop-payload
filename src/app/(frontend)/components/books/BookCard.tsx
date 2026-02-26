@@ -10,9 +10,10 @@ interface BookCardProps {
   book: Book
   contactEmail?: string
   contactPageUrl?: string
+  orderingEnabled?: boolean
 }
 
-export function BookCard({ book, contactEmail, contactPageUrl }: BookCardProps) {
+export function BookCard({ book, contactEmail, contactPageUrl, orderingEnabled = true }: BookCardProps) {
   const coverUrl =
     typeof book.coverImage === 'object' &&
     book.coverImage !== null &&
@@ -81,7 +82,7 @@ export function BookCard({ book, contactEmail, contactPageUrl }: BookCardProps) 
             )}
           </div>
         </div>
-        {canPurchase && (
+        {canPurchase && orderingEnabled && (
           <AddToCartButton
             bookId={book.id}
             title={book.title}
