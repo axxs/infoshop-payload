@@ -67,5 +67,7 @@ ENV PORT 3000
 
 # 1. Push database schema with NODE_ENV unset (Payload skips push in production).
 #    drizzle-kit pushSchema is idempotent so this is safe on every deploy.
+#    Timeout prevents hangs when drizzle-kit needs interactive input (no TTY in Docker).
+#    Set SKIP_SCHEMA_PUSH=true to bypass entirely.
 # 2. Start the Next.js production server.
-CMD sh -c 'NODE_ENV= npx tsx src/push-schema.ts; HOSTNAME="0.0.0.0" npx next start -p 3000'
+CMD sh -c 'NODE_ENV= timeout 120 npx tsx src/push-schema.ts || echo "[push-schema] Push did not complete, starting server anyway..."; HOSTNAME="0.0.0.0" npx next start -p 3000'
