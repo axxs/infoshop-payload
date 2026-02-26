@@ -46,6 +46,7 @@ export const generateBookSlug: CollectionBeforeChangeHook = async ({ data, opera
   if (!title) return data
 
   const baseSlug = slugify(String(title))
+  if (!baseSlug) return data // Title has no slugifiable characters (e.g. purely CJK)
 
   // Find existing slugs that contain the base slug to detect conflicts.
   // Payload's `like` is a substring match (SQL LIKE '%val%'), so we filter

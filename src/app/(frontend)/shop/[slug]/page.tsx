@@ -183,12 +183,12 @@ export default async function BookPage({ params }: BookPageProps) {
                     className="w-full"
                   />
                 ) : isUnpriced && !isDiscontinued ? (
-                  <a
+                  <Link
                     href="/contact"
                     className="inline-flex w-full items-center justify-center rounded-md border border-primary bg-transparent px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
                   >
                     Contact for Pricing
-                  </a>
+                  </Link>
                 ) : null}
               </div>
 
