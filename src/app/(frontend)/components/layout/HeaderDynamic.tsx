@@ -12,18 +12,18 @@ export async function HeaderDynamic() {
   const payload = await getPayload({ config })
 
   let layout
+  let orderingEnabled = true
   try {
-    layout = await payload.findGlobal({
-      slug: 'layout',
-    })
+    const [layoutResult, themeResult] = await Promise.all([
+      payload.findGlobal({ slug: 'layout' }),
+      payload.findGlobal({ slug: 'theme' }),
+    ])
+    layout = layoutResult
+    orderingEnabled =
+      (themeResult as { orderingEnabled?: boolean })?.orderingEnabled ?? true
   } catch {
     return <HeaderFallback />
   }
-
-  const theme = (await payload.findGlobal({ slug: 'theme' })) as {
-    orderingEnabled?: boolean
-  }
-  const orderingEnabled = theme?.orderingEnabled ?? true
 
   const siteName = layout.siteName ?? 'Infoshop'
   const navigation = layout.navigation || []

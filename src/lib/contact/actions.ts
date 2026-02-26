@@ -4,13 +4,32 @@ import { headers as getHeaders } from 'next/headers'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
-/** Simple in-memory rate limiter for contact form (5 submissions per IP per 15 minutes) */
+/**
+ * Simple in-memory rate limiter for contact form (5 submissions per IP per 15 minutes).
+ * Note: this is per-process — it will not persist across restarts or scale across
+ * multiple instances. Acceptable for a low-traffic contact form.
+ */
 const submissionLog = new Map<string, number[]>()
 const RATE_LIMIT_MAX = 5
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
+let lastCleanup = Date.now()
 
 function isRateLimited(ip: string): boolean {
   const now = Date.now()
+
+  // Periodically prune stale entries to prevent unbounded memory growth
+  if (now - lastCleanup > RATE_LIMIT_WINDOW_MS) {
+    for (const [key, timestamps] of submissionLog) {
+      const recent = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW_MS)
+      if (recent.length === 0) {
+        submissionLog.delete(key)
+      } else {
+        submissionLog.set(key, recent)
+      }
+    }
+    lastCleanup = now
+  }
+
   const timestamps = submissionLog.get(ip) ?? []
   const recent = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW_MS)
   submissionLog.set(ip, recent)
@@ -75,7 +94,8 @@ export async function submitContactForm(formData: FormData): Promise<ContactForm
 
     return { success: true }
   } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Failed to submit form'
-    return { success: false, error: errorMessage }
+    const payload = await getPayload({ config })
+    payload.logger.error({ msg: 'Contact form submission failed', error: err instanceof Error ? err.message : err })
+    return { success: false, error: 'Something went wrong. Please try again later.' }
   }
 }
