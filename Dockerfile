@@ -50,11 +50,15 @@ RUN apk add --no-cache libc6-compat
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# Create media directory for file uploads (volume mount inherits these permissions)
+RUN mkdir -p /app/media && chown nextjs:nodejs /app/media
+
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/themes ./themes
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/src ./src
+COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nextjs:nodejs /app/next.config.mjs ./next.config.mjs
 COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
@@ -65,9 +69,13 @@ EXPOSE 3000
 
 ENV PORT 3000
 
-# 1. Push database schema with NODE_ENV unset (Payload skips push in production).
-#    drizzle-kit pushSchema is idempotent so this is safe on every deploy.
-#    Timeout prevents hangs when drizzle-kit needs interactive input (no TTY in Docker).
-#    Set SKIP_SCHEMA_PUSH=true to bypass entirely.
-# 2. Start the Next.js production server.
-CMD sh -c 'NODE_ENV= timeout 120 npx tsx src/push-schema.ts || echo "[push-schema] Push did not complete, starting server anyway..."; HOSTNAME="0.0.0.0" npx next start -p 3000'
+# 1. Pre-create any missing columns via direct SQL (avoids drizzle-kit interactive prompts).
+# 2. Push remaining schema changes with NODE_ENV unset (Payload skips push in production).
+#    Timeout prevents hangs if drizzle-kit still needs interactive input.
+#    Set SKIP_SCHEMA_PUSH=true to bypass the push entirely.
+# 3. Start the Next.js production server.
+CMD sh -c '\
+  npx tsx scripts/migrate-theme-columns.ts; \
+  NODE_ENV= timeout 120 npx tsx src/push-schema.ts \
+    || echo "[push-schema] Push did not complete, starting server anyway..."; \
+  HOSTNAME="0.0.0.0" npx next start -p 3000'
