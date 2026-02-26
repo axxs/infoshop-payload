@@ -9,8 +9,9 @@ import { slugify, generateUniqueSlug } from '../utils/slugify'
 
 /**
  * Validate ISBN format (ISBN-10 or ISBN-13)
+ * Exported for reuse in ISBN redirect route
  */
-function validateISBN(isbn: string | null | undefined): boolean {
+export function validateISBN(isbn: string | null | undefined): boolean {
   if (!isbn) return true // ISBN is optional
 
   // Remove hyphens and spaces
@@ -49,6 +50,13 @@ export const generateBookSlug: CollectionBeforeChangeHook = async ({ data, opera
   // Find existing slugs that contain the base slug to detect conflicts.
   // Payload's `like` is a substring match (SQL LIKE '%val%'), so we filter
   // in-memory to only keep exact matches or `baseSlug-N` suffixed variants.
+  //
+  // Known limitations:
+  // - Not atomic: concurrent creates with the same title can race. The `unique`
+  //   DB constraint catches duplicates, but the error is unhandled. Low risk
+  //   for a single-admin CMS.
+  // - Hard cap of 1000 results: if exceeded, conflicts past the cap are missed
+  //   and the DB unique constraint becomes the safety net.
   const { docs: conflicting } = await req.payload.find({
     collection: 'books',
     where: {

@@ -16,8 +16,6 @@ async function backfillBookSlugs() {
 
   const payload = await getPayload({ config: payloadConfig })
 
-  // Fetch all books (paginated)
-  let page = 1
   const limit = 100
   let totalUpdated = 0
   let totalSkipped = 0
@@ -38,21 +36,23 @@ async function backfillBookSlugs() {
 
   console.log(`Found ${assignedSlugs.size} books already with slugs.`)
 
-  // Process books that have no slug yet
+  // Process books that have no slug yet.
+  // Always query page 1: as books receive slugs they drop out of the result set,
+  // so the next batch is always the first page of remaining unprocessed books.
   while (true) {
-    const { docs: books, totalDocs, hasNextPage } = await payload.find({
+    const { docs: books, totalDocs } = await payload.find({
       collection: 'books',
       where: {
         or: [{ slug: { exists: false } }, { slug: { equals: '' } }],
       },
       limit,
-      page,
+      page: 1,
       select: { id: true, title: true, slug: true },
     })
 
     if (books.length === 0) break
 
-    console.log(`Processing batch of ${books.length} books (page ${page}, total needing slugs: ${totalDocs})...`)
+    console.log(`Processing batch of ${books.length} books (${totalDocs} remaining)...`)
 
     for (const book of books) {
       if (!book.title) {
@@ -77,15 +77,12 @@ async function backfillBookSlugs() {
 
         assignedSlugs.add(slug)
         totalUpdated++
-        console.log(`  ✅ "${book.title}" → "${slug}"`)
+        console.log(`  "${book.title}" -> "${slug}"`)
       } catch (err) {
-        console.error(`  ❌ Failed to update book ${book.id} ("${book.title}"):`, err instanceof Error ? err.message : err)
+        console.error(`  Failed to update book ${book.id} ("${book.title}"):`, err instanceof Error ? err.message : err)
         totalSkipped++
       }
     }
-
-    if (!hasNextPage) break
-    page++
   }
 
   console.log(`\nBackfill complete.`)

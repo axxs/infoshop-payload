@@ -2,6 +2,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { notFound } from 'next/navigation'
 import { NextResponse, type NextRequest } from 'next/server'
+import { validateISBN } from '@/collections/Books/hooks'
 
 /**
  * GET /isbn/:isbn
@@ -10,16 +11,17 @@ import { NextResponse, type NextRequest } from 'next/server'
  * Responds with a 301 permanent redirect to /shop/:slug.
  * Returns 404 if no book with that ISBN exists.
  */
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ isbn: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ isbn: string }> }) {
   const { isbn } = await params
+
+  // Validate ISBN format before hitting the database (reuses the same
+  // validator as the Books collection hook for consistent enforcement)
+  if (!validateISBN(isbn)) {
+    notFound()
+  }
 
   // Normalise: strip hyphens/spaces so bare ISBNs and formatted ones both work
   const normalised = isbn.replace(/[-\s]/g, '')
-
-  // Validate ISBN format before hitting the database
-  if (!/^\d{9}[\dX]$/.test(normalised) && !/^\d{13}$/.test(normalised)) {
-    notFound()
-  }
 
   const payload = await getPayload({ config })
 
@@ -37,5 +39,5 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ isb
   const book = docs[0]
   const destination = `/shop/${book.slug ?? book.id}`
 
-  return NextResponse.redirect(new URL(destination, _req.url), 301)
+  return NextResponse.redirect(new URL(destination, req.url), 301)
 }

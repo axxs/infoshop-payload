@@ -1,7 +1,7 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { Badge } from '../../components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
 import { formatPrice, getStockStatusLabel } from '@/lib/utils'
@@ -54,6 +54,12 @@ export default async function BookPage({ params }: BookPageProps) {
 
   if (!book) {
     notFound()
+  }
+
+  // Canonical redirect: if accessed via numeric ID but book has a slug,
+  // redirect to the slug-based URL so only one URL serves this resource
+  if (/^\d+$/.test(slug) && book.slug) {
+    permanentRedirect(`/shop/${book.slug}`)
   }
 
   const coverUrl =
