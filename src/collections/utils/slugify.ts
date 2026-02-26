@@ -1,21 +1,28 @@
 /**
  * Slugify Utility
- * Generates URL-friendly slugs from text
+ * Generates URL-friendly slugs from text with Unicode transliteration
  */
 
 /**
  * Convert text to URL-friendly slug
+ *
+ * Handles Unicode characters by decomposing them (NFD) and stripping
+ * diacritical marks, so "Uber die Natur" becomes "uber-die-natur"
+ * rather than "ber-die-natur".
+ *
  * @param text - The text to convert to a slug
  * @returns URL-friendly slug (lowercase, hyphens, no special chars)
  */
 export function slugify(text: string): string {
   return text
     .toString()
+    .normalize('NFD') // Decompose Unicode (e.g. u + combining umlaut)
+    .replace(/[\u0300-\u036f]/g, '') // Strip diacritical marks
     .toLowerCase()
     .trim()
     .replace(/\s+/g, '-') // Replace spaces with hyphens
-    .replace(/[^\w\-]+/g, '') // Remove all non-word chars except hyphens
-    .replace(/\-\-+/g, '-') // Replace multiple hyphens with single hyphen
+    .replace(/[^\w-]+/g, '') // Remove all non-word chars except hyphens
+    .replace(/--+/g, '-') // Replace multiple hyphens with single hyphen
     .replace(/^-+/, '') // Trim hyphens from start
     .replace(/-+$/, '') // Trim hyphens from end
 }

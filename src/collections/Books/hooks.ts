@@ -5,11 +5,13 @@
 
 import type { CollectionBeforeChangeHook, CollectionAfterChangeHook } from 'payload'
 import { processAndLinkSubjects } from '@/lib/openLibrary/subjectManager'
+import { slugify, generateUniqueSlug } from '../utils/slugify'
 
 /**
  * Validate ISBN format (ISBN-10 or ISBN-13)
+ * Exported for reuse in ISBN redirect route
  */
-function validateISBN(isbn: string | null | undefined): boolean {
+export function validateISBN(isbn: string | null | undefined): boolean {
   if (!isbn) return true // ISBN is optional
 
   // Remove hyphens and spaces
@@ -21,6 +23,63 @@ function validateISBN(isbn: string | null | undefined): boolean {
   const isbn13Regex = /^(978|979)\d{10}$/
 
   return isbn10Regex.test(cleaned) || isbn13Regex.test(cleaned)
+}
+
+/**
+ * Generate URL-friendly slug from book title
+ * - Runs on create (always) and update (only if slug is missing/cleared)
+ * - Queries existing slugs to guarantee uniqueness with a counter suffix
+ */
+export const generateBookSlug: CollectionBeforeChangeHook = async ({ data, operation, req, originalDoc }) => {
+  if (!data) return data
+
+  // Only generate on create, or on update when slug is explicitly cleared
+  // undefined means "not sent" (normal update) — only '' or null means "cleared"
+  const needsSlug =
+    operation === 'create'
+      ? !data.slug
+      : data.slug === '' || data.slug === null
+
+  if (!needsSlug) return data
+
+  const title = data.title ?? originalDoc?.title
+  if (!title) return data
+
+  const baseSlug = slugify(String(title))
+  if (!baseSlug) return data // Title has no slugifiable characters (e.g. purely CJK)
+
+  // Find existing slugs that contain the base slug to detect conflicts.
+  // Payload's `like` is a substring match (SQL LIKE '%val%'), so we filter
+  // in-memory to only keep exact matches or `baseSlug-N` suffixed variants.
+  //
+  // Known limitations:
+  // - Not atomic: concurrent creates with the same title can race. The `unique`
+  //   DB constraint catches duplicates, but the error is unhandled. Low risk
+  //   for a single-admin CMS.
+  // - Hard cap of 1000 results: if exceeded, conflicts past the cap are missed
+  //   and the DB unique constraint becomes the safety net.
+  const { docs: conflicting } = await req.payload.find({
+    collection: 'books',
+    where: {
+      and: [
+        { slug: { like: baseSlug } },
+        ...(operation === 'update' && originalDoc?.id
+          ? [{ id: { not_equals: originalDoc.id } }]
+          : []),
+      ],
+    },
+    limit: 1000,
+    select: { slug: true },
+  })
+
+  const existingSlugs = conflicting
+    .map((doc) => doc.slug)
+    .filter((s): s is string => Boolean(s))
+    .filter((s) => s === baseSlug || /^-\d+$/.test(s.slice(baseSlug.length)))
+
+  data.slug = generateUniqueSlug(baseSlug, existingSlugs)
+
+  return data
 }
 
 /**
@@ -103,6 +162,12 @@ export const validateISBNFormat: CollectionBeforeChangeHook = async ({ data }) =
     )
   }
 
+  // Normalise ISBN to digits-only so queries (e.g. /isbn/:isbn route)
+  // can match without worrying about hyphen formatting
+  if (data.isbn) {
+    data.isbn = data.isbn.replace(/[-\s]/g, '')
+  }
+
   return data
 }
 
@@ -110,8 +175,11 @@ export const validateISBNFormat: CollectionBeforeChangeHook = async ({ data }) =
  * Auto-calculate Stock Status
  * Updates stock status based on quantity and reorder level
  */
-export const calculateStockStatus: CollectionBeforeChangeHook = async ({ data }) => {
+export const calculateStockStatus: CollectionBeforeChangeHook = async ({ data, context }) => {
   if (!data) return data
+
+  // Skip when called from backfill scripts that only set slug
+  if (context?.skipInventoryHooks) return data
 
   // Only auto-calculate if not manually set to DISCONTINUED
   if (data.stockStatus === 'DISCONTINUED') {

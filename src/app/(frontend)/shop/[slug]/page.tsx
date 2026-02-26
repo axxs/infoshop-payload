@@ -1,30 +1,69 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { Badge } from '../../components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
 import { formatPrice, getStockStatusLabel } from '@/lib/utils'
 import { ArrowLeft } from 'lucide-react'
 import { BookCoverImage } from '../../components/books/BookCoverImage'
 import { AddToCartButton } from '../../components/cart/AddToCartButton'
+import type { Book } from '@/payload-types'
 
 interface BookPageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
 }
 
-export default async function BookPage({ params }: BookPageProps) {
-  const { id } = await params
+/**
+ * Look up a book by its slug, with a numeric-ID fallback for backward compatibility.
+ * Returns null when no match is found.
+ */
+async function findBook(slug: string): Promise<Book | null> {
   const payload = await getPayload({ config })
 
-  const book = await payload.findByID({
+  // Primary: look up by slug field
+  const { docs } = await payload.find({
     collection: 'books',
-    id,
+    where: { slug: { equals: slug } },
+    limit: 1,
     depth: 2,
   })
 
+  if (docs.length > 0) return docs[0] as Book
+
+  // Fallback: if the segment looks like a numeric ID, try findByID
+  if (/^\d+$/.test(slug)) {
+    try {
+      const book = await payload.findByID({
+        collection: 'books',
+        id: Number(slug),
+        depth: 2,
+      })
+      return book as Book
+    } catch (err: unknown) {
+      // Only swallow not-found errors; re-throw DB timeouts, auth failures, etc.
+      if (err && typeof err === 'object' && 'status' in err && err.status === 404) {
+        return null
+      }
+      throw err
+    }
+  }
+
+  return null
+}
+
+export default async function BookPage({ params }: BookPageProps) {
+  const { slug } = await params
+  const book = await findBook(slug)
+
   if (!book) {
     notFound()
+  }
+
+  // Canonical redirect: if accessed via numeric ID but book has a slug,
+  // redirect to the slug-based URL so only one URL serves this resource
+  if (/^\d+$/.test(slug) && book.slug) {
+    permanentRedirect(`/shop/${book.slug}`)
   }
 
   const coverUrl =
@@ -144,12 +183,12 @@ export default async function BookPage({ params }: BookPageProps) {
                     className="w-full"
                   />
                 ) : isUnpriced && !isDiscontinued ? (
-                  <a
+                  <Link
                     href="/contact"
                     className="inline-flex w-full items-center justify-center rounded-md border border-primary bg-transparent px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
                   >
                     Contact for Pricing
-                  </a>
+                  </Link>
                 ) : null}
               </div>
 

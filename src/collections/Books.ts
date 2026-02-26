@@ -7,6 +7,7 @@ import {
   checkLowStock,
   validateDigitalProduct,
   processSubjectsFromISBN,
+  generateBookSlug,
 } from './Books/hooks'
 import type { SupportedCurrency } from '@/lib/square/constants'
 import { publicRead, isAdminOrVolunteer } from '@/lib/access'
@@ -35,6 +36,17 @@ export const Books: CollectionConfig = {
       type: 'text',
       required: true,
       index: true,
+    },
+    {
+      name: 'slug',
+      type: 'text',
+      unique: true,
+      index: true,
+      admin: {
+        description: 'URL-friendly identifier (auto-generated from title)',
+        readOnly: true,
+        position: 'sidebar',
+      },
     },
     {
       name: 'isbn',
@@ -288,6 +300,7 @@ export const Books: CollectionConfig = {
   ],
   hooks: {
     beforeChange: [
+      generateBookSlug,
       validateStock,
       validatePricing,
       validateISBNFormat,

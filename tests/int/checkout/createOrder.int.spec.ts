@@ -56,6 +56,7 @@ function makeCart(overrides: Partial<PopulatedCart> = {}): PopulatedCart {
           title: 'Test Book',
           author: null,
           isbn: null,
+          slug: null,
           externalCoverUrl: null,
           sellPrice: 25.0,
           memberPrice: 20.0,

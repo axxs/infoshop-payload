@@ -80,6 +80,7 @@ async function populateCart(): Promise<PopulatedCart> {
         title: book.title,
         author: book.author || null,
         isbn: book.isbn || null,
+        slug: book.slug || null,
         externalCoverUrl: book.externalCoverUrl || null,
         stockQuantity: book.stockQuantity,
         sellPrice: Number(book.sellPrice),

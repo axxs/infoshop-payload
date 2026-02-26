@@ -101,7 +101,7 @@ export async function BookShowcase(props: BookShowcaseProps) {
                 return (
                   <Link
                     key={book.id}
-                    href={`/books/${book.id}`}
+                    href={`/shop/${book.slug ?? book.id}`}
                     className="card-hover-lift group overflow-hidden rounded-lg border bg-card"
                   >
                     {coverImage?.url && (
