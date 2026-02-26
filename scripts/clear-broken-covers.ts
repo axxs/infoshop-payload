@@ -36,14 +36,14 @@ async function main() {
   const batchSize = 100
   let cleared = 0
 
-  for (let page = 1; ; page++) {
+  for (;;) {
     const batch = await payload.find({
       collection: 'books',
       where: {
         coverImage: { exists: true },
       },
       limit: batchSize,
-      page,
+      page: 1, // Always page 1 since cleared records drop out of the filter
       depth: 0,
       select: {
         id: true,

@@ -299,7 +299,7 @@ async function findOrCreateCategory(
       collection: 'categories',
       data: {
         name: categoryName,
-        slug: categoryName.toLowerCase().replace(/\s+/g, '-'),
+        slug: categoryName.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-'),
       },
     })
 

@@ -53,7 +53,7 @@ async function main() {
   let skipped = 0
   let failed = 0
 
-  for (let page = 1; ; page++) {
+  for (;;) {
     const batch = await payload.find({
       collection: 'books',
       where: {
