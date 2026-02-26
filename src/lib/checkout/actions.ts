@@ -44,6 +44,15 @@ export async function processCheckout(params: CheckoutActionParams): Promise<Che
 
     // Get authenticated user if available
     const payload = await getPayload({ config })
+
+    // Check if ordering is enabled
+    const theme = (await payload.findGlobal({ slug: 'theme' })) as {
+      orderingEnabled?: boolean
+    }
+    if (!(theme?.orderingEnabled ?? true)) {
+      return { success: false, error: 'Online ordering is not currently available' }
+    }
+
     const headersList = await getHeaders()
     const { user } = await payload.auth({ headers: headersList as Headers })
 

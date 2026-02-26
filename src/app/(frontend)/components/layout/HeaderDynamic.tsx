@@ -20,6 +20,11 @@ export async function HeaderDynamic() {
     return <HeaderFallback />
   }
 
+  const theme = (await payload.findGlobal({ slug: 'theme' })) as {
+    orderingEnabled?: boolean
+  }
+  const orderingEnabled = theme?.orderingEnabled ?? true
+
   const siteName = layout.siteName ?? 'Infoshop'
   const navigation = layout.navigation || []
   const ctaButton = layout.ctaButton
@@ -80,12 +85,14 @@ export async function HeaderDynamic() {
               <span className="sr-only">Search</span>
             </Link>
           </Button>
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/cart">
-              <ShoppingCart className="h-5 w-5" />
-              <span className="sr-only">Cart</span>
-            </Link>
-          </Button>
+          {orderingEnabled && (
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/cart">
+                <ShoppingCart className="h-5 w-5" />
+                <span className="sr-only">Cart</span>
+              </Link>
+            </Button>
+          )}
           {ctaButton?.label && ctaButton?.href && (
             <Button asChild>
               <Link href={ctaButton.href}>{ctaButton.label}</Link>

@@ -193,6 +193,15 @@ export const Theme: GlobalConfig = {
           label: 'Shop Settings',
           fields: [
             {
+              name: 'orderingEnabled',
+              type: 'checkbox',
+              defaultValue: true,
+              admin: {
+                description:
+                  'Enable online ordering. When disabled, the shop operates in catalogue mode — visitors can browse and see prices but cannot add items to cart or check out.',
+              },
+            },
+            {
               name: 'showOutOfStockBooks',
               type: 'checkbox',
               defaultValue: false,

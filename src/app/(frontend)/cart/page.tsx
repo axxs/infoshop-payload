@@ -1,13 +1,52 @@
 import Link from 'next/link'
-import { ArrowLeft, ShoppingCart } from 'lucide-react'
+import { ArrowLeft, BookOpen, ShoppingCart } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { CartItem } from '../components/cart/CartItem'
 import { CartSummary } from '../components/cart/CartSummary'
 import { getCart } from '@/lib/cart'
 import { ScrollReveal } from '../components/cinematic/ScrollReveal'
+import { getPayload } from 'payload'
+import config from '@payload-config'
 
 export default async function CartPage() {
+  const payload = await getPayload({ config })
+  const theme = (await payload.findGlobal({ slug: 'theme' })) as {
+    orderingEnabled?: boolean
+  }
+  const orderingEnabled = theme?.orderingEnabled ?? true
+
+  // Catalogue mode — ordering is disabled
+  if (!orderingEnabled) {
+    return (
+      <div className="container mx-auto px-4 py-16">
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                <BookOpen className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <CardTitle className="text-2xl">Browse Our Catalogue</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="mb-6 text-muted-foreground">
+                Online ordering is not currently available. Visit us in store or get in touch to purchase books.
+              </p>
+              <div className="flex flex-col gap-3">
+                <Button asChild>
+                  <Link href="/shop">Browse Books</Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link href="/contact">Contact Us</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
   const result = await getCart()
 
   if (!result.success) {

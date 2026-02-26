@@ -17,8 +17,17 @@ async function getLayout(): Promise<Layout> {
   })
 }
 
+async function getOrderingEnabled(): Promise<boolean> {
+  const payload = await getPayload({ config })
+  const theme = (await payload.findGlobal({ slug: 'theme' })) as {
+    orderingEnabled?: boolean
+  }
+  return theme?.orderingEnabled ?? true
+}
+
 export async function Header() {
   const layout = await getLayout()
+  const orderingEnabled = await getOrderingEnabled()
   const siteName = layout.siteName ?? 'Infoshop'
   const navigation = layout.navigation || []
   const ctaButton = layout.ctaButton
@@ -65,12 +74,14 @@ export async function Header() {
               <span className="sr-only">Search</span>
             </Link>
           </Button>
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/cart">
-              <ShoppingCart className="h-5 w-5" />
-              <span className="sr-only">Cart</span>
-            </Link>
-          </Button>
+          {orderingEnabled && (
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/cart">
+                <ShoppingCart className="h-5 w-5" />
+                <span className="sr-only">Cart</span>
+              </Link>
+            </Button>
+          )}
           {ctaButton?.label && ctaButton?.href && (
             <Button asChild>
               <Link href={ctaButton.href}>{ctaButton.label}</Link>

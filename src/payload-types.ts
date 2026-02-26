@@ -77,6 +77,7 @@ export interface Config {
     'event-attendance': EventAttendance;
     sales: Sale;
     'sale-items': SaleItem;
+    'contact-submissions': ContactSubmission;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -94,6 +95,7 @@ export interface Config {
     'event-attendance': EventAttendanceSelect<false> | EventAttendanceSelect<true>;
     sales: SalesSelect<false> | SalesSelect<true>;
     'sale-items': SaleItemsSelect<false> | SaleItemsSelect<true>;
+    'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -582,6 +584,19 @@ export interface SaleItem {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-submissions".
+ */
+export interface ContactSubmission {
+  id: number;
+  name: string;
+  email: string;
+  message: string;
+  status?: ('new' | 'read' | 'replied') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -893,6 +908,18 @@ export interface SaleItemsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-submissions_select".
+ */
+export interface ContactSubmissionsSelect<T extends boolean = true> {
+  name?: T;
+  email?: T;
+  message?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -1113,6 +1140,10 @@ export interface Theme {
    * Override border radius. Leave blank to use theme default.
    */
   override_radius?: string | null;
+  /**
+   * Enable online ordering. When disabled, the shop operates in catalogue mode.
+   */
+  orderingEnabled?: boolean | null;
   /**
    * Display out-of-stock books on the shop page (will show "Out of Stock" badge)
    */
@@ -1525,6 +1556,7 @@ export interface ThemeSelect<T extends boolean = true> {
   override_headingFontFamily?: T;
   override_dramaFontFamily?: T;
   override_radius?: T;
+  orderingEnabled?: T;
   showOutOfStockBooks?: T;
   showUnpricedBooks?: T;
   contactEmail?: T;
