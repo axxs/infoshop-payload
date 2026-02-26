@@ -6,7 +6,10 @@
  * ALTER TABLE ... ADD COLUMN IF NOT EXISTS, so drizzle push finds them
  * already present and skips the interactive prompt.
  *
- * Safe to run repeatedly — IF NOT EXISTS makes it idempotent.
+ * Also drops legacy "radical_*" columns left over from a previous theme
+ * iteration, which otherwise confuse drizzle-kit into rename prompts.
+ *
+ * Safe to run repeatedly — IF NOT EXISTS / IF EXISTS make it idempotent.
  */
 import pg from 'pg'
 
@@ -41,9 +44,13 @@ const TYPOGRAPHY_FIELDS = [
   'override_radius',
 ]
 
+/** Legacy column prefix from a previous theme system */
+const LEGACY_PREFIX = 'radical'
+
 function buildStatements(): string[] {
   const statements: string[] = []
 
+  // 1. Add current override columns
   for (const mode of MODES) {
     for (const token of COLOR_TOKENS) {
       const mainCol = `override_${mode}_${token}`
@@ -56,6 +63,26 @@ function buildStatements(): string[] {
   for (const field of TYPOGRAPHY_FIELDS) {
     statements.push(`ALTER TABLE _theme ADD COLUMN IF NOT EXISTS "${field}" varchar;`)
     statements.push(`ALTER TABLE _theme_v ADD COLUMN IF NOT EXISTS "version_${field}" varchar;`)
+  }
+
+  // 2. Drop legacy radical_* columns that confuse drizzle-kit
+  for (const mode of MODES) {
+    for (const token of COLOR_TOKENS) {
+      statements.push(`ALTER TABLE _theme DROP COLUMN IF EXISTS "${LEGACY_PREFIX}_${mode}_${token}";`)
+      statements.push(`ALTER TABLE _theme_v DROP COLUMN IF EXISTS "version_${LEGACY_PREFIX}_${mode}_${token}";`)
+    }
+  }
+
+  // Legacy typography columns
+  const legacyTypography = [
+    `${LEGACY_PREFIX}_fontfamily`,
+    `${LEGACY_PREFIX}_headingfontfamily`,
+    `${LEGACY_PREFIX}_dramafontfamily`,
+    `${LEGACY_PREFIX}_radius`,
+  ]
+  for (const col of legacyTypography) {
+    statements.push(`ALTER TABLE _theme DROP COLUMN IF EXISTS "${col}";`)
+    statements.push(`ALTER TABLE _theme_v DROP COLUMN IF EXISTS "version_${col}";`)
   }
 
   return statements
@@ -81,7 +108,7 @@ async function migrate(): Promise<void> {
     }
 
     const statements = buildStatements()
-    console.log(`[migrate] Adding ${statements.length} columns if missing...`)
+    console.log(`[migrate] Running ${statements.length} schema statements...`)
 
     for (const sql of statements) {
       await pool.query(sql)
