@@ -44,8 +44,8 @@ const TYPOGRAPHY_FIELDS = [
   'override_radius',
 ]
 
-/** Legacy column prefix from a previous theme system */
-const LEGACY_PREFIX = 'radical'
+/** Legacy column prefixes from previous theme iterations */
+const LEGACY_PREFIXES = ['radical', 'default']
 
 function buildStatements(): string[] {
   const statements: string[] = []
@@ -65,24 +65,25 @@ function buildStatements(): string[] {
     statements.push(`ALTER TABLE _theme_v ADD COLUMN IF NOT EXISTS "version_${field}" varchar;`)
   }
 
-  // 2. Drop legacy radical_* columns that confuse drizzle-kit
-  for (const mode of MODES) {
-    for (const token of COLOR_TOKENS) {
-      statements.push(`ALTER TABLE _theme DROP COLUMN IF EXISTS "${LEGACY_PREFIX}_${mode}_${token}";`)
-      statements.push(`ALTER TABLE _theme_v DROP COLUMN IF EXISTS "version_${LEGACY_PREFIX}_${mode}_${token}";`)
+  // 2. Drop legacy columns from previous theme iterations that confuse drizzle-kit
+  for (const prefix of LEGACY_PREFIXES) {
+    for (const mode of MODES) {
+      for (const token of COLOR_TOKENS) {
+        statements.push(`ALTER TABLE _theme DROP COLUMN IF EXISTS "${prefix}_${mode}_${token}";`)
+        statements.push(`ALTER TABLE _theme_v DROP COLUMN IF EXISTS "version_${prefix}_${mode}_${token}";`)
+      }
     }
-  }
 
-  // Legacy typography columns
-  const legacyTypography = [
-    `${LEGACY_PREFIX}_fontfamily`,
-    `${LEGACY_PREFIX}_headingfontfamily`,
-    `${LEGACY_PREFIX}_dramafontfamily`,
-    `${LEGACY_PREFIX}_radius`,
-  ]
-  for (const col of legacyTypography) {
-    statements.push(`ALTER TABLE _theme DROP COLUMN IF EXISTS "${col}";`)
-    statements.push(`ALTER TABLE _theme_v DROP COLUMN IF EXISTS "version_${col}";`)
+    const legacyTypography = [
+      `${prefix}_fontfamily`,
+      `${prefix}_headingfontfamily`,
+      `${prefix}_dramafontfamily`,
+      `${prefix}_radius`,
+    ]
+    for (const col of legacyTypography) {
+      statements.push(`ALTER TABLE _theme DROP COLUMN IF EXISTS "${col}";`)
+      statements.push(`ALTER TABLE _theme_v DROP COLUMN IF EXISTS "version_${col}";`)
+    }
   }
 
   return statements
