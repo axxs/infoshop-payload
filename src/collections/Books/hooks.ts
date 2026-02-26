@@ -161,6 +161,12 @@ export const validateISBNFormat: CollectionBeforeChangeHook = async ({ data }) =
     )
   }
 
+  // Normalise ISBN to digits-only so queries (e.g. /isbn/:isbn route)
+  // can match without worrying about hyphen formatting
+  if (data.isbn) {
+    data.isbn = data.isbn.replace(/[-\s]/g, '')
+  }
+
   return data
 }
 
