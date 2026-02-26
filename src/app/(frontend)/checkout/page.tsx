@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
@@ -8,6 +9,10 @@ import { formatPrice } from '@/lib/utils'
 import { ScrollReveal } from '../components/cinematic/ScrollReveal'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+
+export const metadata: Metadata = {
+  title: 'Checkout',
+}
 
 export default async function CheckoutPage() {
   const payload = await getPayload({ config })

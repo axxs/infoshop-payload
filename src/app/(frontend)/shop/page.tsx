@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { getPayload } from 'payload'
 import type { Where } from 'payload'
@@ -8,6 +9,11 @@ import { SortSelect } from '../components/shop/SortSelect'
 import { sanitizeSearchInput } from '@/lib/utils'
 import type { Book } from '@/payload-types'
 import { ScrollReveal } from '../components/cinematic/ScrollReveal'
+
+export const metadata: Metadata = {
+  title: 'Shop Books',
+  description: 'Browse our collection of books available for purchase',
+}
 
 interface ShopPageProps {
   searchParams: Promise<{
@@ -39,7 +45,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const contactPageUrl = theme?.contactPageUrl
 
   const page = Number(params.page) || 1
-  const limit = 20
+  const limit = 24
 
   // Build query based on visibility settings
   const stockStatusExclusions: string[] = ['DISCONTINUED']

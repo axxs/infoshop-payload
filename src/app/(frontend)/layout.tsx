@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic'
 
+import { cache } from 'react'
 import React from 'react'
 import './globals.css'
 import { HeaderDynamic } from './components/layout/HeaderDynamic'
@@ -36,9 +37,32 @@ function parseThemeData(raw: Record<string, unknown>): ThemeData {
   return { activeTheme, colorMode, ...overrides } as ThemeData
 }
 
-export const metadata = {
-  description: 'Infoshop - Community bookstore collective',
-  title: 'Infoshop Bookstore',
+const getLayoutGlobal = cache(async () => {
+  const payload = await getPayload({ config })
+  try {
+    return await payload.findGlobal({ slug: 'layout' })
+  } catch {
+    return null
+  }
+})
+
+export async function generateMetadata(): Promise<import('next').Metadata> {
+  const layout = await getLayoutGlobal()
+  const siteName = (layout?.siteName as string) || 'Infoshop'
+  const siteDescription =
+    ((layout as unknown as Record<string, unknown>)?.siteDescription as string) ||
+    'Community bookstore collective'
+
+  return {
+    title: {
+      default: siteName,
+      template: `%s | ${siteName}`,
+    },
+    description: siteDescription,
+    openGraph: {
+      siteName,
+    },
+  }
 }
 
 async function getTheme(): Promise<ThemeData> {

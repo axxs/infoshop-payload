@@ -6,6 +6,7 @@
  */
 
 import type { Payload } from 'payload'
+import sharp from 'sharp'
 
 /**
  * Result of downloading and storing a cover image
@@ -64,6 +65,33 @@ function generateFilename(bookTitle: string | undefined, isbn: string | undefine
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024
 
 /**
+ * Minimum cover image size in bytes (15KB).
+ * Real book covers are almost always >15KB. Source API placeholder images
+ * ("image not available" text on white) are typically 1-5KB.
+ */
+export const MIN_COVER_SIZE = 15_000
+
+/** Minimum pixel dimension for a valid cover image */
+const MIN_COVER_DIMENSION = 50
+
+/**
+ * URL patterns that indicate a source API placeholder rather than a real cover
+ */
+const PLACEHOLDER_URL_PATTERNS = [
+  /\/nophoto\//i,
+  /placeholder/i,
+  /no[-_]?cover/i,
+  /image[-_]?not[-_]?available/i,
+]
+
+/**
+ * Checks if a URL matches known placeholder image patterns from source APIs
+ */
+function isPlaceholderUrl(url: string): boolean {
+  return PLACEHOLDER_URL_PATTERNS.some((pattern) => pattern.test(url))
+}
+
+/**
  * Downloads an image from a URL and returns the buffer with metadata
  *
  * Validates image size before and after download to prevent resource exhaustion
@@ -117,8 +145,27 @@ async function downloadImageBuffer(
       )
     }
 
+    // Reject images that are too small — likely source API placeholders
+    if (arrayBuffer.byteLength < MIN_COVER_SIZE) {
+      throw new Error(
+        `Image too small (${(arrayBuffer.byteLength / 1024).toFixed(1)}KB) — likely a placeholder`,
+      )
+    }
+
+    const imageBuffer = Buffer.from(arrayBuffer)
+
+    // Check image dimensions — reject tiny images that may be icons or placeholders
+    const metadata = await sharp(imageBuffer).metadata()
+    if (metadata.width && metadata.height) {
+      if (metadata.width < MIN_COVER_DIMENSION || metadata.height < MIN_COVER_DIMENSION) {
+        throw new Error(
+          `Image dimensions too small (${metadata.width}x${metadata.height}) — likely a placeholder`,
+        )
+      }
+    }
+
     return {
-      buffer: Buffer.from(arrayBuffer),
+      buffer: imageBuffer,
       contentType,
     }
   } finally {
@@ -176,6 +223,14 @@ export async function downloadCoverImage(
       return {
         success: false,
         error: 'Only HTTPS URLs are allowed for security reasons',
+      }
+    }
+
+    // Reject known placeholder URL patterns from source APIs
+    if (isPlaceholderUrl(imageUrl)) {
+      return {
+        success: false,
+        error: `URL matches a known placeholder pattern: ${imageUrl}`,
       }
     }
 

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft, BookOpen, ShoppingCart } from 'lucide-react'
 import { Button } from '../components/ui/button'
@@ -8,6 +9,10 @@ import { getCart } from '@/lib/cart'
 import { ScrollReveal } from '../components/cinematic/ScrollReveal'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+
+export const metadata: Metadata = {
+  title: 'Cart',
+}
 
 export default async function CartPage() {
   const payload = await getPayload({ config })

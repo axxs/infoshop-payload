@@ -29,6 +29,8 @@ export async function HeaderDynamic() {
   const navigation = layout.navigation || []
   const ctaButton = layout.ctaButton
   const logo = layout.logo && typeof layout.logo === 'object' ? (layout.logo as Media) : null
+  const logoDisplay =
+    ((layout as unknown as Record<string, unknown>).logoDisplay as string) || 'logo-only'
 
   return (
     <MorphingNavbar>
@@ -36,13 +38,18 @@ export async function HeaderDynamic() {
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2">
           {logo?.url ? (
-            <Image
-              src={logo.url}
-              alt={siteName}
-              width={logo.width || 120}
-              height={logo.height || 32}
-              className="h-8 w-auto"
-            />
+            <>
+              <Image
+                src={logo.url}
+                alt={siteName}
+                width={logo.width || 120}
+                height={logo.height || 32}
+                className="h-8 w-auto"
+              />
+              {logoDisplay === 'logo-with-name' && (
+                <span className="font-heading text-xl font-bold">{siteName}</span>
+              )}
+            </>
           ) : (
             <>
               <BookOpen className="h-6 w-6" />

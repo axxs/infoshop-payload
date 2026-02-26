@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { getPayload } from 'payload'
 import type { Where } from 'payload'
 import config from '@payload-config'
@@ -5,6 +6,26 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { BookGrid } from '../../../components/books/BookGrid'
 import { ArrowLeft } from 'lucide-react'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+  const { slug } = await params
+  const payload = await getPayload({ config })
+  const { docs } = await payload.find({
+    collection: 'categories',
+    where: { slug: { equals: slug } },
+    limit: 1,
+  })
+  const category = docs[0]
+  if (!category) return { title: 'Category Not Found' }
+  return {
+    title: category.name,
+    description: category.description || `Browse books in ${category.name}`,
+  }
+}
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>
@@ -45,7 +66,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const contactPageUrl = theme?.contactPageUrl
 
   const page = Number(searchParamsResolved.page) || 1
-  const limit = 20
+  const limit = 24
 
   // Build query for books in this category
   const where: Where = {

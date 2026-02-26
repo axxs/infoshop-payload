@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import Link from 'next/link'
@@ -9,6 +10,36 @@ import { ArrowLeft } from 'lucide-react'
 import { BookCoverImage } from '../../components/books/BookCoverImage'
 import { AddToCartButton } from '../../components/cart/AddToCartButton'
 import type { Book } from '@/payload-types'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+  const { slug } = await params
+  const payload = await getPayload({ config })
+
+  const { docs } = await payload.find({
+    collection: 'books',
+    where: { slug: { equals: slug } },
+    limit: 1,
+    depth: 0,
+  })
+  const book = docs[0] as Book | undefined
+
+  if (!book) return { title: 'Book Not Found' }
+
+  const description = book.synopsis
+    ? book.synopsis.length > 157
+      ? book.synopsis.substring(0, 157) + '...'
+      : book.synopsis
+    : `${book.title}${book.author ? ` by ${book.author}` : ''}`
+
+  return {
+    title: `${book.title}${book.author ? ` by ${book.author}` : ''}`,
+    description,
+  }
+}
 
 interface BookPageProps {
   params: Promise<{ slug: string }>

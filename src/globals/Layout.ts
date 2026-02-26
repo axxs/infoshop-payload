@@ -29,7 +29,16 @@ export const Layout: GlobalConfig = {
               type: 'text',
               defaultValue: 'Infoshop',
               admin: {
-                description: 'Site name displayed in the header and footer',
+                description: 'Site name used in page titles, SEO, and branding',
+              },
+            },
+            {
+              name: 'siteDescription',
+              type: 'textarea',
+              defaultValue: 'Community bookstore collective',
+              admin: {
+                description:
+                  'Default meta description for SEO (shown in search engine results)',
               },
             },
             {
@@ -38,6 +47,20 @@ export const Layout: GlobalConfig = {
               relationTo: 'media',
               admin: {
                 description: 'Site logo (recommended: SVG or PNG with transparency)',
+              },
+            },
+            {
+              name: 'logoDisplay',
+              type: 'select',
+              defaultValue: 'logo-only',
+              options: [
+                { label: 'Logo only (site name as alt text)', value: 'logo-only' },
+                { label: 'Logo with site name', value: 'logo-with-name' },
+              ],
+              admin: {
+                description:
+                  'How to display the logo in the header. When logo-only, the site name is set as alt text for accessibility and SEO.',
+                condition: (_, siblingData) => !!siblingData?.logo,
               },
             },
             {

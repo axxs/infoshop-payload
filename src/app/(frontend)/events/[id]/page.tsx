@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import Link from 'next/link'
@@ -8,6 +9,23 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { ArrowLeft, Calendar, MapPin, Users, DollarSign } from 'lucide-react'
 import { RegisterButton } from './RegisterButton'
 import { getEventWithStats } from '@/lib/events'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  const payload = await getPayload({ config })
+  try {
+    const event = await payload.findByID({ collection: 'events', id, depth: 0 })
+    return {
+      title: (event as { title?: string }).title || 'Event',
+    }
+  } catch {
+    return { title: 'Event Not Found' }
+  }
+}
 
 interface EventPageProps {
   params: Promise<{ id: string }>
