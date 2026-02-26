@@ -1,6 +1,12 @@
 export const dynamic = 'force-dynamic'
 
+import type { Metadata } from 'next'
 import { Suspense } from 'react'
+
+export const metadata: Metadata = {
+  title: 'Events',
+  description: 'Upcoming events, workshops, and community gatherings',
+}
 import { getPayload } from 'payload'
 import type { Where } from 'payload'
 import config from '@payload-config'

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { getPayload } from 'payload'
 import type { Where } from 'payload'
 import config from '@payload-config'
@@ -5,6 +6,26 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { BookGrid } from '../../../components/books/BookGrid'
 import { ArrowLeft } from 'lucide-react'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+  const { slug } = await params
+  const payload = await getPayload({ config })
+  const { docs } = await payload.find({
+    collection: 'subjects',
+    where: { slug: { equals: slug } },
+    limit: 1,
+  })
+  const subject = docs[0]
+  if (!subject) return { title: 'Subject Not Found' }
+  return {
+    title: subject.name,
+    description: subject.description || `Browse books about ${subject.name}`,
+  }
+}
 
 interface SubjectPageProps {
   params: Promise<{ slug: string }>
