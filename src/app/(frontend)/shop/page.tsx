@@ -37,7 +37,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const contactPageUrl = theme?.contactPageUrl
 
   const page = Number(params.page) || 1
-  const limit = 20
+  const limit = 24
 
   // Build query based on visibility settings
   const stockStatusExclusions: string[] = ['DISCONTINUED']

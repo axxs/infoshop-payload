@@ -1,5 +1,6 @@
 import { Book } from '@/payload-types'
 import { BookCard } from './BookCard'
+import { StaggerReveal } from '../cinematic/StaggerReveal'
 
 interface BookGridProps {
   books: Book[]
@@ -20,7 +21,11 @@ export function BookGrid({ books, contactEmail, contactPageUrl }: BookGridProps)
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+    <StaggerReveal
+      className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+      stagger={0.05}
+      distance={20}
+    >
       {books.map((book) => (
         <BookCard
           key={book.id}
@@ -29,6 +34,6 @@ export function BookGrid({ books, contactEmail, contactPageUrl }: BookGridProps)
           contactPageUrl={contactPageUrl}
         />
       ))}
-    </div>
+    </StaggerReveal>
   )
 }

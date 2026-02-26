@@ -35,7 +35,7 @@ export default async function SubjectPage({ params, searchParams }: SubjectPageP
   }
 
   const page = Number(searchParamsResolved.page) || 1
-  const limit = 20
+  const limit = 24
 
   // Build query for books with this subject
   const where: Where = {

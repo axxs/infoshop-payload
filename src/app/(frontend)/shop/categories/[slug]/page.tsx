@@ -35,7 +35,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   }
 
   const page = Number(searchParamsResolved.page) || 1
-  const limit = 20
+  const limit = 24
 
   // Build query for books in this category
   const where: Where = {
