@@ -109,6 +109,76 @@ export const CSVImportButton: React.FC = () => {
   }
 
   /**
+   * Skips preview and imports directly, continuing past any errors
+   */
+  const handleDirectImport = async () => {
+    if (!file) {
+      setError('Please select a file first')
+      return
+    }
+
+    setIsLoading(true)
+    setError(null)
+    setProgress('Importing books (skipping invalid rows)...')
+
+    try {
+      // Step 1: Preview to get validated operations
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('options', JSON.stringify({ ...options, continueWithErrors: true }))
+
+      const previewResponse = await fetch('/api/books/csv-import/preview', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const previewResult = await previewResponse.json()
+
+      if (!previewResponse.ok || !previewResult.success) {
+        setError(previewResult.error || 'Failed to validate CSV')
+        return
+      }
+
+      setProgress(
+        `Validated ${previewResult.preview.validOperations} books. Importing...`,
+      )
+
+      // Step 2: Execute immediately
+      const executeResponse = await fetch('/api/books/csv-import/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          preview: previewResult.preview,
+          options: { ...options, continueWithErrors: true },
+        }),
+      })
+
+      const executeResult = await executeResponse.json()
+
+      if (!executeResponse.ok || !executeResult.success) {
+        setError(executeResult.error || 'Failed to execute import')
+        return
+      }
+
+      const { result: execution } = executeResult
+      setSuccess(
+        `Import complete! Created: ${execution.createdBookIds.length}, Updated: ${execution.updatedBookIds.length}, Failed: ${execution.failed}, Skipped: ${execution.skipped}`,
+      )
+      setProgress('')
+      setPreview(null)
+      setFile(null)
+
+      setTimeout(() => {
+        window.location.reload()
+      }, 2000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to import')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  /**
    * Executes the import
    */
   const handleExecute = async () => {
@@ -330,16 +400,25 @@ export const CSVImportButton: React.FC = () => {
           </div>
         </div>
 
-        {/* Preview Button */}
-        <div className="mb-6">
+        {/* Action Buttons */}
+        <div className="mb-6 flex gap-3">
           <Button
             onClick={handlePreview}
+            disabled={!file || isLoading}
+            buttonStyle="secondary"
+            size="medium"
+            type="button"
+          >
+            {isLoading ? 'Processing...' : 'Preview Import'}
+          </Button>
+          <Button
+            onClick={handleDirectImport}
             disabled={!file || isLoading}
             buttonStyle="primary"
             size="medium"
             type="button"
           >
-            {isLoading ? 'Processing...' : 'Preview Import'}
+            {isLoading ? 'Importing...' : 'Import Now'}
           </Button>
         </div>
 

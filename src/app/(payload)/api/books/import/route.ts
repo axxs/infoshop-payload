@@ -25,6 +25,21 @@ import type {
   ValidationIssue,
 } from '@/lib/csv/types'
 import { BookOperationType, ValidationSeverity, DuplicateStrategy } from '@/lib/csv/types'
+
+/**
+ * Normalise a partial date string into an ISO 8601 date that Postgres can accept.
+ */
+function normaliseDate(value: string | null | undefined): string | null {
+  if (!value || value.trim() === '') return null
+  const trimmed = value.trim()
+  if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) return trimmed
+  if (/^\d{4}$/.test(trimmed)) return `${trimmed}-01-01`
+  if (/^\d{4}-\d{1,2}$/.test(trimmed)) {
+    const [year, month] = trimmed.split('-')
+    return `${year}-${month.padStart(2, '0')}-01`
+  }
+  return null
+}
 import { checkRateLimit, getRateLimitHeaders } from '@/lib/rateLimit'
 
 /**
@@ -344,7 +359,7 @@ async function executeBookOperation(
     isbn: operation.isbn ?? null,
     oclcNumber: operation.oclc ?? null,
     publisher: operation.publisher ?? null,
-    publishedDate: operation.publishedDate ?? null,
+    publishedDate: normaliseDate(operation.publishedDate),
     synopsis: operation.synopsis ?? null,
     description: null,
     featured: null,
@@ -359,7 +374,7 @@ async function executeBookOperation(
     subjects: null,
     _subjectNames: null,
     coverImage: coverImageId ?? null,
-    externalCoverUrl: null,
+    externalCoverUrl: operation.coverImageUrl ?? null,
     isDigital: operation.isDigital ?? false,
     digitalFile: null,
   }
@@ -424,7 +439,7 @@ async function findOrCreateCategory(
       collection: 'categories',
       data: {
         name: categoryName,
-        slug: categoryName.toLowerCase().replace(/\s+/g, '-'),
+        slug: categoryName.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-'),
       },
     })
 

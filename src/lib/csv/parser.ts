@@ -186,7 +186,7 @@ export function parseCSV(csvContent: string, maxRows?: number): BookOperation[] 
       stockStatus: row.stockstatus?.trim().toUpperCase() || undefined,
 
       // Categorisation (sanitised)
-      categoryName: sanitiseCSVValue(categoryValue?.trim()),
+      categoryName: sanitiseCSVValue(categoryValue?.trim())?.replace(/\s*\/\s*/g, '/'),
       subjectNames: sanitiseArray(parseArray(subjectsValue)),
 
       // Metadata (sanitised)
