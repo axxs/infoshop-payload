@@ -55,6 +55,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/themes ./themes
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/src ./src
+COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nextjs:nodejs /app/next.config.mjs ./next.config.mjs
 COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
@@ -71,7 +72,7 @@ ENV PORT 3000
 #    Set SKIP_SCHEMA_PUSH=true to bypass the push entirely.
 # 3. Start the Next.js production server.
 CMD sh -c '\
-  npx tsx src/migrate-theme-columns.ts; \
+  npx tsx scripts/migrate-theme-columns.ts; \
   NODE_ENV= timeout 120 npx tsx src/push-schema.ts \
     || echo "[push-schema] Push did not complete, starting server anyway..."; \
   HOSTNAME="0.0.0.0" npx next start -p 3000'
