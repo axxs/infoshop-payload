@@ -40,6 +40,16 @@ export const RETRY = {
 } as const
 
 /**
+ * Title search match thresholds (Dice coefficient, 0.0–1.0)
+ */
+export const TITLE_SEARCH = {
+  /** Minimum similarity score for title match */
+  TITLE_THRESHOLD: 0.65,
+  /** Minimum similarity score for author match */
+  AUTHOR_THRESHOLD: 0.55,
+} as const
+
+/**
  * Feature flags
  */
 export const FEATURES = {

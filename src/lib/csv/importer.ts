@@ -11,7 +11,7 @@ import { validateBookOperation, isOperationValid } from './validator'
 import { detectAndHandleDuplicates } from './duplicateDetector'
 import { processAndLinkSubjects } from '../openLibrary/subjectManager'
 import { downloadCoverImageIfPresent } from '../openLibrary/imageDownloader'
-import { lookupBookByISBN } from '../bookLookup'
+import { lookupBookByISBN, lookupBookByTitle } from '../bookLookup'
 import { validateImageURL } from '../urlValidator'
 import type { Book } from '@/payload-types'
 import type { SupportedCurrency } from '../square/constants'
@@ -124,55 +124,96 @@ export function quickValidateFormat(csvContent: string, sampleSize: number = 5):
 }
 
 /**
- * Enriches operation with data from multi-source ISBN lookup
+ * Merge enrichment data into a BookOperation, only filling missing fields.
  *
- * @param operation - Book operation with ISBN
- * @param payload - Payload instance for logging
- * @returns Enriched operation or original if lookup fails
+ * @param operation - Original book operation (CSV data)
+ * @param data - Enrichment data from API lookup
+ * @returns New operation with missing fields populated
  */
-async function enrichFromISBN(operation: BookOperation, payload: Payload): Promise<BookOperation> {
-  if (!operation.isbn) {
-    return operation
+function mergeEnrichmentData(operation: BookOperation, data: import('../bookLookup/types').BookData): BookOperation {
+  return {
+    ...operation,
+    isbn: operation.isbn || data.isbn || undefined,
+    title: operation.title || data.title || operation.title,
+    author: operation.author || data.author,
+    publisher: operation.publisher || data.publisher,
+    publishedDate: normaliseDate(operation.publishedDate) ?? normaliseDate(data.publishedDate) ?? undefined,
+    synopsis: operation.synopsis || data.synopsis,
+    coverImageUrl: operation.coverImageUrl || data.coverImageUrl,
+    subjectNames:
+      operation.subjectNames && operation.subjectNames.length > 0
+        ? operation.subjectNames
+        : data.subjects,
   }
+}
 
-  try {
-    const result = await lookupBookByISBN(operation.isbn)
+/**
+ * Enriches a book operation with external data.
+ *
+ * Flow: ISBN lookup → (if fails) → title+author search → (if fails) → use CSV data as-is
+ *
+ * @param operation - Book operation to enrich
+ * @param payload - Payload instance for logging
+ * @returns Enriched operation or original if all lookups fail
+ */
+async function enrichBookData(operation: BookOperation, payload: Payload): Promise<BookOperation> {
+  // 1. Try ISBN lookup first (if we have an ISBN)
+  if (operation.isbn) {
+    try {
+      const result = await lookupBookByISBN(operation.isbn)
 
-    if (result.success && result.data) {
-      payload.logger.info({
-        msg: 'ISBN lookup successful',
-        isbn: operation.isbn,
-        title: result.data.title,
-        source: result.source,
-      })
-
-      // Only populate fields that are missing
-      return {
-        ...operation,
-        title: operation.title || result.data.title || operation.title,
-        author: operation.author || result.data.author,
-        publisher: operation.publisher || result.data.publisher,
-        publishedDate: normaliseDate(operation.publishedDate) ?? normaliseDate(result.data.publishedDate) ?? undefined,
-        synopsis: operation.synopsis || result.data.synopsis,
-        coverImageUrl: operation.coverImageUrl || result.data.coverImageUrl,
-        subjectNames:
-          operation.subjectNames && operation.subjectNames.length > 0
-            ? operation.subjectNames
-            : result.data.subjects,
+      if (result.success && result.data) {
+        payload.logger.info({
+          msg: 'ISBN lookup successful',
+          isbn: operation.isbn,
+          title: result.data.title,
+          source: result.source,
+        })
+        return mergeEnrichmentData(operation, result.data)
       }
-    } else {
+
       payload.logger.warn({
-        msg: 'ISBN lookup failed',
+        msg: 'ISBN lookup failed, will try title+author search',
         isbn: operation.isbn,
         error: result.error,
       })
+    } catch (error) {
+      payload.logger.error({
+        msg: 'Error during ISBN lookup, will try title+author search',
+        isbn: operation.isbn,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      })
     }
-  } catch (error) {
-    payload.logger.error({
-      msg: 'Error during ISBN lookup',
-      isbn: operation.isbn,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    })
+  }
+
+  // 2. Fall back to title+author search
+  if (operation.title) {
+    try {
+      const result = await lookupBookByTitle(operation.title, operation.author || undefined)
+
+      if (result.success && result.data) {
+        payload.logger.info({
+          msg: 'Title+author lookup successful',
+          title: operation.title,
+          author: operation.author,
+          source: result.source,
+        })
+        return mergeEnrichmentData(operation, result.data)
+      }
+
+      payload.logger.warn({
+        msg: 'Title+author lookup failed',
+        title: operation.title,
+        author: operation.author,
+        error: result.error,
+      })
+    } catch (error) {
+      payload.logger.error({
+        msg: 'Error during title+author lookup',
+        title: operation.title,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      })
+    }
   }
 
   return operation
@@ -200,7 +241,7 @@ export async function previewCSVImport(
   if (opts.autoPopulateFromISBN) {
     const enrichedOperations: BookOperation[] = []
     for (const operation of operations) {
-      enrichedOperations.push(await enrichFromISBN(operation, payload))
+      enrichedOperations.push(await enrichBookData(operation, payload))
     }
     operations = enrichedOperations
   }

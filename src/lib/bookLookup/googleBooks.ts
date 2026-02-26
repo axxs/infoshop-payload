@@ -150,6 +150,74 @@ function transformGoogleBooksData(item: GoogleBooksItem, isbn: string): BookData
 }
 
 /**
+ * Extract the best ISBN from a Google Books volume
+ *
+ * Prefers ISBN-13 over ISBN-10.
+ *
+ * @param item - Google Books volume item
+ * @returns ISBN string or undefined
+ */
+export function extractISBNFromVolume(item: GoogleBooksItem): string | undefined {
+  const ids = item.volumeInfo.industryIdentifiers
+  if (!ids) return undefined
+
+  const isbn13 = ids.find((id) => id.type === 'ISBN_13')
+  if (isbn13) return isbn13.identifier
+
+  const isbn10 = ids.find((id) => id.type === 'ISBN_10')
+  return isbn10?.identifier
+}
+
+/**
+ * Search Google Books by title and optional author
+ *
+ * Returns up to 3 candidate items with their transformed BookData.
+ *
+ * @param title - Book title
+ * @param author - Optional author name
+ * @returns Array of BookData results (may be empty)
+ */
+export async function searchByTitle(title: string, author?: string): Promise<BookData[]> {
+  const parts = [`intitle:${title}`]
+  if (author) parts.push(`inauthor:${author}`)
+  const query = parts.join('+')
+
+  const apiKey = process.env.GOOGLE_BOOKS_API_KEY
+  const baseUrl = 'https://www.googleapis.com/books/v1/volumes'
+  const params = new URLSearchParams({
+    q: query,
+    maxResults: '3',
+    ...(apiKey && { key: apiKey }),
+  })
+
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT.GOOGLE_BOOKS)
+
+  try {
+    const response = await fetch(`${baseUrl}?${params}`, {
+      signal: controller.signal,
+      headers: { Accept: 'application/json' },
+    })
+
+    clearTimeout(timeoutId)
+
+    if (!response.ok) return []
+
+    const data: GoogleBooksResponse = await response.json()
+
+    if (data.totalItems === 0 || !data.items || data.items.length === 0) return []
+
+    return data.items.map((item) => {
+      const isbn = extractISBNFromVolume(item) ?? ''
+      return transformGoogleBooksData(item, isbn)
+    })
+  } catch {
+    clearTimeout(timeoutId)
+    return []
+  }
+}
+
+/**
  * Look up book by ISBN using Google Books API
  *
  * @param isbn - ISBN-10 or ISBN-13 (with or without hyphens)
