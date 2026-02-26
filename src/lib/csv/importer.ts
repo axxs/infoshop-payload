@@ -152,7 +152,7 @@ async function enrichFromISBN(operation: BookOperation, payload: Payload): Promi
         title: operation.title || result.data.title || operation.title,
         author: operation.author || result.data.author,
         publisher: operation.publisher || result.data.publisher,
-        publishedDate: normaliseDate(operation.publishedDate) || normaliseDate(result.data.publishedDate),
+        publishedDate: normaliseDate(operation.publishedDate) ?? normaliseDate(result.data.publishedDate) ?? undefined,
         synopsis: operation.synopsis || result.data.synopsis,
         coverImageUrl: operation.coverImageUrl || result.data.coverImageUrl,
         subjectNames:
