@@ -30,7 +30,9 @@ export async function generateMetadata({
   if (!book) return { title: 'Book Not Found' }
 
   const description = book.synopsis
-    ? book.synopsis.substring(0, 160)
+    ? book.synopsis.length > 157
+      ? book.synopsis.substring(0, 157) + '...'
+      : book.synopsis
     : `${book.title}${book.author ? ` by ${book.author}` : ''}`
 
   return {
