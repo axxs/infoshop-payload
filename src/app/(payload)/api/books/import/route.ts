@@ -359,7 +359,7 @@ async function executeBookOperation(
     subjects: null,
     _subjectNames: null,
     coverImage: coverImageId ?? null,
-    externalCoverUrl: null,
+    externalCoverUrl: operation.coverImageUrl ?? null,
     isDigital: operation.isDigital ?? false,
     digitalFile: null,
   }

@@ -27,6 +27,30 @@ import type {
 import { BookOperationType, ValidationSeverity, ValidationCode, DuplicateStrategy } from './types'
 
 /**
+ * Normalise a partial date string into an ISO 8601 date that Postgres can accept.
+ * Handles formats like "2007", "2019-10", "2019-10-15", and full ISO strings.
+ * Returns null for empty or unparseable values.
+ */
+function normaliseDate(value: string | null | undefined): string | null {
+  if (!value || value.trim() === '') return null
+  const trimmed = value.trim()
+
+  // Already a full ISO date or timestamp — pass through
+  if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) return trimmed
+
+  // Year only: "2007"
+  if (/^\d{4}$/.test(trimmed)) return `${trimmed}-01-01`
+
+  // Year-month: "2019-10"
+  if (/^\d{4}-\d{1,2}$/.test(trimmed)) {
+    const [year, month] = trimmed.split('-')
+    return `${year}-${month.padStart(2, '0')}-01`
+  }
+
+  return null
+}
+
+/**
  * Default import options
  */
 const DEFAULT_OPTIONS: Required<CSVImportOptions> = {
@@ -128,7 +152,7 @@ async function enrichFromISBN(operation: BookOperation, payload: Payload): Promi
         title: operation.title || result.data.title || operation.title,
         author: operation.author || result.data.author,
         publisher: operation.publisher || result.data.publisher,
-        publishedDate: operation.publishedDate || result.data.publishedDate,
+        publishedDate: normaliseDate(operation.publishedDate) || normaliseDate(result.data.publishedDate),
         synopsis: operation.synopsis || result.data.synopsis,
         coverImageUrl: operation.coverImageUrl || result.data.coverImageUrl,
         subjectNames:
@@ -361,7 +385,7 @@ async function executeBookOperation(
     isbn: operation.isbn ?? null,
     oclcNumber: operation.oclc ?? null,
     publisher: operation.publisher ?? null,
-    publishedDate: operation.publishedDate ?? null,
+    publishedDate: normaliseDate(operation.publishedDate),
     synopsis: operation.synopsis ?? null,
     // Note: description is richText (Lexical), not supported in CSV import
     description: null,
@@ -377,7 +401,7 @@ async function executeBookOperation(
     subjects: null,
     _subjectNames: null,
     coverImage: coverImageId ?? null,
-    externalCoverUrl: null,
+    externalCoverUrl: operation.coverImageUrl ?? null,
     isDigital: operation.isDigital ?? false,
     digitalFile: null,
   }
