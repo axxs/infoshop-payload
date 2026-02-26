@@ -40,8 +40,12 @@ async function findBook(slug: string): Promise<Book | null> {
         depth: 2,
       })
       return book as Book
-    } catch {
-      return null
+    } catch (err: unknown) {
+      // Only swallow not-found errors; re-throw DB timeouts, auth failures, etc.
+      if (err && typeof err === 'object' && 'status' in err && err.status === 404) {
+        return null
+      }
+      throw err
     }
   }
 
