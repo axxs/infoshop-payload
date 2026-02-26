@@ -2,11 +2,6 @@ export const dynamic = 'force-dynamic'
 
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-
-export const metadata: Metadata = {
-  title: 'Events',
-  description: 'Upcoming events, workshops, and community gatherings',
-}
 import { getPayload } from 'payload'
 import type { Where } from 'payload'
 import config from '@payload-config'
@@ -14,6 +9,11 @@ import { EventGrid } from '../components/events/EventGrid'
 import { EventFilters } from '../components/events/EventFilters'
 import { sanitizeSearchInput } from '@/lib/utils'
 import { ScrollReveal } from '../components/cinematic/ScrollReveal'
+
+export const metadata: Metadata = {
+  title: 'Events',
+  description: 'Upcoming events, workshops, and community gatherings',
+}
 
 interface EventsPageProps {
   searchParams: Promise<{

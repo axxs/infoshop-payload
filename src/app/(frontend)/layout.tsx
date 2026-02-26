@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic'
 
+import { cache } from 'react'
 import React from 'react'
 import './globals.css'
 import { HeaderDynamic } from './components/layout/HeaderDynamic'
@@ -36,14 +37,14 @@ function parseThemeData(raw: Record<string, unknown>): ThemeData {
   return { activeTheme, colorMode, ...overrides } as ThemeData
 }
 
-async function getLayoutGlobal() {
+const getLayoutGlobal = cache(async () => {
   const payload = await getPayload({ config })
   try {
     return await payload.findGlobal({ slug: 'layout' })
   } catch {
     return null
   }
-}
+})
 
 export async function generateMetadata(): Promise<import('next').Metadata> {
   const layout = await getLayoutGlobal()

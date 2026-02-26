@@ -18,7 +18,7 @@ export async function generateMetadata({
   const { id } = await params
   const payload = await getPayload({ config })
   try {
-    const event = await payload.findByID({ collection: 'events', id: Number(id), depth: 0 })
+    const event = await payload.findByID({ collection: 'events', id, depth: 0 })
     return {
       title: (event as { title?: string }).title || 'Event',
     }

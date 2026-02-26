@@ -1,9 +1,5 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-
-export const metadata: Metadata = {
-  title: 'Checkout',
-}
 import { redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
@@ -11,6 +7,10 @@ import { CheckoutForm } from '../components/checkout/CheckoutForm'
 import { getCart } from '@/lib/cart'
 import { formatPrice } from '@/lib/utils'
 import { ScrollReveal } from '../components/cinematic/ScrollReveal'
+
+export const metadata: Metadata = {
+  title: 'Checkout',
+}
 
 export default async function CheckoutPage() {
   const result = await getCart()

@@ -1,9 +1,5 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-
-export const metadata: Metadata = {
-  title: 'Cart',
-}
 import { ArrowLeft, ShoppingCart } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
@@ -11,6 +7,10 @@ import { CartItem } from '../components/cart/CartItem'
 import { CartSummary } from '../components/cart/CartSummary'
 import { getCart } from '@/lib/cart'
 import { ScrollReveal } from '../components/cinematic/ScrollReveal'
+
+export const metadata: Metadata = {
+  title: 'Cart',
+}
 
 export default async function CartPage() {
   const result = await getCart()

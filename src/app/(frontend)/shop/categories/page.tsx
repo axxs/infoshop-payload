@@ -2,16 +2,16 @@ export const dynamic = 'force-dynamic'
 
 import type { Metadata } from 'next'
 import { getPayload } from 'payload'
-
-export const metadata: Metadata = {
-  title: 'Categories',
-  description: 'Browse books by category',
-}
 import config from '@payload-config'
 import Link from 'next/link'
 import { Card, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
 import { Badge } from '../../components/ui/badge'
 import { ArrowLeft } from 'lucide-react'
+
+export const metadata: Metadata = {
+  title: 'Categories',
+  description: 'Browse books by category',
+}
 
 export default async function CategoriesPage() {
   const payload = await getPayload({ config })
