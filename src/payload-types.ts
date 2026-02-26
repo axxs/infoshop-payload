@@ -208,6 +208,10 @@ export interface Book {
   id: number;
   title: string;
   /**
+   * URL-friendly identifier (auto-generated from title)
+   */
+  slug?: string | null;
+  /**
    * ISBN-10 or ISBN-13
    */
   isbn?: string | null;
@@ -737,6 +741,7 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface BooksSelect<T extends boolean = true> {
   title?: T;
+  slug?: T;
   isbn?: T;
   oclcNumber?: T;
   author?: T;

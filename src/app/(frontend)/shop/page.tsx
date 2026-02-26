@@ -92,6 +92,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
     select: {
       id: true,
       title: true,
+      slug: true,
       author: true,
       synopsis: true,
       sellPrice: true,

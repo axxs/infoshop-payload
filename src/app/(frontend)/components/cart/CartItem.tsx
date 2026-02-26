@@ -42,7 +42,7 @@ export function CartItem({ item, onUpdate }: CartItemProps) {
   return (
     <div className="flex gap-4 border-b py-4">
       {/* Book Cover */}
-      <Link href={`/shop/${item.bookId}`} className="relative h-24 w-16 flex-shrink-0">
+      <Link href={`/shop/${item.book.slug ?? item.bookId}`} className="relative h-24 w-16 flex-shrink-0">
         <BookCoverImage
           src={item.book.externalCoverUrl || '/placeholder-book.svg'}
           alt={item.book.title}
@@ -56,7 +56,7 @@ export function CartItem({ item, onUpdate }: CartItemProps) {
       <div className="flex flex-1 flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
-            <Link href={`/shop/${item.bookId}`} className="font-medium hover:underline">
+            <Link href={`/shop/${item.book.slug ?? item.bookId}`} className="font-medium hover:underline">
               {item.book.title}
             </Link>
             {item.book.author && (

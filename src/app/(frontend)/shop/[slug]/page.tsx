@@ -8,20 +8,49 @@ import { formatPrice, getStockStatusLabel } from '@/lib/utils'
 import { ArrowLeft } from 'lucide-react'
 import { BookCoverImage } from '../../components/books/BookCoverImage'
 import { AddToCartButton } from '../../components/cart/AddToCartButton'
+import type { Book } from '@/payload-types'
 
 interface BookPageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
+}
+
+/**
+ * Look up a book by its slug, with a numeric-ID fallback for backward compatibility.
+ * Returns null when no match is found.
+ */
+async function findBook(slug: string): Promise<Book | null> {
+  const payload = await getPayload({ config })
+
+  // Primary: look up by slug field
+  const { docs } = await payload.find({
+    collection: 'books',
+    where: { slug: { equals: slug } },
+    limit: 1,
+    depth: 2,
+  })
+
+  if (docs.length > 0) return docs[0] as Book
+
+  // Fallback: if the segment looks like a numeric ID, try findByID
+  if (/^\d+$/.test(slug)) {
+    try {
+      const book = await payload.findByID({
+        collection: 'books',
+        id: Number(slug),
+        depth: 2,
+      })
+      return book as Book
+    } catch {
+      return null
+    }
+  }
+
+  return null
 }
 
 export default async function BookPage({ params }: BookPageProps) {
-  const { id } = await params
-  const payload = await getPayload({ config })
-
-  const book = await payload.findByID({
-    collection: 'books',
-    id,
-    depth: 2,
-  })
+  const { slug } = await params
+  const book = await findBook(slug)
 
   if (!book) {
     notFound()

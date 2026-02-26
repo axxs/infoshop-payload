@@ -37,6 +37,7 @@ export interface PopulatedCartItem extends CartItem {
     title: string
     author: string | null
     isbn: string | null
+    slug: string | null
     externalCoverUrl: string | null
     stockQuantity: number
     sellPrice: number

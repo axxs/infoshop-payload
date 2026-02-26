@@ -89,7 +89,7 @@ export async function Archive(props: ArchiveProps) {
                 return (
                   <Link
                     key={book.id}
-                    href={`/books/${book.id}`}
+                    href={`/shop/${book.slug ?? book.id}`}
                     className="card-hover-lift group"
                   >
                     <Card>

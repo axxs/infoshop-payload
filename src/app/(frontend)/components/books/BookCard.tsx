@@ -32,7 +32,7 @@ export function BookCard({ book, contactEmail, contactPageUrl }: BookCardProps) 
 
   return (
     <Card className="card-hover-lift group flex h-full flex-col overflow-hidden">
-      <Link href={`/shop/${book.id}`} className="flex-1">
+      <Link href={`/shop/${book.slug ?? book.id}`} className="flex-1">
         <div className="relative aspect-[2/3] overflow-hidden bg-muted">
           <BookCoverImage
             src={coverUrl}
