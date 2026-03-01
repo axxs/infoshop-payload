@@ -174,10 +174,13 @@ export function SquarePaymentForm({
       if (result.status === 'OK') {
         const sourceId = result.token
 
-        // Send to our API endpoint to process payment
+        // Send to our API endpoint to process payment.
+        // credentials: 'include' sends the auth cookie so processCheckout
+        // can link the order to a logged-in user's account.
         const response = await fetch('/api/square/payments', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({
             sourceId,
             amount,
