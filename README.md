@@ -1,17 +1,20 @@
-# 🏴 Infoshop Payload CMS
+# Infoshop Payload CMS
 
-A complete management system for infoshops that serves as both a book inventory and sales platform, and a community organizing hub for events and collective decision-making built with Payload CMS 3.x and Next.js 15.
-
-_This is a complete, in progress, rewrite of the Infoshop system using modern headless CMS architecture._
+A complete management system for infoshops that serves as both a book inventory and sales platform, and a community organizing hub for events built with Payload CMS 3.x and Next.js 15.
 
 ## Features
 
-- **Book Management**: Complete inventory system with ISBN lookup, bulk operations
-- **Category & Subject Taxonomy**: Categories + flat subject tags
-- **Supplier Management**: Vendor tracking and purchasing workflow
-- **Event Management**: Store events, workshops, and author appearances
-- **Square POS Integration**: (Phase 3) Real-time inventory sync
-- **Customer Storefront**: (Phase 4) Public-facing e-commerce
+- **Book Management**: Complete inventory with ISBN lookup (Open Library, Google Books, WorldCat), CSV bulk import, cover image downloads
+- **Category & Subject Taxonomy**: Hierarchical categories + flat subject tags
+- **Supplier Management**: Vendor tracking and contact details
+- **Event Management**: Events, workshops, registration with capacity and waitlist
+- **Square POS Integration**: Card payments, catalog sync, refunds
+- **Customer Storefront**: Public e-commerce with cart, checkout, and anonymous payments
+- **Customer Auth**: Self-registration, login/logout, account pages
+- **Contact & Inquiries**: Contact form submissions, book inquiry system (when payments disabled)
+- **Store Settings**: Toggle payments on/off, inquiry mode fallback
+- **Theme System**: Admin-configurable themes with live preview, dark mode, block-based homepage
+- **Sales Analytics**: Revenue tracking, daily reports, product analysis, CSV export
 - **Rich Admin UI**: Payload's React Server Components admin panel
 
 ## Tech Stack
@@ -19,8 +22,9 @@ _This is a complete, in progress, rewrite of the Infoshop system using modern he
 - **CMS**: Payload CMS 3.62.0
 - **Framework**: Next.js 15.4.8 (App Router)
 - **UI**: React 19.1.2 (Server Components)
-- **Database**: SQLite (development) → PostgreSQL (production)
+- **Database**: PostgreSQL (production) / SQLite (development)
 - **ORM**: Drizzle (via Payload)
+- **Payments**: Square Web Payments SDK
 - **Rich Text**: Lexical Editor
 - **Testing**: Vitest (unit/integration) + Playwright (E2E)
 
@@ -29,7 +33,7 @@ _This is a complete, in progress, rewrite of the Infoshop system using modern he
 ### Prerequisites
 
 - Node.js ^18.20.2 || >=20.9.0
-- npm (or pnpm ^9.7.0)
+- npm
 
 ### Installation
 
@@ -82,76 +86,80 @@ infoshop-payload/
 ├── src/
 │   ├── app/                    # Next.js App Router
 │   │   ├── (payload)/          # Payload admin + API routes
-│   │   │   ├── admin/[[...segments]]/  # Admin UI
-│   │   │   ├── api/[...slug]/          # REST API
-│   │   │   └── api/graphql/            # GraphQL API
-│   │   └── (frontend)/         # Public storefront (Phase 4)
-│   ├── collections/            # Payload collection configs
-│   │   ├── Users.ts            # Authentication
+│   │   │   ├── admin/          # Admin UI
+│   │   │   ├── api/            # REST + GraphQL API
+│   │   │   └── api/square/     # Square payment/sync endpoints
+│   │   └── (frontend)/         # Public storefront
+│   │       ├── shop/           # Book browsing & detail pages
+│   │       ├── events/         # Event listings & calendar
+│   │       ├── cart/           # Shopping cart
+│   │       ├── checkout/       # Checkout, success, inquiry-sent
+│   │       ├── login/          # Login page
+│   │       ├── register/       # Registration page
+│   │       ├── account/        # Account, orders, events
+│   │       └── contact/        # Contact form
+│   ├── collections/            # Payload collection configs (12)
+│   │   ├── Users.ts            # Auth with self-registration
 │   │   ├── Media.ts            # File uploads
 │   │   ├── Books.ts            # Book inventory
 │   │   ├── Categories.ts       # Hierarchical categories
 │   │   ├── Subjects.ts         # Subject tags
 │   │   ├── Suppliers.ts        # Vendor management
-│   │   └── Events.ts           # Store events
+│   │   ├── Events.ts           # Store events
+│   │   ├── EventAttendance.ts  # Registration/attendance
+│   │   ├── Sales.ts            # Sales transactions
+│   │   ├── SaleItems.ts        # Sale line items
+│   │   ├── ContactSubmissions.ts # Contact form entries
+│   │   └── Inquiries.ts        # Book purchase inquiries
+│   ├── globals/                # Payload globals (3)
+│   │   ├── Theme.ts            # Theming configuration
+│   │   ├── Layout.ts           # Header/footer/homepage
+│   │   └── StoreSettings.ts    # Payment toggle & store config
+│   ├── lib/                    # Shared libraries
+│   │   ├── auth/               # Auth actions & utilities
+│   │   ├── checkout/           # Cart & checkout logic
+│   │   ├── contact/            # Contact form actions
+│   │   ├── square/             # Square integration
+│   │   ├── bookLookup/         # ISBN lookup (multi-source)
+│   │   └── csv/                # CSV import processing
 │   ├── payload.config.ts       # Main Payload configuration
 │   └── payload-types.ts        # Auto-generated TypeScript types
 ├── .agent/                     # AI-assisted development docs
 ├── .claude/                    # Claude Code quality infrastructure
-├── tests/                      # Test suites
-└── MIGRATION_PLAN.md          # Migration strategy documentation
+└── package.json
 ```
 
 ## Collections
 
 ### Books
-
-Complete book inventory with:
-
-- ISBN/UPC identifiers
-- Authors, publisher, publication details
-- Pricing (cost, member, retail)
-- Stock management with low-stock alerts
-- Category (single) and Subjects (multiple) relationships
-- Supplier tracking
-- Cover images
+Complete book inventory with ISBN/UPC identifiers, authors, publisher, pricing (cost/member/retail), stock management with low-stock alerts, category and subject relationships, supplier tracking, cover images.
 
 ### Categories
-
-Hierarchical categorization:
-
-- Fiction → Literary Fiction
-- Non-Fiction → History → Australian History
-- Children's → Picture Books
+Hierarchical categorization (e.g., Fiction → Literary Fiction, Non-Fiction → History).
 
 ### Subjects
-
-Flat subject tagging:
-
-- Philosophy, Science Fiction, Cooking, etc.
-- Multiple subjects per book
+Flat subject tagging (Philosophy, Science Fiction, Cooking, etc.). Multiple subjects per book.
 
 ### Suppliers
-
-Vendor management:
-
-- Contact details
-- Ordering information
-- Notes and terms
+Vendor management with contact details, ordering information, and notes.
 
 ### Events
+Store events and workshops with dates, location, capacity, and status.
 
-Store events and workshops:
+### EventAttendance
+Event registration with capacity management, waitlist, and check-in tracking.
 
-- Event details and descriptions
-- Start/end dates
-- Location and capacity
-- Event images
+### Sales & SaleItems
+Point of sale transactions with receipt numbers, payment methods, Square integration, and automatic stock deduction.
+
+### ContactSubmissions
+Public contact form entries with status tracking (new/read/replied).
+
+### Inquiries
+Book purchase inquiries submitted when online payments are disabled. Includes cart snapshot with book titles, quantities, and prices.
 
 ### Users & Media
-
-- Authentication and authorization
-- File uploads with image processing
+Authentication with self-registration (role enforced to customer), file uploads with image processing.
 
 ## Development
 
@@ -177,31 +185,6 @@ npm run generate:importmap   # Generate import map
 npm run payload              # Payload CLI
 ```
 
-### Claude Code Slash Commands
-
-If using Claude Code, these commands are available:
-
-- `/generate-types` - Generate TypeScript types from collections
-- `/generate-importmap` - Fix component loading issues
-- `/payload-dev` - Start dev server with troubleshooting tips
-
-### Workflow
-
-1. **Modify Collections**: Edit `src/collections/*.ts`
-2. **Regenerate Types**: `npm run generate:types`
-3. **Test Changes**: `npm test`
-4. **Start Server**: `npm run dev`
-
-### Adding New Collections
-
-1. Create `src/collections/YourCollection.ts`
-2. Export collection config
-3. Add to `src/payload.config.ts` collections array
-4. Run `npm run generate:types`
-5. Restart dev server
-
-See `.agent/system/key-components.md` for detailed patterns.
-
 ## API Endpoints
 
 ### REST API
@@ -209,58 +192,44 @@ See `.agent/system/key-components.md` for detailed patterns.
 Base URL: `http://localhost:3000/api`
 
 ```bash
-# List all books
-GET /api/books
-
-# Get book by ID
-GET /api/books/:id
-
-# Create book (requires auth)
-POST /api/books
-
-# Query with filters
-GET /api/books?where[category][equals]=fiction&limit=10
-
-# Populate relationships
-GET /api/books/:id?depth=1
+GET /api/books                                    # List all books
+GET /api/books/:id                                # Get book by ID
+GET /api/books?where[category][equals]=fiction     # Query with filters
+POST /api/users                                   # Self-register
+POST /api/contact-submissions                     # Submit contact form
+POST /api/inquiries                               # Submit book inquiry
 ```
 
 ### GraphQL API
 
 Playground: `http://localhost:3000/api/graphql-playground`
 
-```graphql
-query {
-  Books(limit: 10) {
-    docs {
-      title
-      isbn
-      category {
-        name
-      }
-      subjects {
-        name
-      }
-    }
-  }
-}
-```
+### Custom Endpoints
 
-See `.agent/system/api-endpoints.md` for complete API documentation.
+- `POST /api/books/lookup-isbn` — ISBN lookup via Open Library/Google Books/WorldCat
+- `POST /api/books/csv-import/preview` — CSV import preview
+- `POST /api/books/csv-import/execute` — CSV import execution
+- `POST /api/square/payments` — Process card payment (public, rate-limited)
+- `POST /api/square/sync` — Sync catalog to Square (admin)
 
-## Testing
+See `.agent/system/api-endpoints.md` for complete documentation.
 
-```bash
-# Run all tests
-npm test
+## Environment Variables
 
-# Integration tests (Vitest)
-npm run test:int
+**Required**:
 
-# E2E tests (Playwright)
-npm run test:e2e
-npm run test:e2e:headed  # With browser UI
-```
+- `PAYLOAD_SECRET` — JWT signing key (generate with `openssl rand -base64 32`)
+- `DATABASE_URI` — Database connection string
+
+**Optional**:
+
+- `NEXT_PUBLIC_SERVER_URL` — Server URL (default: `http://localhost:3000`)
+- `SQUARE_ACCESS_TOKEN` — Square API access token
+- `SQUARE_ENVIRONMENT` — `sandbox` or `production`
+- `NEXT_PUBLIC_SQUARE_APPLICATION_ID` — Square Web Payments SDK app ID
+- `NEXT_PUBLIC_SQUARE_LOCATION_ID` — Square location ID
+
+See `.env.example` for complete documentation.
 
 ## Database
 
@@ -278,42 +247,17 @@ Update `.env.local`:
 DATABASE_URI=postgresql://user:password@localhost:5432/infoshop_payload
 ```
 
-Payload handles migrations automatically.
-
-## Migration Context
-
-This project is migrating from:
-
-- **Old**: Express + Prisma + React (separate backend/frontend)
-- **New**: Payload CMS + Next.js (unified stack)
-
-See `MIGRATION_PLAN.md` for full migration strategy and phases.
+Payload auto-detects from the `DATABASE_URI` prefix and handles migrations automatically.
 
 ## Documentation
 
-- **`.agent/`**: Token-optimised development documentation
-  - `system/project-architecture.md` - Architecture overview
-  - `system/database-schema.md` - Collection schemas
-  - `system/api-endpoints.md` - API documentation
-  - `system/key-components.md` - Implementation patterns
-- **`MIGRATION_PLAN.md`**: Migration strategy and phases
-- **`CLAUDE.md`**: Claude Code development guidelines
-
-## Environment Variables
-
-Required:
-
-- `PAYLOAD_SECRET` - JWT signing key (generate with `openssl rand -base64 32`)
-- `DATABASE_URI` - Database connection string
-- `NEXT_PUBLIC_SERVER_URL` - Server URL (e.g., `http://localhost:3000`)
-
-Optional (future):
-
-- Email configuration (SMTP)
-- S3/Cloud storage
-- Square POS credentials
-
-See `.env.example` for complete documentation.
+- **`.agent/`** — Token-optimised development documentation
+  - `system/project-architecture.md` — Architecture overview
+  - `system/database-schema.md` — 12 collections + 3 globals
+  - `system/api-endpoints.md` — REST/GraphQL/custom endpoints
+  - `system/key-components.md` — Implementation patterns
+- **`src/lib/square/README.md`** — Square integration guide
+- **`CLAUDE.md`** — Claude Code development guidelines
 
 ## Deployment
 
@@ -325,16 +269,15 @@ See `.env.example` for complete documentation.
 - [ ] Set up email provider
 - [ ] Generate secure `PAYLOAD_SECRET`
 - [ ] Configure proper `NEXT_PUBLIC_SERVER_URL`
+- [ ] Configure Square production credentials
 - [ ] Run `npm run build`
 - [ ] Run `npm run start`
 
 ### Deployment Targets
 
-- **Vercel**: Native Next.js support
-- **Payload Cloud**: Managed Payload hosting
-- **Self-hosted**: Docker, VPS, or dedicated server
-
-See Payload Cloud docs: https://payloadcms.com/docs/cloud
+- **Coolify** — Self-hosted PaaS (current production)
+- **Vercel** — Native Next.js support
+- **Payload Cloud** — Managed Payload hosting
 
 ## Troubleshooting
 
@@ -361,34 +304,12 @@ npm run dev
 npm run devsafe  # Clean start
 ```
 
-**Module not found**
-
-```bash
-npm install
-```
-
 ## Resources
 
 - **Payload Docs**: https://payloadcms.com/docs
 - **Next.js Docs**: https://nextjs.org/docs
-- **Payload Discord**: https://discord.com/invite/payload
 - **GitHub Issues**: https://github.com/axxs/infoshop-payload/issues
 
 ## License
 
 Proprietary - Infoshop Bookshop
-
-## Support
-
-For questions or issues:
-
-- Check `.agent/` documentation first
-- Review `MIGRATION_PLAN.md` for context
-- Open a GitHub issue
-- Contact the development team
-
----
-
-**Current Migration Status**: Phase 3 (Core Integrations) - 60% Complete 🔄
-
-See `MIGRATION_ROADMAP.md` for detailed migration plan and next steps.

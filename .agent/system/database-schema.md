@@ -4,7 +4,7 @@
 
 Payload CMS collections define the data schema. Drizzle ORM (used internally by Payload) manages the actual database tables.
 
-## Current Collections (10 total) + 2 Globals
+## Current Collections (12 total) + 3 Globals
 
 ### Users
 
@@ -15,9 +15,22 @@ Payload CMS collections define the data schema. Drizzle ORM (used internally by 
 - `email` (unique, required)
 - `password` (hashed)
 - `name` (optional)
-- `roles` (admin, user, etc.)
+- `role` (select: admin, volunteer, customer — default: customer)
+- `isMember` (checkbox — grants member pricing, admin-only field)
+- `membershipNumber` (text, admin-only)
+- `memberSince` (date, admin-only)
 
-**Auth**: Built-in Payload auth with JWT
+**Auth**: Built-in Payload auth with JWT, `maxLoginAttempts: 10`, 15-minute lockout
+
+**Access**:
+
+- `create: () => true` — public self-registration
+- `read`: authenticated users only
+- `update`: admins can update any user, users can update themselves
+- `delete`: admin only
+- Field-level: `role` (create), `isMember`, `membershipNumber`, `memberSince` — admin only via `adminFieldAccess`
+
+**Hooks**: `enforceCustomerOnSelfRegistration` — forces `role: 'customer'` and strips membership fields on non-admin create requests
 
 **Location**: `src/collections/Users.ts`
 
@@ -147,7 +160,7 @@ Payload CMS collections define the data schema. Drizzle ORM (used internally by 
 - `startDate`, `endDate`
 - `location`
 - `capacity` (max attendees)
-- `registered` (current count - future feature)
+- `registered` (current count)
 - `image` → Media (has one)
 - `status` (draft, published)
 
@@ -227,7 +240,49 @@ Payload CMS collections define the data schema. Drizzle ORM (used internally by 
 
 ---
 
-## Globals (2 total)
+### ContactSubmissions
+
+**Purpose**: Contact form submissions from the public website
+
+**Key Fields**:
+
+- `name` (required, max 200)
+- `email` (required)
+- `message` (required, max 5000)
+- `status` (select: new, read, replied — default: new)
+
+**Access**: Public create, admin/volunteer read/update/delete
+
+**Location**: `src/collections/ContactSubmissions.ts`
+
+---
+
+### Inquiries
+
+**Purpose**: Book purchase inquiries submitted when online payments are disabled
+
+**Key Fields**:
+
+- `customerName` (required, max 200)
+- `customerEmail` (required)
+- `message` (optional, max 2000)
+- `items` (array, min 1):
+  - `book` → Books (relationship)
+  - `title` (snapshot at inquiry time)
+  - `quantity` (min: 1)
+  - `price` (snapshot at inquiry time)
+- `status` (select: new, contacted, resolved — default: new)
+- `staffNotes` (internal, sidebar)
+
+**Access**: Public create, admin/volunteer read/update/delete
+
+**Hooks**: `enforcePaymentsDisabled` — blocks inquiry creation via REST/GraphQL when payments are enabled in StoreSettings
+
+**Location**: `src/collections/Inquiries.ts`
+
+---
+
+## Globals (3 total)
 
 ### Theme
 
@@ -270,6 +325,24 @@ Payload CMS collections define the data schema. Drizzle ORM (used internally by 
 
 ---
 
+### StoreSettings
+
+**Purpose**: Payment processing and store behavior configuration
+
+**Key Fields**:
+
+- `paymentsEnabled` (checkbox, default: true) — toggles card payments vs inquiry mode
+- `paymentsDisabledMessage` (textarea, max 500) — shown when payments off
+- `squareConfigStatus` (UI field) — displays Square environment variable status
+
+**Access**: Public read, admin update
+
+**Hooks**: `invalidateSettingsCache` — calls `revalidateTag('store-payment-settings')` on change
+
+**Location**: `src/globals/StoreSettings.ts`
+
+---
+
 ## Relationships
 
 ```
@@ -286,6 +359,8 @@ Sales ──has-many──→ SaleItems
 Sales ──has-one──→ Users (customer, optional)
 SaleItems ──has-one──→ Books
 
+Inquiries.items ──has-one──→ Books (per item)
+
 Categories ──has-one──→ Categories (parent, for hierarchy)
 
 Layout ──has-one──→ Media (logo)
@@ -293,19 +368,10 @@ Layout ──has-one──→ Media (logo)
 
 ## Database Technology
 
-**Current**: SQLite (file: `infoshop.db`)
+**Current**: PostgreSQL (production on Coolify) / SQLite (local development)
 
-- Suitable for development
-- No server required
-- Easy backup (copy file)
-
-**Production**: PostgreSQL (planned)
-
-- Better performance under load
-- Proper concurrent access
-- Full ACID compliance
-
-**Migration Path**: Payload supports switching adapters
+- Auto-detects from `DATABASE_URI` prefix (`postgres` → PostgreSQL, otherwise SQLite)
+- Payload handles migrations automatically via `push: true`
 
 ## Access Patterns
 
@@ -313,23 +379,38 @@ Layout ──has-one──→ Media (logo)
 
 - Read books, categories, subjects
 - Read published events
-- View supplier info (limited fields)
+- Read store settings
+- Create contact submissions
+- Create inquiries (when payments disabled)
+- Create user accounts (self-registration)
+- Process payments (anonymous checkout)
 
 ### Authenticated Users
 
-- Full CRUD on all collections (role-dependent)
-- Media uploads
-- Event registration (future feature)
+- Read other users
+- Update own profile
+- Event registration
+
+### Admin / Volunteer
+
+- Read/manage contact submissions
+- Read/manage inquiries
+- Full event attendance management
 
 ### Admin Only
 
-- User management
+- User management (delete, role changes)
+- Store settings updates
 - Supplier full details
 - System configuration
 
 ## Hooks
 
-### Books Collection (Implemented)
+### Users Collection
+
+- **beforeChange**: `enforceCustomerOnSelfRegistration` - Force customer role on non-admin creates
+
+### Books Collection
 
 - **beforeChange**: `validateStock` - Ensure stock quantity never negative
 - **beforeChange**: `validatePricing` - Validate pricing hierarchy (cost < member < sell)
@@ -339,25 +420,33 @@ Layout ──has-one──→ Media (logo)
 - **afterChange**: `checkLowStock` - Log warnings for low stock items
 - **afterChange**: `processSubjectsFromISBN` - Process staged subjects from ISBN lookup
 
-### Sales Collection (Implemented)
+### Sales Collection
 
 - **beforeValidate**: `validateSaleItems` - Ensure items exist and are valid
 - **beforeChange**: `generateReceiptNumber` - Auto-generate unique receipt numbers
 - **beforeChange**: `calculateTotalAmount` - Sum line items for total
 - **afterChange**: `deductStock` - Reduce book inventory on completed sales
 
-### SaleItems Collection (Implemented)
+### SaleItems Collection
 
 - **beforeValidate**: `validateStockAvailability` - Check sufficient stock
 - **beforeChange**: `setUnitPriceFromBook` - Copy current book price
 - **beforeChange**: `calculateLineTotal` - Calculate quantity × price - discount
 
-### EventAttendance Collection (Implemented)
+### EventAttendance Collection
 
 - **beforeValidate**: `preventDuplicateRegistration` - One registration per user per event
 - **beforeValidate**: `validateCapacityAndSetStatus` - Check capacity, set waitlist if full
 - **beforeChange**: `setTimestamps` - Auto-set registeredAt, attendedAt, cancelledAt
 - **afterChange**: `updateEventAttendeeCount` - Update event's registered count
+
+### Inquiries Collection
+
+- **beforeChange**: `enforcePaymentsDisabled` - Block creation when payments are enabled
+
+### StoreSettings Global
+
+- **afterChange**: `invalidateSettingsCache` - Revalidate Next.js cache tag
 
 ## Auto-Generated Types
 
@@ -414,15 +503,6 @@ query {
 }
 ```
 
-## Migration Notes
-
-Data will be migrated from Prisma schema in Phase 2:
-
-- Export from `/home/axxs/infoshop` PostgreSQL
-- Transform to Payload format
-- Import to Payload SQLite/PostgreSQL
-- Validate relationships
-
 ---
 
-Last Updated: 2025-02-01
+Last Updated: 2026-03-01
