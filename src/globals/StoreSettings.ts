@@ -24,6 +24,7 @@ export const StoreSettings: GlobalConfig = {
     {
       name: 'paymentsDisabledMessage',
       type: 'textarea',
+      maxLength: 500,
       label: 'Payments Disabled Message',
       defaultValue:
         'Online payments are currently unavailable. You can submit an inquiry and we will get back to you.',

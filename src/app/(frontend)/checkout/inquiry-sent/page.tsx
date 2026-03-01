@@ -1,7 +1,12 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Mail } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
+
+export const metadata: Metadata = {
+  title: 'Inquiry Sent',
+}
 
 export default function InquirySentPage() {
   return (

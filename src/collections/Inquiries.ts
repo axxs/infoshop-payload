@@ -42,6 +42,7 @@ export const Inquiries: CollectionConfig = {
       name: 'items',
       type: 'array',
       label: 'Requested Books',
+      minRows: 1,
       fields: [
         {
           name: 'book',

@@ -1,11 +1,22 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { CheckCircle, XCircle } from 'lucide-react'
 import { getSquareConfigStatus } from '../actions/getSquareConfigStatus'
 import type { SquareConfigStatusData } from '../actions/getSquareConfigStatus'
 
 function StatusIcon({ ok }: { ok: boolean }) {
-  return <span style={{ marginRight: '6px' }}>{ok ? '\u2705' : '\u274c'}</span>
+  if (ok) {
+    return (
+      <CheckCircle
+        className="mr-1.5 inline-block h-4 w-4 text-green-600"
+        aria-label="Configured"
+      />
+    )
+  }
+  return (
+    <XCircle className="mr-1.5 inline-block h-4 w-4 text-red-600" aria-label="Not configured" />
+  )
 }
 
 export function SquareConfigStatus() {
@@ -20,42 +31,34 @@ export function SquareConfigStatus() {
 
   if (error) {
     return (
-      <div style={{ padding: '16px', border: '1px solid #e5484d', borderRadius: '8px', background: '#fff1f0' }}>
-        <p style={{ color: '#e5484d', margin: 0 }}>{error}</p>
+      <div className="rounded-lg border border-red-300 bg-red-50 p-4">
+        <p className="m-0 text-sm text-red-600">{error}</p>
       </div>
     )
   }
 
   if (!status) {
     return (
-      <div style={{ padding: '16px', border: '1px solid #ddd', borderRadius: '8px' }}>
-        <p style={{ color: '#666', margin: 0 }}>Loading configuration status...</p>
+      <div className="rounded-lg border border-gray-200 p-4">
+        <p className="m-0 text-sm text-gray-500">Loading configuration status...</p>
       </div>
     )
   }
 
-  const envBadgeColor = status.environment === 'production' ? '#30a46c' : '#f76b15'
-
   return (
-    <div style={{ padding: '16px', border: '1px solid #ddd', borderRadius: '8px', background: '#fafafa' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-        <strong>Square Environment:</strong>
+    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+      <div className="mb-4 flex items-center gap-3">
+        <strong className="text-sm">Square Environment:</strong>
         <span
-          style={{
-            background: envBadgeColor,
-            color: 'white',
-            padding: '2px 10px',
-            borderRadius: '12px',
-            fontSize: '13px',
-            fontWeight: 600,
-            textTransform: 'uppercase',
-          }}
+          className={`rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase text-white ${
+            status.environment === 'production' ? 'bg-green-600' : 'bg-orange-500'
+          }`}
         >
           {status.environment}
         </span>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div className="flex flex-col gap-2 text-sm">
         <div>
           <StatusIcon ok={status.hasAccessToken} />
           <span>SQUARE_ACCESS_TOKEN</span>
@@ -65,9 +68,7 @@ export function SquareConfigStatus() {
           <span>
             SQUARE_APPLICATION_ID
             {status.applicationIdPrefix && (
-              <span style={{ color: '#666', marginLeft: '8px', fontSize: '13px' }}>
-                ({status.applicationIdPrefix})
-              </span>
+              <span className="ml-2 text-xs text-gray-500">({status.applicationIdPrefix})</span>
             )}
           </span>
         </div>
@@ -78,24 +79,20 @@ export function SquareConfigStatus() {
         <div>
           <StatusIcon ok={status.hasSyncApiKey} />
           <span>SQUARE_SYNC_API_KEY</span>
-          <span style={{ color: '#666', marginLeft: '8px', fontSize: '13px' }}>(optional)</span>
+          <span className="ml-2 text-xs text-gray-500">(optional)</span>
         </div>
       </div>
 
       <div
-        style={{
-          marginTop: '16px',
-          padding: '10px 14px',
-          borderRadius: '6px',
-          background: status.isReady ? '#e6f6eb' : '#fff1f0',
-          border: `1px solid ${status.isReady ? '#30a46c' : '#e5484d'}`,
-        }}
+        className={`mt-4 rounded-md border p-2.5 text-sm font-semibold ${
+          status.isReady
+            ? 'border-green-600 bg-green-50 text-green-700'
+            : 'border-red-500 bg-red-50 text-red-600'
+        }`}
       >
-        <strong style={{ color: status.isReady ? '#30a46c' : '#e5484d' }}>
-          {status.isReady
-            ? 'Square is configured and ready to accept payments'
-            : 'Square is not fully configured — payments will fail'}
-        </strong>
+        {status.isReady
+          ? 'Square is configured and ready to accept payments'
+          : 'Square is not fully configured \u2014 payments will fail'}
       </div>
     </div>
   )

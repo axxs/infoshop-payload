@@ -17,9 +17,9 @@ export interface SquareConfigStatusData {
 export async function getSquareConfigStatus(): Promise<SquareConfigStatusData> {
   const payload = await getPayload({ config })
   const { user } = await payload.auth({ headers: await headers() })
-  if (!user || (user as { role?: string }).role !== 'admin') {
-    throw new Error('Unauthorized')
-  }
+  if (!user) throw new Error('Unauthorized')
+  const role = 'role' in user && typeof user.role === 'string' ? user.role : null
+  if (role !== 'admin') throw new Error('Unauthorized')
 
   const environment =
     process.env.SQUARE_ENVIRONMENT === 'production' ? 'production' : 'sandbox'

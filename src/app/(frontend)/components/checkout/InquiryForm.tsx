@@ -25,10 +25,25 @@ export function InquiryForm({ disabledMessage }: InquiryFormProps) {
     setIsSubmitting(true)
     setError(null)
 
+    const trimmedName = customerName.trim()
+    const trimmedEmail = customerEmail.trim()
+
+    if (!trimmedName) {
+      setError('Name is required')
+      setIsSubmitting(false)
+      return
+    }
+
+    if (!trimmedEmail) {
+      setError('Email is required')
+      setIsSubmitting(false)
+      return
+    }
+
     try {
       const result = await submitInquiry({
-        customerName: customerName.trim(),
-        customerEmail: customerEmail.trim(),
+        customerName: trimmedName,
+        customerEmail: trimmedEmail,
         message: message.trim(),
       })
 

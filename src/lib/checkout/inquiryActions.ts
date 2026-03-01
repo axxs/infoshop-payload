@@ -3,6 +3,7 @@
 import { headers } from 'next/headers'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { z } from 'zod'
 import { getCart, clearCart } from '@/lib/cart'
 import { getStorePaymentSettings } from '@/lib/square/getStoreSettings'
 import type { Theme } from '@/payload-types'
@@ -16,6 +17,12 @@ interface SubmitInquiryInput {
 type SubmitInquiryResult =
   | { success: true }
   | { success: false; error: string }
+
+const inquirySchema = z.object({
+  customerName: z.string().min(1, 'Name is required').max(200, 'Name is too long'),
+  customerEmail: z.string().email('A valid email address is required'),
+  message: z.string().max(2000, 'Message is too long (max 2000 characters)').optional(),
+})
 
 /** In-memory rate limit for inquiry submissions: 3 per 10 minutes per IP */
 const MAX_ENTRIES = 5000
@@ -35,11 +42,26 @@ setInterval(
   5 * 60 * 1000,
 )
 
-async function isRateLimited(): Promise<boolean> {
+/**
+ * Extract client IP from headers.
+ * Prefers x-real-ip (set by trusted proxy) over x-forwarded-for (can be spoofed).
+ * Falls back to 'unknown-ip' which at least buckets all unknown clients together
+ * rather than silently disabling rate limiting.
+ */
+async function getClientIp(): Promise<string> {
   const hdrs = await headers()
-  const forwarded = hdrs.get('x-forwarded-for')
-  const ip = forwarded ? forwarded.split(',')[0].trim() : hdrs.get('x-real-ip') || 'unknown'
 
+  const realIp = hdrs.get('x-real-ip')
+  if (realIp) return realIp.trim()
+
+  const forwarded = hdrs.get('x-forwarded-for')
+  if (forwarded) return forwarded.split(',')[0].trim()
+
+  return 'unknown-ip'
+}
+
+async function isRateLimited(): Promise<boolean> {
+  const ip = await getClientIp()
   const now = Date.now()
   const key = `inquiry:${ip}`
   const entry = inquiryRateLimit.get(key)
@@ -51,10 +73,26 @@ async function isRateLimited(): Promise<boolean> {
     if (entry.count > INQUIRY_RATE_LIMIT.maxRequests) return true
   }
 
-  // Evict oldest entry if over capacity
+  // Evict expired entries first when over capacity, then oldest by reset time
   if (inquiryRateLimit.size > MAX_ENTRIES) {
-    const oldestKey = inquiryRateLimit.keys().next().value
-    if (oldestKey) inquiryRateLimit.delete(oldestKey)
+    let oldestKey: string | null = null
+    let oldestReset = Infinity
+
+    for (const [k, v] of inquiryRateLimit.entries()) {
+      if (v.resetAt < now) {
+        inquiryRateLimit.delete(k)
+        oldestKey = null
+        break
+      }
+      if (v.resetAt < oldestReset) {
+        oldestReset = v.resetAt
+        oldestKey = k
+      }
+    }
+
+    if (oldestKey && inquiryRateLimit.size > MAX_ENTRIES) {
+      inquiryRateLimit.delete(oldestKey)
+    }
   }
 
   return false
@@ -71,23 +109,18 @@ export async function submitInquiry(input: SubmitInquiryInput): Promise<SubmitIn
     return { success: false, error: 'Too many inquiries. Please try again later.' }
   }
 
-  const { customerName, customerEmail, message } = input
+  const parsed = inquirySchema.safeParse({
+    customerName: input.customerName,
+    customerEmail: input.customerEmail,
+    message: input.message || undefined,
+  })
 
-  if (!customerName || customerName.length < 1) {
-    return { success: false, error: 'Name is required' }
+  if (!parsed.success) {
+    const firstError = parsed.error.errors[0]
+    return { success: false, error: firstError?.message || 'Invalid input' }
   }
 
-  if (customerName.length > 200) {
-    return { success: false, error: 'Name is too long' }
-  }
-
-  if (!customerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
-    return { success: false, error: 'A valid email address is required' }
-  }
-
-  if (message && message.length > 2000) {
-    return { success: false, error: 'Message is too long (max 2000 characters)' }
-  }
+  const { customerName, customerEmail, message } = parsed.data
 
   const cartResult = await getCart()
   if (!cartResult.success) {
