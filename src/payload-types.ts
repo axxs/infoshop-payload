@@ -78,6 +78,7 @@ export interface Config {
     sales: Sale;
     'sale-items': SaleItem;
     'contact-submissions': ContactSubmission;
+    inquiries: Inquiry;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -96,6 +97,7 @@ export interface Config {
     sales: SalesSelect<false> | SalesSelect<true>;
     'sale-items': SaleItemsSelect<false> | SaleItemsSelect<true>;
     'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
+    inquiries: InquiriesSelect<false> | InquiriesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -107,10 +109,12 @@ export interface Config {
   globals: {
     theme: Theme;
     layout: Layout;
+    'store-settings': StoreSetting;
   };
   globalsSelect: {
     theme: ThemeSelect<false> | ThemeSelect<true>;
     layout: LayoutSelect<false> | LayoutSelect<true>;
+    'store-settings': StoreSettingsSelect<false> | StoreSettingsSelect<true>;
   };
   locale: null;
   user: User & {
@@ -596,6 +600,43 @@ export interface ContactSubmission {
   createdAt: string;
 }
 /**
+ * Book inquiries submitted when online payments are disabled
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inquiries".
+ */
+export interface Inquiry {
+  id: number;
+  customerName: string;
+  customerEmail: string;
+  /**
+   * Optional message from the customer
+   */
+  message?: string | null;
+  items?:
+    | {
+        book?: (number | null) | Book;
+        /**
+         * Snapshot of book title at inquiry time
+         */
+        title: string;
+        quantity: number;
+        /**
+         * Snapshot of price at inquiry time
+         */
+        price?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  status?: ('new' | 'contacted' | 'resolved') | null;
+  /**
+   * Internal notes (not visible to customers)
+   */
+  staffNotes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -658,6 +699,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'sale-items';
         value: number | SaleItem;
+      } | null)
+    | ({
+        relationTo: 'contact-submissions';
+        value: number | ContactSubmission;
+      } | null)
+    | ({
+        relationTo: 'inquiries';
+        value: number | Inquiry;
       } | null)
     | ({
         relationTo: 'payload-kv';
@@ -920,6 +969,28 @@ export interface ContactSubmissionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inquiries_select".
+ */
+export interface InquiriesSelect<T extends boolean = true> {
+  customerName?: T;
+  customerEmail?: T;
+  message?: T;
+  items?:
+    | T
+    | {
+        book?: T;
+        title?: T;
+        quantity?: T;
+        price?: T;
+        id?: T;
+      };
+  status?: T;
+  staffNotes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -1141,7 +1212,7 @@ export interface Theme {
    */
   override_radius?: string | null;
   /**
-   * Enable online ordering. When disabled, the shop operates in catalogue mode.
+   * Enable online ordering. When disabled, the shop operates in catalogue mode — visitors can browse and see prices but cannot add items to cart or check out.
    */
   orderingEnabled?: boolean | null;
   /**
@@ -1171,13 +1242,21 @@ export interface Theme {
 export interface Layout {
   id: number;
   /**
-   * Site name displayed in the header and footer
+   * Site name used in page titles, SEO, and branding
    */
   siteName?: string | null;
+  /**
+   * Default meta description for SEO (shown in search engine results)
+   */
+  siteDescription?: string | null;
   /**
    * Site logo (recommended: SVG or PNG with transparency)
    */
   logo?: (number | null) | Media;
+  /**
+   * How to display the logo in the header. When logo-only, the site name is set as alt text for accessibility and SEO.
+   */
+  logoDisplay?: ('logo-only' | 'logo-with-name') | null;
   /**
    * Main navigation links
    */
@@ -1508,6 +1587,25 @@ export interface Layout {
   createdAt?: string | null;
 }
 /**
+ * Configure payment processing and store behavior
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "store-settings".
+ */
+export interface StoreSetting {
+  id: number;
+  /**
+   * When disabled, customers can submit book inquiries instead of paying online.
+   */
+  paymentsEnabled?: boolean | null;
+  /**
+   * Shown to customers when payments are disabled.
+   */
+  paymentsDisabledMessage?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "theme_select".
  */
@@ -1572,7 +1670,9 @@ export interface ThemeSelect<T extends boolean = true> {
  */
 export interface LayoutSelect<T extends boolean = true> {
   siteName?: T;
+  siteDescription?: T;
   logo?: T;
+  logoDisplay?: T;
   navigation?:
     | T
     | {
@@ -1720,6 +1820,17 @@ export interface LayoutSelect<T extends boolean = true> {
             };
       };
   _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "store-settings_select".
+ */
+export interface StoreSettingsSelect<T extends boolean = true> {
+  paymentsEnabled?: T;
+  paymentsDisabledMessage?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

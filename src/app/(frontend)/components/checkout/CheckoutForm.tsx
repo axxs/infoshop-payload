@@ -3,56 +3,35 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
-import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import type { PopulatedCart } from '@/lib/cart'
 import { processCheckout } from '@/lib/checkout/actions'
+import { SquarePaymentForm } from '@/lib/square/SquarePaymentForm'
+import { calculateTax } from '@/lib/tax/taxCalculation'
 
 interface CheckoutFormProps {
   cart: PopulatedCart
-  applicationId: string
-  locationId: string
 }
 
-export function CheckoutForm({
-  cart,
-  applicationId: _applicationId,
-  locationId: _locationId,
-}: CheckoutFormProps) {
+export function CheckoutForm({ cart }: CheckoutFormProps) {
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [customerEmail, setCustomerEmail] = useState('')
   const [customerName, setCustomerName] = useState('')
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+  const taxCalculation = calculateTax(cart.subtotal, cart.currency)
+  const total = taxCalculation.totalWithTax
+
+  const handlePaymentSuccess = async (transactionId: string, receiptUrl?: string) => {
+    setIsCreatingOrder(true)
     setError(null)
 
     try {
-      // Calculate total with tax
-      const taxRate = cart.currency === 'AUD' ? 0.1 : 0
-      const tax = cart.subtotal * taxRate
-      const _total = cart.subtotal + tax
-
-      // Square Web Payments SDK integration pending — use mock payment for development
-      const mockPaymentResult = {
-        success: true,
-        transactionId: `mock-${Date.now()}`,
-        receiptUrl: '#',
-      }
-
-      if (!mockPaymentResult.success) {
-        setError('Payment failed. Please try again.')
-        return
-      }
-
-      // Create order via Server Action (has built-in CSRF protection)
       const orderResult = await processCheckout({
-        squareTransactionId: mockPaymentResult.transactionId,
-        squareReceiptUrl: mockPaymentResult.receiptUrl,
+        squareTransactionId: transactionId,
+        squareReceiptUrl: receiptUrl,
         paymentMethod: 'CARD',
         customerEmail,
         customerName,
@@ -63,13 +42,20 @@ export function CheckoutForm({
         return
       }
 
-      // Redirect to success page
       router.push(`/checkout/success?orderId=${orderResult.saleId}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
-      setIsLoading(false)
+      setIsCreatingOrder(false)
     }
+  }
+
+  const handlePaymentError = (errorMessage: string) => {
+    setError(errorMessage)
+  }
+
+  const handleCancel = () => {
+    router.back()
   }
 
   return (
@@ -77,60 +63,53 @@ export function CheckoutForm({
       <CardHeader>
         <CardTitle>Payment Information</CardTitle>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium mb-2">
-              Name
-            </label>
-            <Input
-              id="name"
-              type="text"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              required
-              placeholder="John Smith"
-            />
+      <CardContent className="space-y-4">
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium mb-2">
+            Name
+          </label>
+          <Input
+            id="name"
+            type="text"
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            required
+            placeholder="John Smith"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium mb-2">
+            Email
+          </label>
+          <Input
+            id="email"
+            type="email"
+            value={customerEmail}
+            onChange={(e) => setCustomerEmail(e.target.value)}
+            required
+            placeholder="john@example.com"
+          />
+        </div>
+
+        {isCreatingOrder ? (
+          <div className="flex items-center justify-center p-4">
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            <span>Creating your order...</span>
           </div>
+        ) : (
+          <SquarePaymentForm
+            amount={total}
+            currency={cart.currency as 'AUD' | 'USD' | 'EUR' | 'GBP'}
+            onPaymentSuccess={handlePaymentSuccess}
+            onPaymentError={handlePaymentError}
+            onCancel={handleCancel}
+          />
+        )}
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-2">
-              Email
-            </label>
-            <Input
-              id="email"
-              type="email"
-              value={customerEmail}
-              onChange={(e) => setCustomerEmail(e.target.value)}
-              required
-              placeholder="john@example.com"
-            />
-          </div>
-
-          {/* Square Web Payments SDK card input — integration pending */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="rounded-lg border border-dashed p-3">
-              <p className="text-xs text-muted-foreground">
-                [DEV] Mock payment — click Complete Order to create a test order.
-              </p>
-            </div>
-          )}
-
-          {error && (
-            <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
-          )}
-
-          <Button type="submit" disabled={isLoading} className="w-full" size="lg">
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              'Complete Order'
-            )}
-          </Button>
-        </form>
+        {error && (
+          <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
+        )}
       </CardContent>
     </Card>
   )
