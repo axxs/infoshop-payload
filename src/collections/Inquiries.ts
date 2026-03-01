@@ -10,6 +10,10 @@ export const Inquiries: CollectionConfig = {
   },
   access: {
     read: isAdminOrVolunteer,
+    // Public so anonymous visitors can submit inquiries. Rate limiting is
+    // enforced in the submitInquiry server action, not at the collection level.
+    // Direct REST API calls to /api/inquiries bypass that rate limiter — if this
+    // becomes an abuse vector, add a Payload beforeChange hook with its own check.
     create: () => true,
     update: isAdminOrVolunteer,
     delete: isAdminOrVolunteer,

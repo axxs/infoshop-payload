@@ -31,22 +31,22 @@ export function SquareConfigStatus() {
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-300 bg-red-50 p-4">
-        <p className="m-0 text-sm text-red-600">{error}</p>
+      <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+        <p className="m-0 text-sm text-destructive">{error}</p>
       </div>
     )
   }
 
   if (!status) {
     return (
-      <div className="rounded-lg border border-gray-200 p-4">
-        <p className="m-0 text-sm text-gray-500">Loading configuration status...</p>
+      <div className="rounded-lg border border-border p-4">
+        <p className="m-0 text-sm text-muted-foreground">Loading configuration status...</p>
       </div>
     )
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+    <div className="rounded-lg border border-border bg-muted p-4">
       <div className="mb-4 flex items-center gap-3">
         <strong className="text-sm">Square Environment:</strong>
         <span
@@ -68,7 +68,7 @@ export function SquareConfigStatus() {
           <span>
             SQUARE_APPLICATION_ID
             {status.applicationIdPrefix && (
-              <span className="ml-2 text-xs text-gray-500">({status.applicationIdPrefix})</span>
+              <span className="ml-2 text-xs text-muted-foreground">({status.applicationIdPrefix})</span>
             )}
           </span>
         </div>
@@ -79,7 +79,7 @@ export function SquareConfigStatus() {
         <div>
           <StatusIcon ok={status.hasSyncApiKey} />
           <span>SQUARE_SYNC_API_KEY</span>
-          <span className="ml-2 text-xs text-gray-500">(optional)</span>
+          <span className="ml-2 text-xs text-muted-foreground">(optional)</span>
         </div>
       </div>
 

@@ -10,6 +10,7 @@ import { processPayment } from '@/lib/square/payments'
 import { DEFAULT_CURRENCY } from '@/lib/square/constants'
 import { checkRateLimit, getRateLimitHeaders } from '@/lib/rateLimit'
 import { requireRole } from '@/lib/access'
+import { getStorePaymentSettings } from '@/lib/square/getStoreSettings'
 import type { Currency } from 'square'
 
 /** Rate limit: 5 payment attempts per minute per IP */
@@ -38,29 +39,28 @@ export async function POST(request: NextRequest) {
     const auth = await requireRole(payload, request.headers, ['admin', 'volunteer', 'customer'])
     if (!auth.authorized) return auth.response
 
-    // Check if payments are enabled in store settings
-    try {
-      const storeSettings = await payload.findGlobal({ slug: 'store-settings' })
-      if (storeSettings.paymentsEnabled === false) {
-        return NextResponse.json(
-          { success: false, error: 'Online payments are currently disabled' },
-          { status: 503 },
-        )
-      }
-    } catch {
-      // If the global doesn't exist yet, allow payments (default: enabled)
+    // Check if payments are enabled in store settings (uses cached read)
+    const { paymentsEnabled } = await getStorePaymentSettings()
+    if (!paymentsEnabled) {
+      return NextResponse.json(
+        { success: false, error: 'Online payments are currently disabled' },
+        { status: 503 },
+      )
     }
 
     const body = await request.json()
 
     // Validate required fields
     if (!body.sourceId) {
-      return NextResponse.json({ error: 'Missing required field: sourceId' }, { status: 400 })
+      return NextResponse.json(
+        { success: false, error: 'Missing required field: sourceId' },
+        { status: 400 },
+      )
     }
 
     if (!body.amount || typeof body.amount !== 'number' || body.amount <= 0) {
       return NextResponse.json(
-        { error: 'Invalid amount: must be a positive number' },
+        { success: false, error: 'Invalid amount: must be a positive number' },
         { status: 400 },
       )
     }

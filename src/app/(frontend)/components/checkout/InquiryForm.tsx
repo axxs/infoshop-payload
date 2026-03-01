@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, Send } from 'lucide-react'
 import { Input } from '../ui/input'
+import { Textarea } from '../ui/textarea'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { submitInquiry } from '@/lib/checkout/inquiryActions'
@@ -106,9 +107,8 @@ export function InquiryForm({ disabledMessage }: InquiryFormProps) {
             <label htmlFor="inquiry-message" className="block text-sm font-medium mb-2">
               Message <span className="text-muted-foreground">(optional)</span>
             </label>
-            <textarea
+            <Textarea
               id="inquiry-message"
-              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               maxLength={2000}
@@ -133,7 +133,9 @@ export function InquiryForm({ disabledMessage }: InquiryFormProps) {
         </form>
 
         {error && (
-          <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
+          <div role="alert" className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+            {error}
+          </div>
         )}
       </CardContent>
     </Card>

@@ -14,8 +14,8 @@ export default function InquirySentPage() {
       <div className="mx-auto max-w-md">
         <Card>
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
-              <Mail className="h-10 w-10 text-blue-600" />
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+              <Mail className="h-10 w-10 text-primary" />
             </div>
             <CardTitle className="text-2xl">Inquiry Sent!</CardTitle>
           </CardHeader>

@@ -29,7 +29,10 @@ const MAX_ENTRIES = 5000
 const inquiryRateLimit = new Map<string, { count: number; resetAt: number }>()
 const INQUIRY_RATE_LIMIT = { maxRequests: 3, windowMs: 10 * 60 * 1000 }
 
-// Periodically evict expired entries to prevent memory leaks
+// Periodically evict expired entries to prevent memory leaks.
+// Note: in serverless environments (e.g. Vercel) this interval only lives as
+// long as the function instance. The over-capacity eviction in isRateLimited()
+// provides a secondary safety net regardless of runtime lifecycle.
 setInterval(
   () => {
     const now = Date.now()
@@ -57,6 +60,10 @@ async function getClientIp(): Promise<string> {
   const forwarded = hdrs.get('x-forwarded-for')
   if (forwarded) return forwarded.split(',')[0].trim()
 
+  // NB: all clients without an identifiable IP share this bucket, so a burst
+  // from one unknown client can rate-limit all unknown clients. This is an
+  // acceptable trade-off: deploying behind a reverse proxy that sets x-real-ip
+  // (the normal production setup) avoids this entirely.
   return 'unknown-ip'
 }
 
@@ -75,23 +82,30 @@ async function isRateLimited(): Promise<boolean> {
 
   // Evict expired entries first when over capacity, then oldest by reset time
   if (inquiryRateLimit.size > MAX_ENTRIES) {
-    let oldestKey: string | null = null
-    let oldestReset = Infinity
-
+    // First pass: remove all expired entries
     for (const [k, v] of inquiryRateLimit.entries()) {
       if (v.resetAt < now) {
         inquiryRateLimit.delete(k)
-        oldestKey = null
-        break
-      }
-      if (v.resetAt < oldestReset) {
-        oldestReset = v.resetAt
-        oldestKey = k
       }
     }
 
-    if (oldestKey && inquiryRateLimit.size > MAX_ENTRIES) {
-      inquiryRateLimit.delete(oldestKey)
+    // Second pass: if still over capacity, evict the entry with the oldest resetAt
+    while (inquiryRateLimit.size > MAX_ENTRIES) {
+      let oldestKey: string | null = null
+      let oldestReset = Infinity
+
+      for (const [k, v] of inquiryRateLimit.entries()) {
+        if (v.resetAt < oldestReset) {
+          oldestReset = v.resetAt
+          oldestKey = k
+        }
+      }
+
+      if (oldestKey) {
+        inquiryRateLimit.delete(oldestKey)
+      } else {
+        break
+      }
     }
   }
 
