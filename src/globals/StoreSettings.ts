@@ -1,5 +1,10 @@
-import type { GlobalConfig } from 'payload'
+import type { GlobalAfterChangeHook, GlobalConfig } from 'payload'
+import { revalidateTag } from 'next/cache'
 import { publicRead, isAdmin } from '@/lib/access'
+
+const invalidateSettingsCache: GlobalAfterChangeHook = () => {
+  revalidateTag('store-payment-settings')
+}
 
 export const StoreSettings: GlobalConfig = {
   slug: 'store-settings',
@@ -10,6 +15,9 @@ export const StoreSettings: GlobalConfig = {
   access: {
     read: publicRead,
     update: isAdmin,
+  },
+  hooks: {
+    afterChange: [invalidateSettingsCache],
   },
   fields: [
     {

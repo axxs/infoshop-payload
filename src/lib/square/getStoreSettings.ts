@@ -21,11 +21,8 @@ const getCachedSettings = unstable_cache(
         paymentsEnabled: settings.paymentsEnabled ?? true,
         paymentsDisabledMessage: settings.paymentsDisabledMessage || DEFAULT_DISABLED_MESSAGE,
       }
-    } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.warn('Failed to read store-settings global, using defaults:', error)
-      }
+    } catch {
+      // Global may not exist yet (first run). Fall back to defaults (payments enabled).
       return {
         paymentsEnabled: true,
         paymentsDisabledMessage: DEFAULT_DISABLED_MESSAGE,
@@ -33,7 +30,7 @@ const getCachedSettings = unstable_cache(
     }
   },
   ['store-payment-settings'],
-  { revalidate: 30 },
+  { revalidate: 30, tags: ['store-payment-settings'] },
 )
 
 export async function getStorePaymentSettings(): Promise<StorePaymentSettings> {

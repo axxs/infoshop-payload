@@ -26,24 +26,10 @@ const inquirySchema = z.object({
 
 /** In-memory rate limit for inquiry submissions: 3 per 10 minutes per IP */
 const MAX_ENTRIES = 5000
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000
 const inquiryRateLimit = new Map<string, { count: number; resetAt: number }>()
 const INQUIRY_RATE_LIMIT = { maxRequests: 3, windowMs: 10 * 60 * 1000 }
-
-// Periodically evict expired entries to prevent memory leaks.
-// Note: in serverless environments (e.g. Vercel) this interval only lives as
-// long as the function instance. The over-capacity eviction in isRateLimited()
-// provides a secondary safety net regardless of runtime lifecycle.
-setInterval(
-  () => {
-    const now = Date.now()
-    for (const [key, entry] of inquiryRateLimit.entries()) {
-      if (entry.resetAt < now) {
-        inquiryRateLimit.delete(key)
-      }
-    }
-  },
-  5 * 60 * 1000,
-)
+let lastCleanup = Date.now()
 
 /**
  * Extract client IP from headers.
@@ -70,6 +56,17 @@ async function getClientIp(): Promise<string> {
 async function isRateLimited(): Promise<boolean> {
   const ip = await getClientIp()
   const now = Date.now()
+
+  // Lazy cleanup: sweep expired entries periodically on each request
+  if (now - lastCleanup > CLEANUP_INTERVAL_MS) {
+    lastCleanup = now
+    for (const [k, v] of inquiryRateLimit.entries()) {
+      if (v.resetAt < now) {
+        inquiryRateLimit.delete(k)
+      }
+    }
+  }
+
   const key = `inquiry:${ip}`
   const entry = inquiryRateLimit.get(key)
 
@@ -80,32 +77,22 @@ async function isRateLimited(): Promise<boolean> {
     if (entry.count > INQUIRY_RATE_LIMIT.maxRequests) return true
   }
 
-  // Evict expired entries first when over capacity, then oldest by reset time
-  if (inquiryRateLimit.size > MAX_ENTRIES) {
-    // First pass: remove all expired entries
+  // Safety net: if over capacity despite periodic cleanup, evict oldest entries
+  while (inquiryRateLimit.size > MAX_ENTRIES) {
+    let oldestKey: string | null = null
+    let oldestReset = Infinity
+
     for (const [k, v] of inquiryRateLimit.entries()) {
-      if (v.resetAt < now) {
-        inquiryRateLimit.delete(k)
+      if (v.resetAt < oldestReset) {
+        oldestReset = v.resetAt
+        oldestKey = k
       }
     }
 
-    // Second pass: if still over capacity, evict the entry with the oldest resetAt
-    while (inquiryRateLimit.size > MAX_ENTRIES) {
-      let oldestKey: string | null = null
-      let oldestReset = Infinity
-
-      for (const [k, v] of inquiryRateLimit.entries()) {
-        if (v.resetAt < oldestReset) {
-          oldestReset = v.resetAt
-          oldestKey = k
-        }
-      }
-
-      if (oldestKey) {
-        inquiryRateLimit.delete(oldestKey)
-      } else {
-        break
-      }
+    if (oldestKey) {
+      inquiryRateLimit.delete(oldestKey)
+    } else {
+      break
     }
   }
 

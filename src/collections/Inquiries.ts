@@ -1,5 +1,25 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionBeforeChangeHook, CollectionConfig } from 'payload'
 import { isAdminOrVolunteer } from '@/lib/access'
+import { APIError } from 'payload'
+
+/**
+ * Block inquiry creation when payments are enabled.
+ * This guards the REST/GraphQL API — the server action has its own check,
+ * but direct POST to /api/inquiries would bypass it without this hook.
+ */
+const enforcePaymentsDisabled: CollectionBeforeChangeHook = async ({ operation, req }) => {
+  if (operation !== 'create') return
+  try {
+    const settings = await req.payload.findGlobal({ slug: 'store-settings' })
+    if (settings.paymentsEnabled !== false) {
+      throw new APIError('Inquiries are not accepted when online payments are enabled.', 403)
+    }
+  } catch (error) {
+    // Re-throw APIError, swallow findGlobal failures (default: payments enabled)
+    if (error instanceof APIError) throw error
+    throw new APIError('Inquiries are not accepted when online payments are enabled.', 403)
+  }
+}
 
 export const Inquiries: CollectionConfig = {
   slug: 'inquiries',
@@ -10,13 +30,13 @@ export const Inquiries: CollectionConfig = {
   },
   access: {
     read: isAdminOrVolunteer,
-    // Public so anonymous visitors can submit inquiries. Rate limiting is
-    // enforced in the submitInquiry server action, not at the collection level.
-    // Direct REST API calls to /api/inquiries bypass that rate limiter — if this
-    // becomes an abuse vector, add a Payload beforeChange hook with its own check.
+    // Public so anonymous visitors can submit inquiries via the server action.
     create: () => true,
     update: isAdminOrVolunteer,
     delete: isAdminOrVolunteer,
+  },
+  hooks: {
+    beforeChange: [enforcePaymentsDisabled],
   },
   timestamps: true,
   fields: [
