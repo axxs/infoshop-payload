@@ -4,11 +4,14 @@ import { redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { CheckoutForm } from '../components/checkout/CheckoutForm'
+import { InquiryForm } from '../components/checkout/InquiryForm'
 import { getCart } from '@/lib/cart'
 import { formatPrice } from '@/lib/utils'
 import { ScrollReveal } from '../components/cinematic/ScrollReveal'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { getStorePaymentSettings } from '@/lib/square/getStoreSettings'
+import { calculateTax } from '@/lib/tax/taxCalculation'
 
 export const metadata: Metadata = {
   title: 'Checkout',
@@ -47,14 +50,11 @@ export default async function CheckoutPage() {
     redirect('/cart')
   }
 
-  // Calculate totals
-  const taxRate = cart.currency === 'AUD' ? 0.1 : 0
-  const tax = cart.subtotal * taxRate
-  const total = cart.subtotal + tax
+  const { paymentsEnabled, paymentsDisabledMessage } = await getStorePaymentSettings()
 
-  // Get Square credentials from environment
-  const applicationId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID || ''
-  const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID || ''
+  // Calculate totals using centralised tax logic
+  const taxCalc = calculateTax(cart.subtotal, cart.currency)
+  const { taxAmount: tax, totalWithTax: total, taxRate } = taxCalc
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -67,13 +67,19 @@ export default async function CheckoutPage() {
       </Link>
 
       <ScrollReveal>
-        <h1 className="mb-8 font-heading text-3xl font-bold">Checkout</h1>
+        <h1 className="mb-8 font-heading text-3xl font-bold">
+          {paymentsEnabled ? 'Checkout' : 'Send an Inquiry'}
+        </h1>
       </ScrollReveal>
 
       <div className="grid gap-8 lg:grid-cols-3">
-        {/* Checkout Form */}
+        {/* Checkout / Inquiry Form */}
         <div className="lg:col-span-2">
-          <CheckoutForm cart={cart} applicationId={applicationId} locationId={locationId} />
+          {paymentsEnabled ? (
+            <CheckoutForm cart={cart} />
+          ) : (
+            <InquiryForm disabledMessage={paymentsDisabledMessage} />
+          )}
         </div>
 
         {/* Order Summary */}
@@ -87,7 +93,7 @@ export default async function CheckoutPage() {
                 {cart.items.map((item) => (
                   <div key={item.bookId} className="flex justify-between text-sm">
                     <span className="text-muted-foreground">
-                      {item.book.title} × {item.quantity}
+                      {item.book.title} &times; {item.quantity}
                     </span>
                     <span>{formatPrice(item.lineTotal, cart.currency)}</span>
                   </div>
@@ -100,7 +106,7 @@ export default async function CheckoutPage() {
                   <span>{formatPrice(cart.subtotal, cart.currency)}</span>
                 </div>
 
-                {taxRate > 0 && (
+                {paymentsEnabled && taxRate > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">
                       Tax (GST {(taxRate * 100).toFixed(0)}%)
@@ -111,8 +117,8 @@ export default async function CheckoutPage() {
 
                 <div className="border-t pt-2">
                   <div className="flex justify-between font-semibold">
-                    <span>Total</span>
-                    <span>{formatPrice(total, cart.currency)}</span>
+                    <span>{paymentsEnabled ? 'Total' : 'Subtotal'}</span>
+                    <span>{formatPrice(paymentsEnabled ? total : cart.subtotal, cart.currency)}</span>
                   </div>
                 </div>
               </div>

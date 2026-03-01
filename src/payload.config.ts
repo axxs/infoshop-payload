@@ -20,6 +20,8 @@ import { SaleItems } from './collections/SaleItems'
 import { ContactSubmissions } from './collections/ContactSubmissions'
 import { Theme } from './globals/Theme'
 import { Layout } from './globals/Layout'
+import { StoreSettings } from './globals/StoreSettings'
+import { Inquiries } from './collections/Inquiries'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -46,8 +48,9 @@ export default buildConfig({
     Sales,
     SaleItems,
     ContactSubmissions,
+    Inquiries,
   ],
-  globals: [Theme, Layout],
+  globals: [Theme, Layout, StoreSettings],
   editor: lexicalEditor(),
   secret: (() => {
     const secret = process.env.PAYLOAD_SECRET

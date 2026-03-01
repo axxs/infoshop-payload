@@ -38,6 +38,19 @@ export async function POST(request: NextRequest) {
     const auth = await requireRole(payload, request.headers, ['admin', 'volunteer', 'customer'])
     if (!auth.authorized) return auth.response
 
+    // Check if payments are enabled in store settings
+    try {
+      const storeSettings = await payload.findGlobal({ slug: 'store-settings' })
+      if (storeSettings.paymentsEnabled === false) {
+        return NextResponse.json(
+          { success: false, error: 'Online payments are currently disabled' },
+          { status: 503 },
+        )
+      }
+    } catch {
+      // If the global doesn't exist yet, allow payments (default: enabled)
+    }
+
     const body = await request.json()
 
     // Validate required fields
