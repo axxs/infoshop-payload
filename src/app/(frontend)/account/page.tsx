@@ -5,7 +5,6 @@ import { Package, Calendar } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth/getCurrentUser'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { LogoutButton } from './LogoutButton'
-import type { User } from '@/payload-types'
 
 export const metadata: Metadata = {
   title: 'My Account',
@@ -18,8 +17,7 @@ export default async function AccountPage() {
     redirect('/login?redirect=/account')
   }
 
-  const typedUser = user as User
-  const name = typedUser.name || typedUser.email || 'there'
+  const name = user.name || user.email || 'there'
 
   return (
     <div className="container mx-auto px-4 py-8">

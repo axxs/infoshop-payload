@@ -62,13 +62,13 @@ export async function POST(request: NextRequest) {
     const currency: Currency = body.currency || DEFAULT_CURRENCY
 
     // Process payment through Square
+    // Note: customerId is intentionally omitted — Square customer sync is
+    // handled in a future session. referenceId/note are set by processCheckout,
+    // not by the client.
     const result = await processPayment({
       sourceId: body.sourceId,
       amount: body.amount,
       currency,
-      referenceId: body.referenceId,
-      note: body.note,
-      customerId: body.customerId,
     })
 
     if (result.success) {

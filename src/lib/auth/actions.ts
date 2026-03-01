@@ -122,6 +122,9 @@ export async function registerUser(formData: FormData): Promise<AuthActionResult
 
   const { name, email, password } = parsed.data
 
+  // Record attempt before create so failed attempts count against the limit
+  recordRegistration(ip)
+
   try {
     const payload = await getPayload({ config })
 
@@ -142,8 +145,6 @@ export async function registerUser(formData: FormData): Promise<AuthActionResult
       const jar = await cookies()
       jar.set(COOKIE_NAME, loginResult.token, cookieOptions())
     }
-
-    recordRegistration(ip)
 
     return { success: true }
   } catch (err) {

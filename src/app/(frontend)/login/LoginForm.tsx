@@ -72,7 +72,6 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
               type="password"
               required
               autoComplete="current-password"
-              minLength={8}
             />
           </div>
 

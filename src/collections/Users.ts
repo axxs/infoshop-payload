@@ -64,7 +64,8 @@ export const Users: CollectionConfig = {
         { label: 'Customer', value: 'customer' },
       ],
       access: {
-        // Only admins can change roles
+        // Only admins can set or change roles
+        create: adminFieldAccess,
         update: ({ req: { user } }) => {
           return (user as { role?: string } | null)?.role === 'admin'
         },
