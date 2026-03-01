@@ -4,12 +4,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayload } from 'payload'
-import config from '@payload-config'
 import { processPayment } from '@/lib/square/payments'
 import { DEFAULT_CURRENCY } from '@/lib/square/constants'
 import { checkRateLimit, getRateLimitHeaders } from '@/lib/rateLimit'
-import { requireRole } from '@/lib/access'
 import { getStorePaymentSettings } from '@/lib/square/getStoreSettings'
 import type { Currency } from 'square'
 
@@ -33,11 +30,6 @@ export async function POST(request: NextRequest) {
         },
       )
     }
-
-    // Authorization — any authenticated user can process payments
-    const payload = await getPayload({ config })
-    const auth = await requireRole(payload, request.headers, ['admin', 'volunteer', 'customer'])
-    if (!auth.authorized) return auth.response
 
     // Check if payments are enabled in store settings (uses cached read)
     const { paymentsEnabled } = await getStorePaymentSettings()
@@ -70,13 +62,13 @@ export async function POST(request: NextRequest) {
     const currency: Currency = body.currency || DEFAULT_CURRENCY
 
     // Process payment through Square
+    // Note: customerId is intentionally omitted — Square customer sync is
+    // handled in a future session. referenceId/note are set by processCheckout,
+    // not by the client.
     const result = await processPayment({
       sourceId: body.sourceId,
       amount: body.amount,
       currency,
-      referenceId: body.referenceId,
-      note: body.note,
-      customerId: body.customerId,
     })
 
     if (result.success) {

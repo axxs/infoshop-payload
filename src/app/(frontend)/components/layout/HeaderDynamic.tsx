@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { headers as getHeaders } from 'next/headers'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { BookOpen, Search, ShoppingCart } from 'lucide-react'
+import { BookOpen, Search, ShoppingCart, User } from 'lucide-react'
 import { Button } from '../ui/button'
 import type { Media } from '@/payload-types'
 import { NavigationDropdown } from './NavigationDropdown'
@@ -23,6 +24,16 @@ export async function HeaderDynamic() {
       (themeResult as { orderingEnabled?: boolean })?.orderingEnabled ?? true
   } catch {
     return <HeaderFallback />
+  }
+
+  // Check auth state for user icon (non-blocking — fallback to logged-out)
+  let isLoggedIn = false
+  try {
+    const headersList = await getHeaders()
+    const { user } = await payload.auth({ headers: headersList as Headers })
+    isLoggedIn = !!user
+  } catch {
+    // Silently fall back to logged-out state
   }
 
   const siteName = layout.siteName ?? 'Infoshop'
@@ -100,6 +111,12 @@ export async function HeaderDynamic() {
               </Link>
             </Button>
           )}
+          <Button variant="ghost" size="icon" asChild>
+            <Link href={isLoggedIn ? '/account' : '/login'}>
+              <User className="h-5 w-5" />
+              <span className="sr-only">{isLoggedIn ? 'Account' : 'Login'}</span>
+            </Link>
+          </Button>
           {ctaButton?.label && ctaButton?.href && (
             <Button asChild>
               <Link href={ctaButton.href}>{ctaButton.label}</Link>
@@ -147,6 +164,12 @@ function HeaderFallback() {
             <Link href="/cart">
               <ShoppingCart className="h-5 w-5" />
               <span className="sr-only">Cart</span>
+            </Link>
+          </Button>
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/login">
+              <User className="h-5 w-5" />
+              <span className="sr-only">Login</span>
             </Link>
           </Button>
         </div>
