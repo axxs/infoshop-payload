@@ -47,7 +47,14 @@ Hooks allow custom logic at lifecycle points:
 - `beforeDelete` - Before deletion
 - `afterDelete` - After deletion
 
-### Implemented Hooks (Phase 3.7)
+### Implemented Hooks
+
+**Users Collection** (`src/collections/Users.ts`):
+
+```typescript
+// Prevents role escalation on self-registration
+export const enforceCustomerOnSelfRegistration: CollectionBeforeChangeHook
+```
 
 **Books Collection** (`src/collections/Books/hooks.ts`):
 
@@ -68,18 +75,18 @@ export const checkLowStock: CollectionAfterChangeHook
 export const processSubjectsFromISBN: CollectionAfterChangeHook
 ```
 
-### Hook Example
+**Inquiries Collection** (`src/collections/Inquiries.ts`):
 
 ```typescript
-const validatePricing = async ({ data, operation }) => {
-  if (operation === 'create' || operation === 'update') {
-    const { costPrice, memberPrice, sellPrice } = data
-    if (costPrice >= memberPrice || memberPrice >= sellPrice) {
-      throw new Error('Invalid pricing: cost < member < sell required')
-    }
-  }
-  return data
-}
+// Blocks inquiry creation when payments are enabled
+export const enforcePaymentsDisabled: CollectionBeforeChangeHook
+```
+
+**StoreSettings Global** (`src/globals/StoreSettings.ts`):
+
+```typescript
+// Invalidates Next.js cache when settings change
+export const invalidateSettingsCache: GlobalAfterChangeHook
 ```
 
 ### Recursion Prevention Pattern
@@ -114,6 +121,8 @@ export const processSubjectsFromISBN: CollectionAfterChangeHook = async ({
 
 ## Access Control
 
+### Collection-Level
+
 Function-based permissions:
 
 ```typescript
@@ -127,6 +136,60 @@ access: {
   delete: ({ req: { user } }) => user?.role === 'admin',
 }
 ```
+
+### Field-Level
+
+```typescript
+import { adminFieldAccess } from '@/lib/access'
+
+{
+  name: 'isMember',
+  type: 'checkbox',
+  access: {
+    create: adminFieldAccess,
+    update: adminFieldAccess,
+  },
+}
+```
+
+### Access Utilities (`src/lib/access.ts`)
+
+- `isAdmin` — checks `user.role === 'admin'`
+- `isAdminOrVolunteer` — checks admin or volunteer role
+- `isAuthenticated` — checks user exists
+- `publicRead` — always returns true
+- `adminFieldAccess` — field-level admin-only guard
+
+## Auth System
+
+### Server Actions (`src/lib/auth/actions.ts`)
+
+```typescript
+// Registration with Zod validation and IP rate limiting
+export async function registerUser(formData: FormData): Promise<AuthActionResult>
+
+// Login with Zod validation
+export async function loginUser(formData: FormData): Promise<AuthActionResult>
+
+// Logout (deletes cookie)
+export async function logoutUser(): Promise<void>
+```
+
+### Server Utilities
+
+```typescript
+// src/lib/auth/getCurrentUser.ts — NOT a server action
+export async function getCurrentUser(): Promise<User | null>
+
+// src/lib/auth/sanitizeRedirect.ts — open redirect prevention
+export function sanitizeRedirect(url: string | undefined, fallback = '/account'): string
+```
+
+### Auth Pages
+
+- `/login` — Login form with redirect support (`?redirect=/checkout`)
+- `/register` — Registration with confirm password, auto-login on success
+- `/account` — Landing page with orders/events links, logout button
 
 ## Field Types
 
@@ -144,77 +207,19 @@ Common field types used:
 - `upload` - File upload (links to Media)
 - `group` - Group related fields
 - `array` - Repeatable fields
+- `ui` - Custom UI-only component (e.g., SquareConfigStatus)
 
 ## Admin UI Customisation
-
-### Default Columns
-
-```typescript
-admin: {
-  defaultColumns: ['title', 'category', 'sellPrice', 'quantityInStock'],
-}
-```
-
-### Use as Title
-
-```typescript
-admin: {
-  useAsTitle: 'title',  // Field to display as document title
-}
-```
 
 ### Custom Components
 
 **ISBN Lookup Field** (`src/collections/Books/ISBNLookupField.tsx`):
 
-Custom field component with progressive feedback and auto-population:
+Custom field component with progressive feedback and auto-population.
 
-```typescript
-import { TextInput, useField, useForm, Button } from '@payloadcms/ui'
-import { downloadBookCover } from '@/lib/openLibrary/actions'
+**Square Config Status** (`src/globals/components/SquareConfigStatus.tsx`):
 
-export const ISBNLookupField = ({ path }: ISBNLookupFieldProps) => {
-  const { value, setValue } = useField<string>({ path })
-  const { dispatchFields } = useForm()
-
-  const handleLookup = async () => {
-    // Fetch book data from Open Library API
-    const response = await fetch(`/api/books/lookup-isbn?isbn=${value}`)
-    const result = await response.json()
-
-    // Auto-populate fields
-    dispatchFields({ type: 'UPDATE', path: 'title', value: result.data.title })
-
-    // Download cover image
-    const coverResult = await downloadBookCover(coverImageUrl, bookTitle)
-    dispatchFields({ type: 'UPDATE', path: 'coverImage', value: coverResult.mediaId })
-
-    // Stage subjects for hook processing
-    dispatchFields({ type: 'UPDATE', path: '_subjectNames', value: result.data.subjects })
-  }
-
-  return (
-    <div>
-      <TextInput path={path} value={value} onChange={(e) => setValue(e.target.value)} />
-      <Button onClick={handleLookup}>Look up Book</Button>
-    </div>
-  )
-}
-```
-
-**Usage in Collection Config**:
-
-```typescript
-{
-  name: 'isbn',
-  type: 'text',
-  admin: {
-    components: {
-      Field: '@/collections/Books/ISBNLookupField#ISBNLookupField',
-    },
-  },
-}
-```
+UI field showing Square environment variable configuration status.
 
 ## Payload Config
 
@@ -226,31 +231,19 @@ import { buildConfig } from 'payload'
 export default buildConfig({
   admin: {
     user: Users.slug,
-    importMap: {
-      baseDir: path.resolve(dirname),
-    },
+    importMap: { baseDir: path.resolve(dirname) },
+    meta: { titleSuffix: '- Infoshop' },
   },
   collections: [
-    Users,
-    Media,
-    Books,
-    Categories,
-    Subjects,
-    Suppliers,
-    Events,
-    EventAttendance,
-    Sales,
-    SaleItems,
+    Users, Media, Books, Categories, Subjects, Suppliers,
+    Events, EventAttendance, Sales, SaleItems,
+    ContactSubmissions, Inquiries,
   ],
-  globals: [Theme, Layout],
+  globals: [Theme, Layout, StoreSettings],
   editor: lexicalEditor(),
-  db: sqliteAdapter({
-    client: { url: process.env.DATABASE_URI! },
-  }),
-  secret: process.env.PAYLOAD_SECRET!,
-  typescript: {
-    outputFile: path.resolve(dirname, 'payload-types.ts'),
-  },
+  // Auto-detects PostgreSQL vs SQLite from DATABASE_URI
+  db: postgresAdapter(...) || sqliteAdapter(...),
+  sharp,
   plugins: [payloadCloudPlugin()],
 })
 ```
@@ -275,17 +268,22 @@ Regenerate: `npm run generate:types`
 
 ## Next.js Integration
 
-Payload runs as Next.js middleware:
+### Server Components + Server Actions Pattern
 
-```typescript
-// src/app/(payload)/api/[...slug]/route.ts
-import { REST_GET, REST_POST, REST_DELETE, REST_PATCH } from '@payloadcms/next/routes'
+Frontend uses Next.js App Router with:
+- Server components for data fetching (e.g., checking auth state)
+- Client components for interactive forms (e.g., LoginForm, RegisterForm)
+- Server Actions for mutations (e.g., auth, contact, checkout)
 
-export const GET = REST_GET
-export const POST = REST_POST
-export const DELETE = REST_DELETE
-export const PATCH = REST_PATCH
-```
+### Key Libraries
+
+- `src/lib/auth/` — Authentication actions and utilities
+- `src/lib/checkout/` — Cart management, checkout processing
+- `src/lib/contact/` — Contact form submission
+- `src/lib/square/` — Square payment integration
+- `src/lib/bookLookup/` — Multi-source ISBN lookup
+- `src/lib/csv/` — CSV import processing
+- `src/lib/rateLimit.ts` — IP-based rate limiting utility
 
 ## Plugins
 
@@ -293,33 +291,14 @@ Current plugins:
 
 - `payloadCloudPlugin` - Cloud deployment support
 
-Implemented integrations (not plugins, but custom code):
+Implemented integrations (custom code, not plugins):
 
 - Square POS sync (`src/lib/square/`)
 - CSV bulk import (`src/lib/csv/`)
-- Open Library/Google Books/WorldCat lookup (`src/lib/bookLookup/`)
-
-## Open Library Integration
-
-> **📖 Detailed Documentation**: See `task/phase-3-7-isbn-enhancements.md` for complete implementation details.
-
-**Location**: `src/lib/openLibrary/`
-
-**Key Components**:
-
-| File                 | Purpose                                          |
-| -------------------- | ------------------------------------------------ |
-| `subjectManager.ts`  | Find-or-create subjects with O(1) indexed lookup |
-| `imageDownloader.ts` | Secure cover image download with DoS prevention  |
-| `actions.ts`         | Server actions for client component integration  |
-
-**Key Features**:
-
-- Multi-source book lookup (Open Library, Google Books, WorldCat)
-- Subject auto-creation with race condition handling
-- Secure image download (HTTPS-only, 10MB limit, 30s timeout)
-- Recursion prevention in hooks via context guards
+- Multi-source book lookup (`src/lib/bookLookup/`)
+- Auth system (`src/lib/auth/`)
+- Contact form (`src/lib/contact/`)
 
 ---
 
-Last Updated: 2025-02-01
+Last Updated: 2026-03-01

@@ -2,47 +2,96 @@
 
 ## Overview
 
-Infoshop Payload is a Next.js 15 application with Payload CMS 3.62.0 for content management and e-commerce functionality.
+Infoshop Payload is a Next.js 15 application with Payload CMS for content management, e-commerce, and community organizing.
 
 ## Tech Stack
 
-- **Framework**: Next.js 15.4.4 (App Router)
+- **Framework**: Next.js 15.4.8 (App Router)
 - **CMS**: Payload CMS 3.62.0
-- **UI**: React 19.1.0 (Server Components + Client Components)
-- **Database**: SQLite (development) → PostgreSQL (production planned)
+- **UI**: React 19.1.2 (Server Components + Client Components)
+- **Database**: PostgreSQL (production) / SQLite (local development)
 - **ORM**: Drizzle (via Payload)
 - **Rich Text**: Lexical editor
+- **Payments**: Square Web Payments SDK
 - **Testing**: Vitest (unit/integration) + Playwright (E2E)
-- **Package Manager**: npm (development) / pnpm (Payload monorepo compatibility)
+- **Package Manager**: npm
 
 ## Directory Structure
 
 ```
 /home/axxs/infoshop-payload/
 ├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── (payload)/          # Payload admin routes
+│   ├── app/                        # Next.js App Router
+│   │   ├── (payload)/              # Payload admin routes
 │   │   │   ├── admin/[[...segments]]/  # Admin UI
 │   │   │   ├── api/[...slug]/          # Payload REST API
-│   │   │   └── api/graphql/            # GraphQL API
-│   │   └── (frontend)/         # Public storefront (future)
+│   │   │   ├── api/graphql/            # GraphQL API
+│   │   │   └── api/square/             # Custom Square endpoints
+│   │   │       ├── payments/route.ts   # Card payments (public)
+│   │   │       └── sync/route.ts       # Catalog sync (admin)
+│   │   └── (frontend)/             # Public storefront
 │   │       ├── layout.tsx
-│   │       └── page.tsx
-│   ├── collections/            # Payload collection configs
+│   │       ├── page.tsx             # Homepage
+│   │       ├── shop/                # Book browsing
+│   │       │   ├── page.tsx
+│   │       │   ├── [slug]/page.tsx
+│   │       │   ├── categories/
+│   │       │   └── subjects/
+│   │       ├── events/              # Event pages
+│   │       │   ├── page.tsx
+│   │       │   ├── [id]/page.tsx
+│   │       │   └── calendar/page.tsx
+│   │       ├── cart/page.tsx        # Shopping cart
+│   │       ├── checkout/            # Checkout flow
+│   │       │   ├── page.tsx
+│   │       │   ├── success/page.tsx
+│   │       │   └── inquiry-sent/page.tsx
+│   │       ├── contact/page.tsx     # Contact form
+│   │       ├── login/               # Auth pages
+│   │       │   ├── page.tsx
+│   │       │   └── LoginForm.tsx
+│   │       ├── register/
+│   │       │   ├── page.tsx
+│   │       │   └── RegisterForm.tsx
+│   │       ├── account/             # User account
+│   │       │   ├── page.tsx
+│   │       │   ├── LogoutButton.tsx
+│   │       │   ├── orders/
+│   │       │   └── events/
+│   │       └── components/layout/   # Shared layout components
+│   │           ├── Header.tsx
+│   │           ├── HeaderDynamic.tsx
+│   │           └── Footer.tsx
+│   ├── collections/                 # Payload collection configs (12)
 │   │   ├── Users.ts
 │   │   ├── Media.ts
-│   │   ├── Books.ts
+│   │   ├── Books.ts (+ Books/ dir for hooks, components)
 │   │   ├── Categories.ts
 │   │   ├── Subjects.ts
 │   │   ├── Suppliers.ts
-│   │   └── Events.ts
-│   ├── payload.config.ts       # Main Payload configuration
-│   └── payload-types.ts        # Auto-generated TypeScript types
-├── tests/
-│   ├── int/                    # Integration tests
-│   └── e2e/                    # End-to-end tests
-├── .claude/                    # Claude Code quality infrastructure
-├── .agent/                     # Token-optimised documentation
+│   │   ├── Events.ts
+│   │   ├── EventAttendance.ts
+│   │   ├── Sales.ts
+│   │   ├── SaleItems.ts
+│   │   ├── ContactSubmissions.ts
+│   │   └── Inquiries.ts
+│   ├── globals/                     # Payload globals (3)
+│   │   ├── Theme.ts
+│   │   ├── Layout.ts
+│   │   └── StoreSettings.ts
+│   ├── lib/                         # Shared libraries
+│   │   ├── auth/                    # Auth actions & utilities
+│   │   ├── checkout/                # Cart & checkout logic
+│   │   ├── contact/                 # Contact form actions
+│   │   ├── square/                  # Square integration
+│   │   ├── bookLookup/             # ISBN lookup (multi-source)
+│   │   ├── csv/                     # CSV import processing
+│   │   ├── access.ts               # Access control utilities
+│   │   └── rateLimit.ts            # IP-based rate limiting
+│   ├── payload.config.ts           # Main Payload configuration
+│   └── payload-types.ts            # Auto-generated TypeScript types
+├── .agent/                          # Token-optimised documentation
+├── .claude/                         # Claude Code quality infrastructure
 └── package.json
 ```
 
@@ -63,14 +112,17 @@ Infoshop Payload is a Next.js 15 application with Payload CMS 3.62.0 for content
 - Admin UI at `/admin`
 - REST API at `/api`
 - GraphQL at `/api/graphql`
+- Custom routes at `/api/square/*`
 
 **Public Routes** (`/app/(frontend)/`):
 
 - Customer-facing storefront with theming
-- Shop pages (`/shop`, `/shop/[slug]`)
-- Events pages (`/events`, `/events/[slug]`)
-- Cart and checkout (`/cart`, `/checkout`)
-- Account pages (`/account/orders`, `/account/events`)
+- Shop pages (`/shop`, `/shop/[slug]`, `/shop/categories/`, `/shop/subjects/`)
+- Events pages (`/events`, `/events/[id]`, `/events/calendar`)
+- Cart and checkout (`/cart`, `/checkout`, `/checkout/success`, `/checkout/inquiry-sent`)
+- Auth pages (`/login`, `/register`)
+- Account pages (`/account`, `/account/orders`, `/account/events`)
+- Contact page (`/contact`)
 
 ### Data Flow
 
@@ -85,73 +137,16 @@ Collection Config (validation, hooks, access control)
     ↓
 Drizzle ORM
     ↓
-SQLite/PostgreSQL Database
+PostgreSQL / SQLite Database
 ```
 
-## Key Concepts
+### Auth Flow
 
-### Collections
-
-Collections are data models with:
-
-- **Fields**: Data schema definition
-- **Hooks**: Lifecycle events (beforeChange, afterRead, etc.)
-- **Access Control**: Who can read/write
-- **Admin UI**: Auto-generated or customisable
-
-### Hooks
-
-Payload hooks allow custom logic at lifecycle events:
-
-- `beforeOperation`: Before CRUD operations
-- `beforeChange`: Before data is saved
-- `afterChange`: After data is saved
-- `beforeRead`: Before data is returned
-- `afterRead`: After data is fetched
-
-### Access Control
-
-Function-based access control:
-
-```typescript
-access: {
-  create: ({ req: { user } }) => !!user,
-  read: () => true,
-  update: ({ req: { user } }) => user?.role === 'admin',
-  delete: ({ req: { user } }) => user?.role === 'admin',
-}
 ```
-
-## Development Workflow
-
-1. **Modify Collection** → Edit `src/collections/*.ts`
-2. **Types Regenerate** → Run `npm run generate:types`
-3. **Test Changes** → `npm test`
-4. **Dev Server** → `npm run dev` (http://localhost:3001)
-
-## Testing Strategy
-
-- **Unit Tests**: Collection configs, utilities
-- **Integration Tests**: API endpoints, database operations
-- **E2E Tests**: Admin UI workflows, user flows
-
-## Migration Context
-
-Migrating from:
-
-- **Old**: Express + Prisma + React (separate backend/frontend)
-- **New**: Payload CMS + Next.js (unified stack)
-
-### Migration Phases
-
-1. ✅ **Phase 1**: Foundation setup
-2. ✅ **Phase 2**: Data migration (N/A - clean slate)
-3. ✅ **Phase 3**: Core features (Square sync, ISBN lookup, CSV import)
-4. ✅ **Phase 4**: Sales system (cart, checkout, orders)
-5. ✅ **Phase 5**: Events system (registration, calendar, capacity)
-6. ✅ **Phase 6**: Theme system (CSS vars, blocks, dark mode)
-7. 📅 **Phase 7**: Public Storefront/CMS (pages, navigation, SEO)
-8. 📅 **Phase 8**: Advanced features (as needed)
+Frontend Form → Server Action (actions.ts) → payload.create/login → JWT cookie set
+                                                                     ↓
+Server Component → getCurrentUser() → payload.auth({ headers }) → User | null
+```
 
 ## Key Systems
 
@@ -166,6 +161,7 @@ Migrating from:
 
 - Server-side cart (encrypted cookies)
 - Square Web Payments SDK integration
+- Anonymous checkout (no auth required for payment)
 - Order management with status tracking
 
 ### Events System
@@ -174,12 +170,42 @@ Migrating from:
 - Waitlist support
 - Check-in functionality
 
+### Auth System
+
+- Public self-registration (role enforced to customer)
+- JWT-based auth with cookie storage
+- Rate-limited registration (5/IP/15min)
+- Open redirect protection on login/register redirects
+
+### Store Settings
+
+- Toggle card payments on/off via admin
+- When payments disabled, checkout switches to inquiry submission
+- Cache invalidation via Next.js `revalidateTag`
+
+## Development Workflow
+
+1. **Modify Collection** → Edit `src/collections/*.ts`
+2. **Types Regenerate** → Run `npm run generate:types`
+3. **Test Changes** → `npm test`
+4. **Dev Server** → `npm run dev` (http://localhost:3000)
+
+## Migration Phases
+
+1. **Phase 1**: Foundation setup
+2. **Phase 2**: Data migration (N/A - clean slate)
+3. **Phase 3**: Core features (Square sync, ISBN lookup, CSV import)
+4. **Phase 4**: Sales system (POS, cart, checkout, analytics, storefront)
+5. **Phase 5**: Events system (registration, calendar, capacity)
+6. **Phase 6**: Theme system (CSS vars, blocks, dark mode)
+7. **Phase 7**: Store settings, contact form, inquiry system, customer auth
+8. **Phase 8**: Production deployment (pending)
+
 ## References
 
 - Payload Docs: https://payloadcms.com/docs
 - Next.js App Router: https://nextjs.org/docs/app
-- Migration Roadmap: `MIGRATION_ROADMAP.md`
 
 ---
 
-Last Updated: 2026-02-01
+Last Updated: 2026-03-01

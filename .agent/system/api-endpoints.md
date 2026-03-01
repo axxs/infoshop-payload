@@ -2,11 +2,11 @@
 
 ## Overview
 
-Payload CMS auto-generates REST and GraphQL APIs for all collections. Custom endpoints can be added for specific business logic.
+Payload CMS auto-generates REST and GraphQL APIs for all collections. Custom endpoints handle specific business logic. Auth server actions provide registration/login/logout.
 
 ## Auto-Generated REST API
 
-**Base URL**: `http://localhost:3001/api`
+**Base URL**: `http://localhost:3000/api`
 
 ### Standard CRUD Endpoints (per collection)
 
@@ -20,7 +20,7 @@ DELETE /api/{collection}/:id       # Delete by ID
 
 ### Collections Available
 
-- `/api/users` - User management
+- `/api/users` - User management (public self-registration via POST)
 - `/api/media` - File uploads
 - `/api/books` - Book inventory
 - `/api/categories` - Book categories
@@ -30,6 +30,8 @@ DELETE /api/{collection}/:id       # Delete by ID
 - `/api/event-attendance` - Event registrations
 - `/api/sales` - Sales transactions
 - `/api/sale-items` - Sale line items
+- `/api/contact-submissions` - Contact form submissions (public create)
+- `/api/inquiries` - Book purchase inquiries (public create, when payments disabled)
 
 ### Query Parameters
 
@@ -64,11 +66,24 @@ Examples:
 ?depth=2  # Populate two levels
 ```
 
+## Globals REST API
+
+```
+GET    /api/globals/{slug}         # Read global
+POST   /api/globals/{slug}         # Update global
+```
+
+### Globals Available
+
+- `/api/globals/theme` - Theme configuration
+- `/api/globals/layout` - Header, footer, homepage blocks
+- `/api/globals/store-settings` - Payment toggle, Square status
+
 ## GraphQL API
 
-**Endpoint**: `http://localhost:3001/api/graphql`
+**Endpoint**: `http://localhost:3000/api/graphql`
 
-**Playground**: `http://localhost:3001/api/graphql-playground`
+**Playground**: `http://localhost:3000/api/graphql-playground`
 
 ### Example Queries
 
@@ -108,7 +123,7 @@ query {
 }
 ```
 
-## Custom Endpoints (Implemented)
+## Custom Endpoints
 
 ### ISBN Lookup
 
@@ -145,9 +160,11 @@ query {
 
 **Path**: `/api/square/payments`
 **Method**: POST
-**Purpose**: Process Square payment for checkout
-**Auth**: Authenticated users
-**Body**: `{ "sourceId": "...", "amount": 1999, "orderId": "..." }`
+**Purpose**: Process Square card payment for checkout
+**Auth**: Public (anonymous checkout supported)
+**Rate Limit**: 5 requests/minute/IP
+**Guards**: `paymentsEnabled` check via StoreSettings, input validation
+**Body**: `{ "sourceId": "...", "amount": 1999, "currency": "AUD" }`
 
 ### Reports (4 endpoints)
 
@@ -177,47 +194,45 @@ query {
 
 ## Authentication
 
-### Login
+### Payload Built-in Auth
 
-**Path**: `/api/users/login`
-**Method**: POST
-**Body**:
+**Login**: `POST /api/users/login`
+**Body**: `{ "email": "...", "password": "..." }`
+**Response**: `{ "token": "jwt-token", "user": { ... }, "exp": 1234567890 }`
 
-```json
-{
-  "email": "user@example.com",
-  "password": "password"
-}
-```
-
-**Response**:
-
-```json
-{
-  "token": "jwt-token",
-  "user": { ... },
-  "exp": 1234567890
-}
-```
-
-### Me (Current User)
-
-**Path**: `/api/users/me`
-**Method**: GET
+**Me (Current User)**: `GET /api/users/me`
 **Headers**: `Authorization: JWT {token}`
 
-### Logout
+**Logout**: `POST /api/users/logout`
 
-**Path**: `/api/users/logout`
-**Method**: POST
+### Auth Server Actions (`src/lib/auth/actions.ts`)
+
+Next.js Server Actions with built-in CSRF protection (used by frontend forms):
+
+- `registerUser(formData)` — Zod-validated, rate-limited (5/IP/15min), auto-login, sets `payload-token` cookie
+- `loginUser(formData)` — Zod-validated, sets `payload-token` cookie
+- `logoutUser()` — Deletes `payload-token` cookie (stateless JWT, no server-side revocation)
+
+### Auth Utilities
+
+- `getCurrentUser()` (`src/lib/auth/getCurrentUser.ts`) — Server-only function, reads user from request headers via `payload.auth()`
+- `sanitizeRedirect()` (`src/lib/auth/sanitizeRedirect.ts`) — Prevents open redirect attacks on `?redirect=` params
+
+### Cookie Settings
+
+- Name: `payload-token`
+- `httpOnly: true`, `secure` in production, `sameSite: 'lax'`, `path: '/'`
+- Max age: 7 days
 
 ## Access Control
 
 APIs respect collection-level access control:
 
-- Public read for books, categories, subjects
-- Authenticated required for create/update/delete
-- Admin only for users, suppliers (full access)
+- Public create for users (self-registration), contact submissions, inquiries
+- Public read for books, categories, subjects, events, store settings
+- Authenticated required for reading users
+- Admin/volunteer for contact submissions, inquiries management
+- Admin only for user deletion, store settings updates, supplier full access
 
 ## Error Responses
 
@@ -237,32 +252,15 @@ APIs respect collection-level access control:
 }
 ```
 
-**404 Not Found**:
+**429 Rate Limited** (payments endpoint):
 
 ```json
 {
-  "errors": [{ "message": "Document not found" }]
+  "success": false,
+  "error": "Too many payment attempts. Please try again later."
 }
-```
-
-## Testing APIs
-
-**cURL Example**:
-
-```bash
-# List books
-curl http://localhost:3001/api/books
-
-# Get book with ID
-curl http://localhost:3001/api/books/abc123
-
-# Create book (requires auth)
-curl -X POST http://localhost:3001/api/books \
-  -H "Authorization: JWT {token}" \
-  -H "Content-Type: application/json" \
-  -d '{"title": "New Book", "sellPrice": 19.99}'
 ```
 
 ---
 
-Last Updated: 2025-02-01
+Last Updated: 2026-03-01
