@@ -35,7 +35,10 @@ export const Users: CollectionConfig = {
   admin: {
     useAsTitle: 'email',
   },
-  auth: true,
+  auth: {
+    maxLoginAttempts: 10,
+    lockTime: 15 * 60 * 1000, // 15 minutes
+  },
   hooks: {
     beforeChange: [enforceCustomerOnSelfRegistration],
   },

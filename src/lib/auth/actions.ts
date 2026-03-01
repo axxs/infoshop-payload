@@ -141,10 +141,12 @@ export async function registerUser(formData: FormData): Promise<AuthActionResult
       data: { email, password },
     })
 
-    if (loginResult.token) {
-      const jar = await cookies()
-      jar.set(COOKIE_NAME, loginResult.token, cookieOptions())
+    if (!loginResult.token) {
+      return { success: false, error: 'Registration succeeded but login failed. Please sign in manually.' }
     }
+
+    const jar = await cookies()
+    jar.set(COOKIE_NAME, loginResult.token, cookieOptions())
 
     return { success: true }
   } catch (err) {
@@ -183,10 +185,12 @@ export async function loginUser(formData: FormData): Promise<AuthActionResult> {
       data: { email, password },
     })
 
-    if (result.token) {
-      const jar = await cookies()
-      jar.set(COOKIE_NAME, result.token, cookieOptions())
+    if (!result.token) {
+      return { success: false, error: 'Login failed. Please try again.' }
     }
+
+    const jar = await cookies()
+    jar.set(COOKIE_NAME, result.token, cookieOptions())
 
     return { success: true }
   } catch {
@@ -198,7 +202,12 @@ export async function loginUser(formData: FormData): Promise<AuthActionResult> {
 // Logout
 // ---------------------------------------------------------------------------
 
-/** Delete the auth cookie */
+/**
+ * Delete the auth cookie.
+ * Note: Payload uses stateless JWTs, so a captured token remains valid until
+ * expiry even after the cookie is deleted. Acceptable trade-off for a storefront;
+ * server-side token revocation would require a database-backed session store.
+ */
 export async function logoutUser(): Promise<void> {
   const jar = await cookies()
   jar.delete(COOKIE_NAME)
