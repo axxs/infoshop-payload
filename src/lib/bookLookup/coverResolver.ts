@@ -30,22 +30,11 @@ import { cleanISBN, convertISBN10to13 } from '../isbnUtils'
 import { MIN_COVER_SIZE, isPlaceholderUrl } from '../openLibrary/imageDownloader'
 import { validateImageURL } from '../urlValidator'
 
-/** Minimum acceptable image size — mirrors imageDownloader constant */
-const MIN_BYTES = MIN_COVER_SIZE
-
 /**
  * Per-probe timeout in milliseconds.
  * Kept short so a dead source never stalls the whole waterfall.
  */
 const PROBE_TIMEOUT_MS = 5_000
-
-/**
- * We read this many bytes in the Range GET probe.
- * If the server honours the Range header, receiving MIN_BYTES bytes via a 206
- * proves the file is at least MIN_BYTES long.  If it returns 200 (no Range
- * support), we measure the actual body size instead.
- */
-const PROBE_RANGE_BYTES = MIN_BYTES
 
 /**
  * Derives a larger-image variant of a Google Books URL by appending the
@@ -74,7 +63,7 @@ function googleBooksVariants(url: string): string[] {
 /**
  * Probes a URL to determine whether it points to a real cover image.
  *
- * Uses a Range GET (bytes 0 – MIN_BYTES) rather than HEAD because several
+ * Uses a Range GET (bytes 0 – MIN_COVER_SIZE) rather than HEAD because several
  * CDNs (including Open Library) omit Content-Length on HEAD responses.
  * The Content-Range response header or the actual chunk size tells us
  * whether the full file meets the minimum size threshold.
@@ -108,17 +97,17 @@ async function probeImageUrl(url: string, timeout: number = PROBE_TIMEOUT_MS): P
       headers: {
         'User-Agent': 'Infoshop-Payload/1.0 (Bookstore Inventory System)',
         // Request only the first chunk — server may honour with 206 or return 200
-        Range: `bytes=0-${PROBE_RANGE_BYTES - 1}`,
+        Range: `bytes=0-${MIN_COVER_SIZE - 1}`,
       },
       signal: controller.signal,
       redirect: 'follow',
     })
 
-    // Accept 200 (Range ignored) or 206 (Range honoured)
-    if (!response.ok && response.status !== 206) return false
+    // Accept any 2xx (200 when Range ignored, 206 when Range honoured)
+    if (!response.ok) return false
 
-    // Final URL after redirects must still be HTTPS
-    if (response.url && !response.url.startsWith('https://')) return false
+    // Final URL after redirects must pass SSRF validation
+    if (response.url && !validateImageURL(response.url)) return false
 
     // Must be an image content type
     const contentType = response.headers.get('content-type')
@@ -132,7 +121,7 @@ async function probeImageUrl(url: string, timeout: number = PROBE_TIMEOUT_MS): P
       if (match) {
         const totalBytes = parseInt(match[1], 10)
         // Content-Range present — definitive answer
-        return !isNaN(totalBytes) && totalBytes >= MIN_BYTES
+        return !isNaN(totalBytes) && totalBytes >= MIN_COVER_SIZE
       }
     }
 
@@ -140,12 +129,12 @@ async function probeImageUrl(url: string, timeout: number = PROBE_TIMEOUT_MS): P
     const contentLength = response.headers.get('content-length')
     if (contentLength) {
       const bytes = parseInt(contentLength, 10)
-      if (!isNaN(bytes)) return bytes >= MIN_BYTES
+      if (!isNaN(bytes)) return bytes >= MIN_COVER_SIZE
     }
 
     // --- Fallback: read the body incrementally ---
-    // For a 206, receiving MIN_BYTES proves the file is at least that large.
-    // For a 200, we read only until we've confirmed MIN_BYTES to avoid
+    // For a 206, receiving MIN_COVER_SIZE proves the file is at least that large.
+    // For a 200, we read only until we've confirmed MIN_COVER_SIZE to avoid
     // buffering an entire large image just for a size probe.
     const reader = response.body?.getReader()
     if (!reader) return false
@@ -156,7 +145,7 @@ async function probeImageUrl(url: string, timeout: number = PROBE_TIMEOUT_MS): P
         const { done, value } = await reader.read()
         if (done) break
         totalRead += value.byteLength
-        if (totalRead >= MIN_BYTES) return true
+        if (totalRead >= MIN_COVER_SIZE) return true
       }
     } finally {
       reader.cancel().catch(() => {})
@@ -244,17 +233,24 @@ export async function resolveCoverUrl(options: ResolveCoverOptions): Promise<str
 
   const cleaned = cleanISBN(isbn)
 
+  // Reject obviously invalid ISBN lengths
+  if (cleaned.length !== 10 && cleaned.length !== 13) return null
+
   // Derive both ISBN forms
   let isbn13: string
   let isbn10: string | undefined
 
   if (cleaned.length === 13) {
     isbn13 = cleaned
-  } else if (cleaned.length === 10) {
-    isbn10 = cleaned
-    isbn13 = convertISBN10to13(cleaned) ?? cleaned
   } else {
-    isbn13 = cleaned
+    isbn10 = cleaned
+    const converted = convertISBN10to13(cleaned)
+    if (!converted) {
+      // Conversion failed — use ISBN-10 only (skip ISBN-13 candidate)
+      isbn13 = cleaned
+    } else {
+      isbn13 = converted
+    }
   }
 
   // Build candidate list
@@ -271,8 +267,8 @@ export async function resolveCoverUrl(options: ResolveCoverOptions): Promise<str
   // 3. Open Library Covers CDN — direct by ISBN-13
   candidates.push(`https://covers.openlibrary.org/b/isbn/${isbn13}-L.jpg`)
 
-  // 4. Open Library Covers CDN — direct by ISBN-10 (if available)
-  if (isbn10) {
+  // 4. Open Library Covers CDN — direct by ISBN-10 (if different from ISBN-13)
+  if (isbn10 && isbn10 !== isbn13) {
     candidates.push(`https://covers.openlibrary.org/b/isbn/${isbn10}-L.jpg`)
   }
 

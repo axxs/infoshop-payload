@@ -77,7 +77,7 @@ const MIN_COVER_DIMENSION = 50
 
 /**
  * URL patterns that indicate a source API placeholder rather than a real cover.
- * Shared with coverResolver.ts — keep both in sync or import from here.
+ * Imported by coverResolver.ts — this is the single source of truth.
  */
 export const PLACEHOLDER_URL_PATTERNS = [
   /\/nophoto\//i,
@@ -317,8 +317,8 @@ export async function downloadCoverImageIfPresent(
  * Options for downloading the best available cover image
  */
 export interface DownloadBestCoverOptions extends DownloadImageOptions {
-  /** Raw ISBN string (ISBN-10 or ISBN-13) used to probe fallback sources */
-  isbn: string
+  /** Raw ISBN string (ISBN-10 or ISBN-13) used to probe fallback sources. When empty, falls back to existingCoverUrl only. */
+  isbn?: string
   /** Cover URL from the metadata lookup (tried first before fallbacks) */
   existingCoverUrl?: string
 }
@@ -358,6 +358,7 @@ export async function downloadBestCoverImage(
   const resolvedUrl = await resolveCoverUrl({
     isbn,
     existingUrl: existingCoverUrl,
+    timeout: downloadOptions.timeout,
   })
 
   if (!resolvedUrl) {
