@@ -1,4 +1,5 @@
 import React from 'react'
+import Image from 'next/image'
 
 interface LexicalNode {
   type: string
@@ -168,6 +169,42 @@ function SerializeNode({ node }: { node: LexicalNode }): React.ReactNode {
         ))}
       </blockquote>
     )
+  }
+
+  // Upload / Image
+  if (node.type === 'upload') {
+    const value = nodeAny.value as Record<string, unknown> | undefined
+    if (!value) return null
+
+    const url = value.url as string | undefined
+    const alt = (value.alt as string | undefined) || ''
+    const width = value.width as number | undefined
+    const height = value.height as number | undefined
+
+    if (!url) return null
+
+    return (
+      <figure className="my-6">
+        {width && height ? (
+          <Image
+            src={url}
+            alt={alt}
+            width={width}
+            height={height}
+            className="rounded-lg"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 60vw"
+          />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={url} alt={alt} className="rounded-lg" />
+        )}
+      </figure>
+    )
+  }
+
+  // Horizontal rule
+  if (node.type === 'horizontalrule') {
+    return <hr />
   }
 
   // Fallback for unknown types
