@@ -53,7 +53,7 @@ export const Pages: CollectionConfig = {
   versions: {
     drafts: {
       autosave: {
-        interval: 300,
+        interval: 10000,
       },
     },
   },
@@ -69,8 +69,7 @@ export const Pages: CollectionConfig = {
       unique: true,
       index: true,
       admin: {
-        description: 'URL-friendly identifier (auto-generated from title)',
-        readOnly: true,
+        description: 'URL-friendly identifier (auto-generated from title, editable)',
         position: 'sidebar',
       },
     },

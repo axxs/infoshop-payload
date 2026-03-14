@@ -19,7 +19,7 @@ interface NewsPageProps {
 export default async function NewsPage({ searchParams }: NewsPageProps) {
   const payload = await getPayload({ config })
   const params = await searchParams
-  const page = Number(params.page) || 1
+  const page = Math.max(1, Number(params.page) || 1)
   const limit = 12
 
   const result = await payload.find({

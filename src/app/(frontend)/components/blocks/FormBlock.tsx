@@ -1,6 +1,6 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { Mail, MapPin } from 'lucide-react'
+import { Mail } from 'lucide-react'
 import { Card, CardContent } from '../ui/card'
 import { ContactForm } from '../../contact/ContactForm'
 
@@ -16,22 +16,19 @@ export async function FormBlock({ title, description, showContactInfo }: FormBlo
   const showSidebar = showContactInfo !== false
 
   let contactEmail: string | undefined
-  let siteName: string | undefined
   let socialLinks: { platform: string; url: string; id?: string | null }[] | null = null
 
   if (showSidebar) {
     const payload = await getPayload({ config })
 
-    const theme = (await payload.findGlobal({ slug: 'theme' })) as {
-      contactEmail?: string
-    }
-    const layout = (await payload.findGlobal({ slug: 'layout' })) as {
-      siteName?: string
-      socialLinks?: { platform: string; url: string; id?: string | null }[] | null
-    }
+    const [theme, layout] = await Promise.all([
+      payload.findGlobal({ slug: 'theme' }) as Promise<{ contactEmail?: string }>,
+      payload.findGlobal({ slug: 'layout' }) as Promise<{
+        socialLinks?: { platform: string; url: string; id?: string | null }[] | null
+      }>,
+    ])
 
     contactEmail = theme?.contactEmail
-    siteName = layout?.siteName
     socialLinks = layout?.socialLinks ?? null
   }
 
@@ -69,18 +66,6 @@ export async function FormBlock({ title, description, showContactInfo }: FormBlo
                 </CardContent>
               </Card>
             )}
-
-            <Card>
-              <CardContent className="flex items-start gap-4 p-6">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                  <MapPin className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-heading font-semibold">Visit Us</h3>
-                  <p className="text-sm text-muted-foreground">{siteName || 'Infoshop'}</p>
-                </div>
-              </CardContent>
-            </Card>
 
             {socialLinks && socialLinks.length > 0 && (
               <Card>

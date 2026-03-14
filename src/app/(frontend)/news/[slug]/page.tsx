@@ -81,7 +81,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
   const author =
     post.author && typeof post.author === 'object'
-      ? (post.author as { email?: string }).email
+      ? (post.author as { name?: string }).name
       : null
 
   const categories = Array.isArray(post.categories)
