@@ -130,11 +130,15 @@ export const ISBNLookupField = ({ path }: ISBNLookupFieldProps): React.JSX.Eleme
 
         let successMessage = `Found: ${bookData.title || 'Unknown'} by ${bookData.author || 'Unknown'} - Auto-populated ${Object.keys(fieldsToUpdate).length} fields`
 
-        // Download cover image if URL is present
-        if (bookData.coverImageUrl && bookData.title) {
+        // Download cover image — pass ISBN to enable multi-source fallback waterfall
+        if (bookData.title) {
           setProgress('Downloading cover image...')
           try {
-            const coverResult = await downloadBookCover(bookData.coverImageUrl, bookData.title)
+            const coverResult = await downloadBookCover(
+              bookData.coverImageUrl,
+              bookData.title,
+              value, // ISBN from the field
+            )
 
             if (coverResult.success && coverResult.mediaId) {
               // Update coverImage field with Media ID

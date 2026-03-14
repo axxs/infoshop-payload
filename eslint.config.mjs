@@ -1,18 +1,31 @@
-import { dirname } from 'path'
-import { fileURLToPath } from 'url'
-import { FlatCompat } from '@eslint/eslintrc'
+import nextPlugin from '@next/eslint-plugin-next'
+import reactHooksPlugin from 'eslint-plugin-react-hooks'
+import tsPlugin from '@typescript-eslint/eslint-plugin'
+import tsParser from '@typescript-eslint/parser'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+export default [
+  // Next.js core-web-vitals rules (native flat config — no FlatCompat needed)
+  nextPlugin.flatConfig.coreWebVitals,
 
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-})
-
-const eslintConfig = [
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  // TypeScript + React Hooks for all TS/TSX files
   {
+    files: ['**/*.{ts,tsx,js,jsx}'],
+    plugins: {
+      'react-hooks': reactHooksPlugin,
+      '@typescript-eslint': tsPlugin,
+    },
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaFeatures: { jsx: true },
+      },
+    },
     rules: {
+      // React Hooks
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+
+      // TypeScript
       '@typescript-eslint/ban-ts-comment': 'warn',
       '@typescript-eslint/no-empty-object-type': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
@@ -30,9 +43,9 @@ const eslintConfig = [
       ],
     },
   },
+
+  // Global ignores
   {
-    ignores: ['.next/'],
+    ignores: ['.next/', 'scripts/'],
   },
 ]
-
-export default eslintConfig

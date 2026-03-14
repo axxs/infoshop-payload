@@ -1,10 +1,10 @@
 /**
  * Refresh Cover Images API
- * Re-downloads cover images for books using ISBN lookup
+ * Re-downloads cover images for books using the multi-source cover waterfall.
  *
  * POST /api/books/refresh-covers
  * Query params:
- *   - limit: Max books to process (default: 50)
+ *   - limit:       Max books to process (default: 50)
  *   - onlyMissing: Only process books without covers (default: false)
  */
 
@@ -13,8 +13,7 @@ import type { Where } from 'payload'
 import config from '@payload-config'
 import { NextRequest, NextResponse } from 'next/server'
 import { lookupBookByISBN } from '@/lib/bookLookup'
-import { downloadCoverImageIfPresent } from '@/lib/openLibrary/imageDownloader'
-import { validateImageURL } from '@/lib/urlValidator'
+import { downloadBestCoverImage } from '@/lib/openLibrary/imageDownloader'
 import { requireRole } from '@/lib/access'
 
 export async function POST(request: NextRequest) {
@@ -58,35 +57,25 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        // Look up book to get cover URL
+        // Look up existing metadata cover URL (used as first candidate in waterfall)
         const lookupResult = await lookupBookByISBN(book.isbn)
+        const existingCoverUrl = lookupResult.success
+          ? (lookupResult.data?.coverImageUrl ?? undefined)
+          : undefined
 
-        if (!lookupResult.success || !lookupResult.data?.coverImageUrl) {
-          results.skipped++
-          continue
-        }
-
-        // Validate URL
-        const validatedUrl = validateImageURL(lookupResult.data.coverImageUrl)
-        if (!validatedUrl) {
-          results.skipped++
-          continue
-        }
-
-        // Download new cover image
-        const mediaId = await downloadCoverImageIfPresent(payload, validatedUrl, {
+        // Run the multi-source cover waterfall
+        const mediaId = await downloadBestCoverImage(payload, {
+          isbn: book.isbn,
+          existingCoverUrl,
           bookTitle: book.title,
           alt: `Cover of ${book.title}`,
         })
 
         if (mediaId) {
-          // Update book with new cover
           await payload.update({
             collection: 'books',
             id: book.id,
-            data: {
-              coverImage: mediaId,
-            },
+            data: { coverImage: mediaId },
           })
           results.updated++
 
