@@ -1,4 +1,5 @@
-import nextPlugin from '@next/eslint-plugin-next'
+// Explicit dist path required — bare specifier fails in Alpine Docker ESM resolution
+import nextPlugin from '@next/eslint-plugin-next/dist/index.js'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
