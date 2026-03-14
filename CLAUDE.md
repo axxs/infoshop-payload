@@ -132,7 +132,10 @@ Examples:
 The project includes Payload framework reference docs from `payloadcms/skills`:
 
 - **Content**: `.agents/skills/payload/` (canonical location)
-- **Symlinks**: `.claude/skills/payload` (Claude Code convention) and `skills/payload` (skills CLI convention) both point to the canonical location
+- **Symlinks**: Two symlinks point to the canonical location:
+  - `.claude/skills/payload` — Claude Code convention
+  - `skills/payload` — skills CLI convention
+- **Lock file**: `skills-lock.json` (repo root) — tracks the source and content hash for reproducible installs
 - **Update**: `npx skills update payloadcms/skills` (refreshes content and `skills-lock.json`)
 
 ## Additional Resources
