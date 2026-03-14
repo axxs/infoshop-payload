@@ -42,10 +42,12 @@ async function migrate(): Promise<void> {
       )
     }
 
-    // 2. Add pages_id and posts_id to payload_preferences_rels (if exists)
+    // 2. DROP pages_id and posts_id from payload_preferences_rels
+    //    (we incorrectly added these manually; drizzle doesn't want them here
+    //    and will prompt interactively to delete them, blocking Docker deploys)
     for (const col of ['pages_id', 'posts_id']) {
       statements.push(
-        `DO $$ BEGIN ALTER TABLE payload_preferences_rels ADD COLUMN IF NOT EXISTS "${col}" integer; EXCEPTION WHEN undefined_table THEN NULL; END $$;`,
+        `DO $$ BEGIN ALTER TABLE payload_preferences_rels DROP COLUMN IF EXISTS "${col}"; EXCEPTION WHEN undefined_table THEN NULL; END $$;`,
       )
     }
 
