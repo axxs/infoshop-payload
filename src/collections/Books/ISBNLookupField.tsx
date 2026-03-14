@@ -62,7 +62,7 @@ interface ISBNLookupFieldProps {
  */
 export const ISBNLookupField = ({ path }: ISBNLookupFieldProps): React.JSX.Element => {
   const { value, setValue } = useField<string>({ path })
-  const { dispatchFields, getData } = useForm()
+  const { dispatchFields } = useForm()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)

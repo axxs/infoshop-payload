@@ -94,6 +94,9 @@ export async function POST(request: NextRequest) {
           `${book.title}: ${error instanceof Error ? error.message : 'Unknown error'}`,
         )
       }
+
+      // Throttle between books to avoid rate-limiting on external APIs
+      await new Promise((r) => setTimeout(r, 500))
     }
 
     return NextResponse.json({

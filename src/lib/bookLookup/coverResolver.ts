@@ -28,6 +28,7 @@
 
 import { cleanISBN, convertISBN10to13 } from '../isbnUtils'
 import { MIN_COVER_SIZE, isPlaceholderUrl } from '../openLibrary/imageDownloader'
+import { validateImageURL } from '../urlValidator'
 
 /** Minimum acceptable image size — mirrors imageDownloader constant */
 const MIN_BYTES = MIN_COVER_SIZE
@@ -64,7 +65,7 @@ function googleBooksVariants(url: string): string[] {
   }
   if (url.includes('fife=')) {
     // Already has a fife param — try replacing it with a larger value
-    return [url.replace(/fife=\S+/, 'fife=w800')]
+    return [url.replace(/fife=[^&]+/, 'fife=w800')]
   }
   const separator = url.includes('?') ? '&' : '?'
   return [`${url}${separator}fife=w800`]
@@ -92,6 +93,8 @@ async function probeImageUrl(url: string, timeout: number = PROBE_TIMEOUT_MS): P
   try {
     const parsed = new URL(url)
     if (parsed.protocol !== 'https:') return false
+    // Defense-in-depth: block private/internal IPs even if callers forgot to validate
+    if (!validateImageURL(url)) return false
   } catch {
     return false
   }
