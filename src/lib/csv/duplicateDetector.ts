@@ -5,7 +5,7 @@
  * @module csv/duplicateDetector
  */
 
-import type { Payload } from 'payload'
+import type { Payload, Where } from 'payload'
 import type { BookOperation, ValidationIssue } from './types'
 import { BookOperationType, DuplicateStrategy, ValidationSeverity, ValidationCode } from './types'
 
@@ -83,7 +83,7 @@ async function buildDuplicateLookup(
     const existingByTitleAuthor = await payload.find({
       collection: 'books',
       where: {
-        or: orConditions as any,
+        or: orConditions as Where[],
       },
       limit: titleAuthorPairs.length,
     })

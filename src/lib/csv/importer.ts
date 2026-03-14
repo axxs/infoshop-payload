@@ -10,8 +10,9 @@ import { parseCSV, getCSVMetadata } from './parser'
 import { validateBookOperation, isOperationValid } from './validator'
 import { detectAndHandleDuplicates } from './duplicateDetector'
 import { processAndLinkSubjects } from '../openLibrary/subjectManager'
-import { downloadCoverImageIfPresent } from '../openLibrary/imageDownloader'
+import { downloadBestCoverImage, downloadCoverImageIfPresent } from '../openLibrary/imageDownloader'
 import { lookupBookByISBN, lookupBookByTitle } from '../bookLookup'
+import type { BookData } from '../bookLookup/types'
 import { validateImageURL } from '../urlValidator'
 import type { Book } from '@/payload-types'
 import type { SupportedCurrency } from '../square/constants'
@@ -130,14 +131,15 @@ export function quickValidateFormat(csvContent: string, sampleSize: number = 5):
  * @param data - Enrichment data from API lookup
  * @returns New operation with missing fields populated
  */
-function mergeEnrichmentData(operation: BookOperation, data: import('../bookLookup/types').BookData): BookOperation {
+function mergeEnrichmentData(operation: BookOperation, data: BookData): BookOperation {
   return {
     ...operation,
     isbn: operation.isbn || data.isbn || undefined,
     title: operation.title || data.title || operation.title,
     author: operation.author || data.author,
     publisher: operation.publisher || data.publisher,
-    publishedDate: normaliseDate(operation.publishedDate) ?? normaliseDate(data.publishedDate) ?? undefined,
+    publishedDate:
+      normaliseDate(operation.publishedDate) ?? normaliseDate(data.publishedDate) ?? undefined,
     synopsis: operation.synopsis || data.synopsis,
     coverImageUrl: operation.coverImageUrl || data.coverImageUrl,
     subjectNames:
@@ -340,7 +342,10 @@ async function findOrCreateCategory(
       collection: 'categories',
       data: {
         name: categoryName,
-        slug: categoryName.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-'),
+        slug: categoryName
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-'),
       },
     })
 
@@ -397,20 +402,37 @@ async function executeBookOperation(
     categoryId = await findOrCreateCategory(payload, operation.categoryName, categoryCache)
   }
 
-  // 2. Download cover image if URL provided (with SSRF protection)
+  // 2. Download cover image using multi-source fallback waterfall.
+  // If the metadata URL is a placeholder or fails the size check, the
+  // waterfall probes OL CDN, OL CDN ISBN-10, and longitood.com in order.
   let coverImageId: number | null = null
-  if (operation.coverImageUrl && options.downloadCoverImages) {
+  if (options.downloadCoverImages && operation.isbn) {
+    // Validate the URL from metadata lookup (if present) before passing to waterfall
+    const existingCoverUrl = operation.coverImageUrl
+      ? (validateImageURL(operation.coverImageUrl) ?? undefined)
+      : undefined
+
+    if (operation.coverImageUrl && !existingCoverUrl) {
+      payload.logger.warn({
+        msg: 'Invalid cover image URL blocked by SSRF validator',
+        url: operation.coverImageUrl,
+        title: operation.title,
+      })
+    }
+
+    coverImageId = await downloadBestCoverImage(payload, {
+      isbn: operation.isbn,
+      existingCoverUrl,
+      bookTitle: operation.title,
+      alt: `Cover of ${operation.title}`,
+    })
+  } else if (operation.coverImageUrl && options.downloadCoverImages) {
+    // No ISBN available — fall back to metadata URL only
     const validatedUrl = validateImageURL(operation.coverImageUrl)
     if (validatedUrl) {
       coverImageId = await downloadCoverImageIfPresent(payload, validatedUrl, {
         bookTitle: operation.title,
         alt: `Cover of ${operation.title}`,
-      })
-    } else {
-      payload.logger.warn({
-        msg: 'Invalid cover image URL blocked',
-        url: operation.coverImageUrl,
-        title: operation.title,
       })
     }
   }

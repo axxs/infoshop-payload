@@ -7,6 +7,7 @@
 
 import type { Payload } from 'payload'
 import sharp from 'sharp'
+import { resolveCoverUrl } from '../bookLookup/coverResolver'
 
 /**
  * Result of downloading and storing a cover image
@@ -21,7 +22,7 @@ interface DownloadImageResult {
 /**
  * Options for image download
  */
-interface DownloadImageOptions {
+export interface DownloadImageOptions {
   /** Timeout for image download in milliseconds */
   timeout?: number
   /** Alt text for the image */
@@ -75,9 +76,10 @@ export const MIN_COVER_SIZE = 15_000
 const MIN_COVER_DIMENSION = 50
 
 /**
- * URL patterns that indicate a source API placeholder rather than a real cover
+ * URL patterns that indicate a source API placeholder rather than a real cover.
+ * Imported by coverResolver.ts — this is the single source of truth.
  */
-const PLACEHOLDER_URL_PATTERNS = [
+export const PLACEHOLDER_URL_PATTERNS = [
   /\/nophoto\//i,
   /placeholder/i,
   /no[-_]?cover/i,
@@ -87,7 +89,7 @@ const PLACEHOLDER_URL_PATTERNS = [
 /**
  * Checks if a URL matches known placeholder image patterns from source APIs
  */
-function isPlaceholderUrl(url: string): boolean {
+export function isPlaceholderUrl(url: string): boolean {
   return PLACEHOLDER_URL_PATTERNS.some((pattern) => pattern.test(url))
 }
 
@@ -309,4 +311,74 @@ export async function downloadCoverImageIfPresent(
 
   const result = await downloadCoverImage(payload, imageUrl, options)
   return result.success ? result.mediaId || null : null
+}
+
+/**
+ * Options for downloading the best available cover image
+ */
+export interface DownloadBestCoverOptions extends DownloadImageOptions {
+  /** Raw ISBN string (ISBN-10 or ISBN-13) used to probe fallback sources. When empty, falls back to existingCoverUrl only. */
+  isbn?: string
+  /** Cover URL from the metadata lookup (tried first before fallbacks) */
+  existingCoverUrl?: string
+}
+
+/**
+ * Finds and downloads the best available cover image for a book.
+ *
+ * Uses a multi-source waterfall (via coverResolver) to find a real,
+ * non-placeholder cover before downloading it into Payload Media:
+ *   1. existingCoverUrl (from metadata lookup)
+ *   2. Open Library Covers CDN by ISBN-13
+ *   3. Open Library Covers CDN by ISBN-10
+ *   4. bookcover.longitood.com aggregator (last resort)
+ *
+ * @param payload - Payload instance
+ * @param options - ISBN, optional existing URL, and download options
+ * @returns Media ID of the stored cover, or null if none found
+ */
+export async function downloadBestCoverImage(
+  payload: Payload,
+  options: DownloadBestCoverOptions,
+): Promise<number | null> {
+  const { isbn, existingCoverUrl, ...downloadOptions } = options
+
+  if (!isbn) {
+    // No ISBN — fall back to existing URL only
+    return downloadCoverImageIfPresent(payload, existingCoverUrl, downloadOptions)
+  }
+
+  payload.logger.info({
+    msg: 'Resolving best cover image URL',
+    isbn,
+    existingCoverUrl,
+    bookTitle: downloadOptions.bookTitle,
+  })
+
+  const resolvedUrl = await resolveCoverUrl({
+    isbn,
+    existingUrl: existingCoverUrl,
+    timeout: downloadOptions.timeout,
+  })
+
+  if (!resolvedUrl) {
+    payload.logger.info({
+      msg: 'No suitable cover image found across all sources',
+      isbn,
+      bookTitle: downloadOptions.bookTitle,
+    })
+    return null
+  }
+
+  if (resolvedUrl !== existingCoverUrl) {
+    payload.logger.info({
+      msg: 'Cover image found via fallback source',
+      isbn,
+      resolvedUrl,
+      bookTitle: downloadOptions.bookTitle,
+    })
+  }
+
+  const result = await downloadCoverImage(payload, resolvedUrl, downloadOptions)
+  return result.success ? (result.mediaId ?? null) : null
 }

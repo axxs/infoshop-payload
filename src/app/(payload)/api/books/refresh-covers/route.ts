@@ -1,10 +1,10 @@
 /**
  * Refresh Cover Images API
- * Re-downloads cover images for books using ISBN lookup
+ * Re-downloads cover images for books using the multi-source cover waterfall.
  *
  * POST /api/books/refresh-covers
  * Query params:
- *   - limit: Max books to process (default: 50)
+ *   - limit:       Max books to process (default: 50, max: 200)
  *   - onlyMissing: Only process books without covers (default: false)
  */
 
@@ -12,10 +12,12 @@ import { getPayload } from 'payload'
 import type { Where } from 'payload'
 import config from '@payload-config'
 import { NextRequest, NextResponse } from 'next/server'
-import { lookupBookByISBN } from '@/lib/bookLookup'
-import { downloadCoverImageIfPresent } from '@/lib/openLibrary/imageDownloader'
+import { downloadBestCoverImage } from '@/lib/openLibrary/imageDownloader'
 import { validateImageURL } from '@/lib/urlValidator'
 import { requireRole } from '@/lib/access'
+
+const MAX_LIMIT = 200
+const THROTTLE_MS = 200
 
 export async function POST(request: NextRequest) {
   const payload = await getPayload({ config })
@@ -25,7 +27,8 @@ export async function POST(request: NextRequest) {
   if (!auth.authorized) return auth.response
 
   const { searchParams } = new URL(request.url)
-  const limit = parseInt(searchParams.get('limit') || '50', 10)
+  const raw = parseInt(searchParams.get('limit') || '50', 10)
+  const limit = Math.min(Math.max(Number.isNaN(raw) ? 50 : raw, 1), MAX_LIMIT)
   const onlyMissing = searchParams.get('onlyMissing') === 'true'
 
   try {
@@ -41,6 +44,11 @@ export async function POST(request: NextRequest) {
       where,
       limit,
       depth: 0,
+      select: {
+        title: true,
+        isbn: true,
+        externalCoverUrl: true,
+      },
     })
 
     const results = {
@@ -58,35 +66,24 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        // Look up book to get cover URL
-        const lookupResult = await lookupBookByISBN(book.isbn)
+        // Use stored externalCoverUrl as first candidate (avoids extra API call)
+        const existingCoverUrl = book.externalCoverUrl
+          ? (validateImageURL(book.externalCoverUrl) ?? undefined)
+          : undefined
 
-        if (!lookupResult.success || !lookupResult.data?.coverImageUrl) {
-          results.skipped++
-          continue
-        }
-
-        // Validate URL
-        const validatedUrl = validateImageURL(lookupResult.data.coverImageUrl)
-        if (!validatedUrl) {
-          results.skipped++
-          continue
-        }
-
-        // Download new cover image
-        const mediaId = await downloadCoverImageIfPresent(payload, validatedUrl, {
+        // Run the multi-source cover waterfall
+        const mediaId = await downloadBestCoverImage(payload, {
+          isbn: book.isbn,
+          existingCoverUrl,
           bookTitle: book.title,
           alt: `Cover of ${book.title}`,
         })
 
         if (mediaId) {
-          // Update book with new cover
           await payload.update({
             collection: 'books',
             id: book.id,
-            data: {
-              coverImage: mediaId,
-            },
+            data: { coverImage: mediaId },
           })
           results.updated++
 
@@ -104,6 +101,11 @@ export async function POST(request: NextRequest) {
         results.errors.push(
           `${book.title}: ${error instanceof Error ? error.message : 'Unknown error'}`,
         )
+      }
+
+      // Throttle between books to avoid rate-limiting on external APIs
+      if (THROTTLE_MS > 0) {
+        await new Promise((r) => setTimeout(r, THROTTLE_MS))
       }
     }
 

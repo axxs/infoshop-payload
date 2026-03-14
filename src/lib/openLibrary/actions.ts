@@ -10,7 +10,7 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { processAndLinkSubjects } from './subjectManager'
-import { downloadCoverImageIfPresent } from './imageDownloader'
+import { downloadBestCoverImage, downloadCoverImageIfPresent } from './imageDownloader'
 
 /**
  * Result of processing subjects for a book
@@ -70,36 +70,57 @@ export async function processBookSubjects(
 }
 
 /**
- * Server action to download and store a book cover image
+ * Server action to download and store a book cover image.
  *
- * @param coverImageUrl - URL of the cover image
- * @param bookTitle - Book title for filename generation
+ * When an ISBN is provided, uses the multi-source cover waterfall
+ * (OL CDN, Google Books fife variant, longitood.com) so a real cover
+ * is found even if the metadata URL is a placeholder or missing.
+ *
+ * @param coverImageUrl - Cover URL from the metadata lookup (may be undefined)
+ * @param bookTitle     - Book title for filename generation
+ * @param isbn          - Optional ISBN; enables fallback cover sources
  * @returns Result with success status and Media ID
  *
  * @example
  * ```typescript
- * const result = await downloadBookCover('https://covers.openlibrary.org/b/id/123-L.jpg', 'Fantastic Mr. Fox')
- * if (result.success) {
- *   console.log(`Media ID: ${result.mediaId}`)
- * }
+ * const result = await downloadBookCover(
+ *   'https://books.google.com/...',
+ *   'Fantastic Mr. Fox',
+ *   '9780142410349',
+ * )
+ * if (result.success) console.log(`Media ID: ${result.mediaId}`)
  * ```
  */
 export async function downloadBookCover(
   coverImageUrl: string | undefined,
   bookTitle: string,
+  isbn?: string,
 ): Promise<DownloadCoverResult> {
   try {
     const payload = await getPayload({ config })
 
-    const mediaId = await downloadCoverImageIfPresent(payload, coverImageUrl, {
-      bookTitle,
-      alt: `Cover of ${bookTitle}`,
-    })
+    let mediaId: number | null
+
+    if (isbn) {
+      // Use the multi-source waterfall when an ISBN is available
+      mediaId = await downloadBestCoverImage(payload, {
+        isbn,
+        existingCoverUrl: coverImageUrl,
+        bookTitle,
+        alt: `Cover of ${bookTitle}`,
+      })
+    } else {
+      // No ISBN — try the metadata URL only
+      mediaId = await downloadCoverImageIfPresent(payload, coverImageUrl, {
+        bookTitle,
+        alt: `Cover of ${bookTitle}`,
+      })
+    }
 
     if (mediaId === null) {
       return {
         success: false,
-        error: 'No cover image URL provided',
+        error: 'No suitable cover image found',
       }
     }
 
