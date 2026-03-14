@@ -86,6 +86,7 @@ async function refreshCovers() {
         existingCoverUrl,
         bookTitle: title,
         alt: `Cover of ${title}`,
+        bookId: book.id,
       })
 
       if (mediaId) {

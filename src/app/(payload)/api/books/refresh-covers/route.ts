@@ -77,6 +77,7 @@ export async function POST(request: NextRequest) {
           existingCoverUrl,
           bookTitle: book.title,
           alt: `Cover of ${book.title}`,
+          bookId: book.id,
         })
 
         if (mediaId) {
