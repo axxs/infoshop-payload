@@ -127,6 +127,14 @@ Examples:
 - Subsequent commits should use `chore` without scope unless specific package is being modified
 - All commits in a PR are squashed on merge using PR title as commit message
 
+## Payload Skills Package
+
+The project includes Payload framework reference docs from `payloadcms/skills`:
+
+- **Content**: `.agents/skills/payload/` (canonical location)
+- **Symlinks**: `.claude/skills/payload` (Claude Code convention) and `skills/payload` (skills CLI convention) both point to the canonical location
+- **Update**: `npx skills update payloadcms/skills` (refreshes content and `skills-lock.json`)
+
 ## Additional Resources
 
 - LLMS.txt: <https://payloadcms.com/llms.txt>
