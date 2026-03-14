@@ -83,7 +83,7 @@ async function buildDuplicateLookup(
     const existingByTitleAuthor = await payload.find({
       collection: 'books',
       where: {
-        or: orConditions as Where[],
+        or: orConditions as unknown as Where[],
       },
       limit: titleAuthorPairs.length,
     })
