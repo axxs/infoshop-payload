@@ -18,8 +18,11 @@ out
 *.sqlite
 *.sqlite3
 
-# Claude Code
+# Claude Code / Skills
 .claude/
+.agents/
+skills/
+skills-lock.json
 
 # Git
 .git
