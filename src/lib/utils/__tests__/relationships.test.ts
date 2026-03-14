@@ -43,24 +43,24 @@ describe('getRelationshipId', () => {
 
     it('throws error for object without id property', () => {
       const invalidObject = { title: 'Test Book' }
-      expect(() => getRelationshipId(invalidObject as any, 'book')).toThrow(
+      expect(() => getRelationshipId(invalidObject as unknown as number, 'book')).toThrow(
         'book has invalid format',
       )
     })
 
     it('throws error for object with invalid id type', () => {
       const invalidObject = { id: true }
-      expect(() => getRelationshipId(invalidObject as any, 'book')).toThrow(
+      expect(() => getRelationshipId(invalidObject as unknown as number, 'book')).toThrow(
         'book object has invalid id type: boolean',
       )
     })
 
     it('throws error for boolean', () => {
-      expect(() => getRelationshipId(true as any, 'book')).toThrow('book has invalid format')
+      expect(() => getRelationshipId(true as unknown as number, 'book')).toThrow('book has invalid format')
     })
 
     it('throws error for array', () => {
-      expect(() => getRelationshipId([1, 2, 3] as any, 'book')).toThrow('book has invalid format')
+      expect(() => getRelationshipId([1, 2, 3] as unknown as number, 'book')).toThrow('book has invalid format')
     })
   })
 

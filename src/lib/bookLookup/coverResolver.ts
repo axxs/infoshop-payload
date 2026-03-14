@@ -181,17 +181,21 @@ async function probeImageUrl(url: string, timeout: number = PROBE_TIMEOUT_MS): P
  * The API returns `{ "url": "https://..." }` on success or 404 when not found.
  * We fetch the JSON, extract the image URL, then probe it for size/validity.
  *
- * @param isbn13  - ISBN-13 to look up
- * @param timeout - Abort timeout in milliseconds
+ * The total budget for this step is `timeout` ms, split between the JSON
+ * fetch and the image probe to avoid exceeding the per-source contract.
+ *
+ * @param isbnValue - ISBN to look up (ISBN-10 or ISBN-13)
+ * @param timeout   - Total budget in milliseconds for both fetch + probe
  * @returns A validated image URL, or null
  */
-async function queryLongitood(isbn13: string, timeout: number): Promise<string | null> {
+async function queryLongitood(isbnValue: string, timeout: number): Promise<string | null> {
+  const start = Date.now()
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), timeout)
 
   try {
     const response = await fetch(
-      `https://bookcover.longitood.com/bookcover?isbn=${isbn13}&image_size=large`,
+      `https://bookcover.longitood.com/bookcover?isbn=${isbnValue}&image_size=large`,
       {
         headers: {
           'User-Agent': 'Infoshop-Payload/1.0 (Bookstore Inventory System)',
@@ -203,14 +207,20 @@ async function queryLongitood(isbn13: string, timeout: number): Promise<string |
 
     if (!response.ok) return null
 
+    // SSRF check on final URL after any redirects
+    if (response.url && !validateImageURL(response.url)) return null
+
     const data = (await response.json()) as { url?: string }
     if (!data.url || typeof data.url !== 'string') return null
 
-    // Validate and probe the returned image URL
+    // Validate the returned image URL
     if (isPlaceholderUrl(data.url)) return null
     if (!validateImageURL(data.url)) return null
 
-    const isReal = await probeImageUrl(data.url, timeout)
+    // Probe the image URL with the remaining time budget
+    const elapsed = Date.now() - start
+    const remaining = Math.max(timeout - elapsed, 1_000)
+    const isReal = await probeImageUrl(data.url, remaining)
     return isReal ? data.url : null
   } catch {
     return null
@@ -251,21 +261,15 @@ export async function resolveCoverUrl(options: ResolveCoverOptions): Promise<str
   // Reject obviously invalid ISBN lengths
   if (cleaned.length !== 10 && cleaned.length !== 13) return null
 
-  // Derive both ISBN forms
-  let isbn13: string
+  // Derive both ISBN forms for OL CDN probes
+  let isbn13: string | undefined
   let isbn10: string | undefined
 
   if (cleaned.length === 13) {
     isbn13 = cleaned
   } else {
     isbn10 = cleaned
-    const converted = convertISBN10to13(cleaned)
-    if (!converted) {
-      // Conversion failed — use ISBN-10 only (skip ISBN-13 candidate)
-      isbn13 = cleaned
-    } else {
-      isbn13 = converted
-    }
+    isbn13 = convertISBN10to13(cleaned) ?? undefined
   }
 
   // Build candidate list
@@ -279,10 +283,12 @@ export async function resolveCoverUrl(options: ResolveCoverOptions): Promise<str
     candidates.push(...googleBooksVariants(existingUrl))
   }
 
-  // 3. Open Library Covers CDN — direct by ISBN-13
-  candidates.push(`https://covers.openlibrary.org/b/isbn/${isbn13}-L.jpg`)
+  // 3. Open Library Covers CDN — direct by ISBN-13 (only if we have one)
+  if (isbn13) {
+    candidates.push(`https://covers.openlibrary.org/b/isbn/${isbn13}-L.jpg`)
+  }
 
-  // 4. Open Library Covers CDN — direct by ISBN-10 (if different from ISBN-13)
+  // 4. Open Library Covers CDN — direct by ISBN-10 (if available and different)
   if (isbn10 && isbn10 !== isbn13) {
     candidates.push(`https://covers.openlibrary.org/b/isbn/${isbn10}-L.jpg`)
   }
@@ -296,8 +302,10 @@ export async function resolveCoverUrl(options: ResolveCoverOptions): Promise<str
   }
 
   // 5. bookcover.longitood.com — JSON API aggregator (last resort)
-  // Handled separately because it returns JSON { url: "..." } not an image
-  const longitoodUrl = await queryLongitood(isbn13, timeout)
+  // Handled separately because it returns JSON { url: "..." } not an image.
+  // Uses isbn13 if available, otherwise isbn10 (API accepts either).
+  const longitoodIsbn = isbn13 ?? isbn10 ?? cleaned
+  const longitoodUrl = await queryLongitood(longitoodIsbn, timeout)
   if (longitoodUrl) return longitoodUrl
 
   return null

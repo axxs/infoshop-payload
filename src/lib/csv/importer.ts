@@ -12,6 +12,7 @@ import { detectAndHandleDuplicates } from './duplicateDetector'
 import { processAndLinkSubjects } from '../openLibrary/subjectManager'
 import { downloadBestCoverImage, downloadCoverImageIfPresent } from '../openLibrary/imageDownloader'
 import { lookupBookByISBN, lookupBookByTitle } from '../bookLookup'
+import type { BookData } from '../bookLookup/types'
 import { validateImageURL } from '../urlValidator'
 import type { Book } from '@/payload-types'
 import type { SupportedCurrency } from '../square/constants'
@@ -130,10 +131,7 @@ export function quickValidateFormat(csvContent: string, sampleSize: number = 5):
  * @param data - Enrichment data from API lookup
  * @returns New operation with missing fields populated
  */
-function mergeEnrichmentData(
-  operation: BookOperation,
-  data: import('../bookLookup/types').BookData,
-): BookOperation {
+function mergeEnrichmentData(operation: BookOperation, data: BookData): BookOperation {
   return {
     ...operation,
     isbn: operation.isbn || data.isbn || undefined,

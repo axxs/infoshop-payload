@@ -63,7 +63,8 @@ async function main() {
   console.log(`Found ${totalDocs} books without a local cover image\n`)
 
   let found = 0
-  let notFound = 0
+  let previewed = 0
+  let skipped = 0
   let failed = 0
   let processed = 0
   let page = START_PAGE
@@ -95,7 +96,7 @@ async function main() {
       if (!isbn) {
         // No ISBN — can't run the full waterfall, skip
         console.log(`  ${counter} ${title} — no ISBN, skipping`)
-        notFound++
+        skipped++
         continue
       }
 
@@ -109,7 +110,7 @@ async function main() {
           `  ${counter} ${title} (ISBN: ${isbn}) — would run waterfall` +
             (existingCoverUrl ? ` starting from ${existingCoverUrl}` : ''),
         )
-        found++ // optimistic for dry run output
+        previewed++
         continue
       }
 
@@ -133,7 +134,7 @@ async function main() {
           found++
         } else {
           console.log(`         ✗ no suitable cover found`)
-          notFound++
+          skipped++
         }
       } catch (error) {
         const msg = error instanceof Error ? error.message : 'Unknown error'
@@ -161,10 +162,14 @@ async function main() {
   }
 
   console.log('\n=== Results ===')
-  console.log(`Found & downloaded: ${found}`)
-  console.log(`Not found:          ${notFound}`)
-  console.log(`Errors:             ${failed}`)
-  console.log(`Total processed:    ${processed}`)
+  if (DRY_RUN) {
+    console.log(`Would process: ${previewed}`)
+  } else {
+    console.log(`Downloaded: ${found}`)
+  }
+  console.log(`Skipped:    ${skipped}`)
+  console.log(`Errors:     ${failed}`)
+  console.log(`Total:      ${(DRY_RUN ? previewed : found) + skipped + failed}`)
 
   process.exit(0)
 }

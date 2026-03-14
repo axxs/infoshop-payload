@@ -17,6 +17,8 @@
  *   DRY_RUN=true    Preview what would be downloaded without doing it
  */
 
+import dotenv from 'dotenv'
+dotenv.config({ path: '.env.local' })
 import { getPayload } from 'payload'
 import config from '../src/payload.config'
 import {
@@ -51,6 +53,7 @@ async function main() {
   }
 
   let downloaded = 0
+  let previewed = 0
   let skipped = 0
   let failed = 0
 
@@ -84,7 +87,7 @@ async function main() {
         } else {
           console.log(`  ${progress} ${title} — no ISBN or URL, would skip`)
         }
-        downloaded++
+        previewed++
         continue
       }
 
@@ -149,10 +152,14 @@ async function main() {
   }
 
   console.log('\n=== Results ===')
-  console.log(`Downloaded: ${downloaded}`)
+  if (DRY_RUN) {
+    console.log(`Would process: ${previewed}`)
+  } else {
+    console.log(`Downloaded: ${downloaded}`)
+  }
   console.log(`Skipped:    ${skipped}`)
   console.log(`Failed:     ${failed}`)
-  console.log(`Total:      ${downloaded + skipped + failed}`)
+  console.log(`Total:      ${(DRY_RUN ? previewed : downloaded) + skipped + failed}`)
 
   process.exit(0)
 }

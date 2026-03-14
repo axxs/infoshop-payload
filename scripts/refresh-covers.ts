@@ -9,7 +9,7 @@
  * Usage: npx tsx scripts/refresh-covers.ts
  *
  * Options (env vars):
- *   BATCH_SIZE=50     Number of books to process (default: 500)
+ *   BATCH_SIZE=500    Number of books to process (default: 500)
  *   DELAY_MS=500      Delay between books in ms (default: 500)
  *   ONLY_MISSING=true Only process books that currently have no coverImage
  */
