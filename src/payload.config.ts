@@ -18,6 +18,8 @@ import { EventAttendance } from './collections/EventAttendance'
 import { Sales } from './collections/Sales'
 import { SaleItems } from './collections/SaleItems'
 import { ContactSubmissions } from './collections/ContactSubmissions'
+import { Pages } from './collections/Pages'
+import { Posts } from './collections/Posts'
 import { Theme } from './globals/Theme'
 import { Layout } from './globals/Layout'
 import { StoreSettings } from './globals/StoreSettings'
@@ -49,6 +51,8 @@ export default buildConfig({
     SaleItems,
     ContactSubmissions,
     Inquiries,
+    Pages,
+    Posts,
   ],
   globals: [Theme, Layout, StoreSettings],
   editor: lexicalEditor(),
