@@ -62,7 +62,7 @@ interface ISBNLookupFieldProps {
  */
 export const ISBNLookupField = ({ path }: ISBNLookupFieldProps): React.JSX.Element => {
   const { value, setValue } = useField<string>({ path })
-  const { dispatchFields } = useForm()
+  const { dispatchFields, setModified } = useForm()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -168,6 +168,7 @@ export const ISBNLookupField = ({ path }: ISBNLookupFieldProps): React.JSX.Eleme
 
         setProgress('')
         setSuccess(successMessage)
+        setModified(true)
       } catch (dispatchError) {
         setError(
           `Failed to update form fields: ${dispatchError instanceof Error ? dispatchError.message : 'Unknown error'}`,
