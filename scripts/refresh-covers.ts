@@ -14,8 +14,6 @@
  *   ONLY_MISSING=true Only process books that currently have no coverImage
  */
 
-import dotenv from 'dotenv'
-dotenv.config({ path: '.env.local' })
 import { getPayload } from 'payload'
 import type { Where } from 'payload'
 import config from '../src/payload.config'

@@ -26,7 +26,7 @@
  * @module bookLookup/coverResolver
  */
 
-import { cleanISBN, convertISBN10to13 } from '../isbnUtils'
+import { convertISBN10to13, validateISBN } from '../isbnUtils'
 import { MIN_COVER_SIZE, isPlaceholderUrl } from '../openLibrary/imageDownloader'
 import { validateImageURL } from '../urlValidator'
 
@@ -82,7 +82,8 @@ async function probeImageUrl(url: string, timeout: number = PROBE_TIMEOUT_MS): P
   try {
     const parsed = new URL(url)
     if (parsed.protocol !== 'https:') return false
-    // Defense-in-depth: block private/internal IPs even if callers forgot to validate
+    // Pre-fetch SSRF fast-path — the authoritative guard is the post-redirect
+    // check on response.url (line ~116), since servers can redirect to internal IPs
     if (!validateImageURL(url)) return false
   } catch {
     return false
@@ -195,7 +196,7 @@ async function queryLongitood(isbnValue: string, timeout: number): Promise<strin
 
   try {
     const response = await fetch(
-      `https://bookcover.longitood.com/bookcover?isbn=${isbnValue}&image_size=large`,
+      `https://bookcover.longitood.com/bookcover?isbn=${encodeURIComponent(isbnValue)}&image_size=large`,
       {
         headers: {
           'User-Agent': 'Infoshop-Payload/1.0 (Bookstore Inventory System)',
@@ -256,10 +257,11 @@ export interface ResolveCoverOptions {
 export async function resolveCoverUrl(options: ResolveCoverOptions): Promise<string | null> {
   const { isbn, existingUrl, timeout = PROBE_TIMEOUT_MS } = options
 
-  const cleaned = cleanISBN(isbn)
+  const { valid, cleaned } = validateISBN(isbn)
 
-  // Reject obviously invalid ISBN lengths
-  if (cleaned.length !== 10 && cleaned.length !== 13) return null
+  // Reject invalid ISBNs (wrong length or failed checksum) to avoid
+  // unnecessary network probes for known-bad values
+  if (!valid) return null
 
   // Derive both ISBN forms for OL CDN probes
   let isbn13: string | undefined
@@ -285,15 +287,17 @@ export async function resolveCoverUrl(options: ResolveCoverOptions): Promise<str
 
   // 3. Open Library Covers CDN — direct by ISBN-13 (only if we have one)
   if (isbn13) {
-    candidates.push(`https://covers.openlibrary.org/b/isbn/${isbn13}-L.jpg`)
+    candidates.push(`https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn13)}-L.jpg`)
   }
 
   // 4. Open Library Covers CDN — direct by ISBN-10 (if available and different)
   if (isbn10 && isbn10 !== isbn13) {
-    candidates.push(`https://covers.openlibrary.org/b/isbn/${isbn10}-L.jpg`)
+    candidates.push(`https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn10)}-L.jpg`)
   }
 
-  // Probe each candidate in sequence; stop at first success
+  // Probes run sequentially — each source gets its own timeout so a slow
+  // source never blocks the next. Parallel probing would waste bandwidth
+  // since we only need one successful result.
   for (const url of candidates) {
     const isReal = await probeImageUrl(url, timeout)
     if (isReal) {

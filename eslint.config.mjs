@@ -29,6 +29,9 @@ export default [
       '@typescript-eslint/ban-ts-comment': 'warn',
       '@typescript-eslint/no-empty-object-type': 'warn',
       '@typescript-eslint/no-explicit-any': 'error',
+      // Flag console.log in production code (CLAUDE.md policy)
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+
       '@typescript-eslint/no-unused-vars': [
         'warn',
         {

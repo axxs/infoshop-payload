@@ -17,8 +17,6 @@
  *   DRY_RUN=true    Preview what would be downloaded without doing it
  */
 
-import dotenv from 'dotenv'
-dotenv.config({ path: '.env.local' })
 import { getPayload } from 'payload'
 import config from '../src/payload.config'
 import {

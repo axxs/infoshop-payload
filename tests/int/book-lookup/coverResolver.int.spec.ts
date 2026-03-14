@@ -3,6 +3,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 // Mock the dependencies before importing the module under test
 vi.mock('../../../src/lib/isbnUtils', () => ({
   cleanISBN: (isbn: string) => isbn.replace(/[-\s]/g, ''),
+  validateISBN: (isbn: string) => {
+    const cleaned = isbn.replace(/[-\s]/g, '')
+    const valid = cleaned.length === 10 || cleaned.length === 13
+    return { valid, cleaned, type: valid ? (cleaned.length === 13 ? 'ISBN-13' : 'ISBN-10') : null }
+  },
   convertISBN10to13: (isbn10: string) => {
     if (isbn10 === '0140410341') return '9780140410341'
     if (isbn10 === 'BADISBN10X') return null

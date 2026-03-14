@@ -22,7 +22,7 @@ interface DownloadImageResult {
 /**
  * Options for image download
  */
-interface DownloadImageOptions {
+export interface DownloadImageOptions {
   /** Timeout for image download in milliseconds */
   timeout?: number
   /** Alt text for the image */

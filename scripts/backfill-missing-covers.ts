@@ -28,8 +28,6 @@
  *   START_PAGE=1     Resume from a specific page (default: 1)
  */
 
-import dotenv from 'dotenv'
-dotenv.config({ path: '.env.local' })
 import { getPayload } from 'payload'
 import config from '../src/payload.config'
 import { downloadBestCoverImage } from '../src/lib/openLibrary/imageDownloader'
