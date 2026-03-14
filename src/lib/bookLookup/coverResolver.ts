@@ -10,7 +10,7 @@
  *   2. GB fife variant     — existingUrl modified with fife=w800 (Google Books only)
  *   3. OL CDN ISBN-13      — covers.openlibrary.org/b/isbn/{isbn13}-L.jpg
  *   4. OL CDN ISBN-10      — covers.openlibrary.org/b/isbn/{isbn10}-L.jpg
- *   5. longitood.com       — free aggregator (Google, Amazon, OL); last resort
+ *   5. bookcover.longitood.com — JSON API aggregator (Goodreads CDN); last resort
  *
  * Each probe has an independent 5 s timeout so a slow/dead source never
  * stalls the entire chain. Timeouts and fetch errors return false and the
@@ -172,6 +172,50 @@ async function probeImageUrl(url: string, timeout: number = PROBE_TIMEOUT_MS): P
 }
 
 /**
+ * Queries the bookcover.longitood.com JSON API for a cover image URL.
+ *
+ * The API returns `{ "url": "https://..." }` on success or 404 when not found.
+ * We fetch the JSON, extract the image URL, then probe it for size/validity.
+ *
+ * @param isbn13  - ISBN-13 to look up
+ * @param timeout - Abort timeout in milliseconds
+ * @returns A validated image URL, or null
+ */
+async function queryLongitood(isbn13: string, timeout: number): Promise<string | null> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeout)
+
+  try {
+    const response = await fetch(
+      `https://bookcover.longitood.com/bookcover?isbn=${isbn13}&image_size=large`,
+      {
+        headers: {
+          'User-Agent': 'Infoshop-Payload/1.0 (Bookstore Inventory System)',
+          Accept: 'application/json',
+        },
+        signal: controller.signal,
+      },
+    )
+
+    if (!response.ok) return null
+
+    const data = (await response.json()) as { url?: string }
+    if (!data.url || typeof data.url !== 'string') return null
+
+    // Validate and probe the returned image URL
+    if (isPlaceholderUrl(data.url)) return null
+    if (!validateImageURL(data.url)) return null
+
+    const isReal = await probeImageUrl(data.url, timeout)
+    return isReal ? data.url : null
+  } catch {
+    return null
+  } finally {
+    clearTimeout(timeoutId)
+  }
+}
+
+/**
  * Options for cover URL resolution
  */
 export interface ResolveCoverOptions {
@@ -232,9 +276,6 @@ export async function resolveCoverUrl(options: ResolveCoverOptions): Promise<str
     candidates.push(`https://covers.openlibrary.org/b/isbn/${isbn10}-L.jpg`)
   }
 
-  // 5. bookcover.longitood.com — free aggregator (last resort)
-  candidates.push(`https://bookcover.longitood.com/bookcover/${isbn13}`)
-
   // Probe each candidate in sequence; stop at first success
   for (const url of candidates) {
     const isReal = await probeImageUrl(url, timeout)
@@ -242,6 +283,11 @@ export async function resolveCoverUrl(options: ResolveCoverOptions): Promise<str
       return url
     }
   }
+
+  // 5. bookcover.longitood.com — JSON API aggregator (last resort)
+  // Handled separately because it returns JSON { url: "..." } not an image
+  const longitoodUrl = await queryLongitood(isbn13, timeout)
+  if (longitoodUrl) return longitoodUrl
 
   return null
 }
