@@ -76,6 +76,7 @@ ENV PORT 3000
 # 3. Start the Next.js production server.
 CMD sh -c '\
   npx tsx scripts/migrate-theme-columns.ts; \
+  npx tsx scripts/migrate-pages-posts-columns.ts; \
   NODE_ENV= timeout 120 npx tsx src/push-schema.ts \
     || echo "[push-schema] Push did not complete, starting server anyway..."; \
   HOSTNAME="0.0.0.0" npx next start -p 3000'
