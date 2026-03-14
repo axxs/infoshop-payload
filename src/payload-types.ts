@@ -79,6 +79,8 @@ export interface Config {
     'sale-items': SaleItem;
     'contact-submissions': ContactSubmission;
     inquiries: Inquiry;
+    pages: Page;
+    posts: Post;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -98,6 +100,8 @@ export interface Config {
     'sale-items': SaleItemsSelect<false> | SaleItemsSelect<true>;
     'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
     inquiries: InquiriesSelect<false> | InquiriesSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
+    posts: PostsSelect<false> | PostsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -194,6 +198,10 @@ export interface User {
 export interface Media {
   id: number;
   alt: string;
+  /**
+   * Book this image is a cover for (set automatically)
+   */
+  book?: (number | null) | Book;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -638,6 +646,642 @@ export interface Inquiry {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: number;
+  title: string;
+  /**
+   * URL-friendly identifier (auto-generated from title)
+   */
+  slug?: string | null;
+  /**
+   * Page description for SEO meta tags
+   */
+  description?: string | null;
+  /**
+   * Featured image for social sharing (Open Graph)
+   */
+  featuredImage?: (number | null) | Media;
+  /**
+   * Build the page layout by adding, removing, and reordering blocks
+   */
+  blocks?:
+    | (
+        | {
+            /**
+             * Visual style of the hero section
+             */
+            variant: 'default' | 'minimal' | 'fullHeight';
+            /**
+             * Main heading
+             */
+            title: string;
+            /**
+             * Subtitle or description text
+             */
+            subtitle?: string | null;
+            /**
+             * Optional background image
+             */
+            backgroundImage?: (number | null) | Media;
+            /**
+             * Icon to display above the title
+             */
+            icon?: ('book-open' | 'library' | 'sparkles' | 'none') | null;
+            /**
+             * Call-to-action buttons (max 3)
+             */
+            ctaButtons?:
+              | {
+                  label: string;
+                  href: string;
+                  variant: 'default' | 'secondary' | 'outline';
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * Text alignment
+             */
+            alignment: 'left' | 'center' | 'right';
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'hero';
+          }
+        | {
+            /**
+             * Section heading
+             */
+            title: string;
+            /**
+             * Optional description text below heading
+             */
+            description?: string | null;
+            /**
+             * How to select books to display
+             */
+            displayMode: 'newest' | 'featured' | 'category' | 'subject' | 'manual';
+            /**
+             * Filter books by this category
+             */
+            category?: (number | null) | Category;
+            /**
+             * Filter books by this subject
+             */
+            subject?: (number | null) | Subject;
+            /**
+             * Manually select specific books
+             */
+            manualBooks?: (number | Book)[] | null;
+            /**
+             * Number of books to display
+             */
+            limit?: number | null;
+            /**
+             * Grid layout columns (desktop)
+             */
+            columns: '2' | '3' | '4';
+            /**
+             * Show "View All" link
+             */
+            showViewAllLink?: boolean | null;
+            /**
+             * Link destination for "View All" button
+             */
+            viewAllHref?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'bookShowcase';
+          }
+        | {
+            /**
+             * Number of columns in this content block
+             */
+            layout: 'oneColumn' | 'twoColumns' | 'threeColumns';
+            /**
+             * Add content columns (number should match layout)
+             */
+            columns?:
+              | {
+                  /**
+                   * Column content (supports headings, lists, links, etc.)
+                   */
+                  richText: {
+                    root: {
+                      type: string;
+                      children: {
+                        type: any;
+                        version: number;
+                        [k: string]: unknown;
+                      }[];
+                      direction: ('ltr' | 'rtl') | null;
+                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                      indent: number;
+                      version: number;
+                    };
+                    [k: string]: unknown;
+                  };
+                  align?: ('left' | 'center' | 'right') | null;
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * Background colour for this section
+             */
+            backgroundColor?: ('default' | 'muted' | 'primary') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'content';
+          }
+        | {
+            /**
+             * Icon to display
+             */
+            icon?: ('book-open' | 'tag' | 'grid-3x3' | 'calendar' | 'info' | 'custom') | null;
+            /**
+             * Upload a custom icon image
+             */
+            customIcon?: (number | null) | Media;
+            /**
+             * Main heading
+             */
+            title: string;
+            /**
+             * Description text
+             */
+            description: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            /**
+             * Call-to-action buttons (1-2 max)
+             */
+            buttons?:
+              | {
+                  label: string;
+                  href: string;
+                  variant: 'default' | 'outline';
+                  size: 'default' | 'lg';
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * Background style
+             */
+            backgroundColor: 'default' | 'muted' | 'gradient';
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'callToAction';
+          }
+        | {
+            /**
+             * Image or video to display
+             */
+            media: number | Media;
+            /**
+             * Optional caption below the media
+             */
+            caption?: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            } | null;
+            /**
+             * Display size of the media
+             */
+            size: 'small' | 'medium' | 'large' | 'fullWidth';
+            /**
+             * Aspect ratio (auto uses original dimensions)
+             */
+            aspectRatio?: ('auto' | '16:9' | '4:3' | '1:1') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'media';
+          }
+        | {
+            /**
+             * Optional section heading
+             */
+            title?: string | null;
+            /**
+             * Which collection to display
+             */
+            collection: 'books' | 'events';
+            /**
+             * Filter books by category
+             */
+            category?: (number | null) | Category;
+            /**
+             * Filter books by subject
+             */
+            subject?: (number | null) | Subject;
+            /**
+             * Date range for events
+             */
+            dateRange?: {
+              /**
+               * Filter events starting from this date
+               */
+              start?: string | null;
+              /**
+               * Filter events until this date
+               */
+              end?: string | null;
+            };
+            /**
+             * Display layout
+             */
+            layout: 'grid' | 'list';
+            /**
+             * Show search bar above archive
+             */
+            enableSearch?: boolean | null;
+            /**
+             * Show filter controls
+             */
+            enableFilters?: boolean | null;
+            /**
+             * Number of items per page
+             */
+            itemsPerPage: number;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'archive';
+          }
+        | {
+            /**
+             * Type of form to display
+             */
+            formType: 'contact';
+            /**
+             * Optional title override (defaults to form type name)
+             */
+            title?: string | null;
+            /**
+             * Optional description text above the form
+             */
+            description?: string | null;
+            /**
+             * Show contact info sidebar (email, address, social links)
+             */
+            showContactInfo?: boolean | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'formBlock';
+          }
+      )[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts".
+ */
+export interface Post {
+  id: number;
+  title: string;
+  /**
+   * URL-friendly identifier (auto-generated from title)
+   */
+  slug?: string | null;
+  /**
+   * Publication date (defaults to creation time)
+   */
+  publishedDate?: string | null;
+  /**
+   * Post author (auto-set on create)
+   */
+  author?: (number | null) | User;
+  /**
+   * Featured image for the post
+   */
+  featuredImage?: (number | null) | Media;
+  /**
+   * Short summary for listing pages (max 300 characters)
+   */
+  excerpt?: string | null;
+  /**
+   * Post categories
+   */
+  categories?: (number | Category)[] | null;
+  /**
+   * Build the post content by adding blocks
+   */
+  blocks?:
+    | (
+        | {
+            /**
+             * Visual style of the hero section
+             */
+            variant: 'default' | 'minimal' | 'fullHeight';
+            /**
+             * Main heading
+             */
+            title: string;
+            /**
+             * Subtitle or description text
+             */
+            subtitle?: string | null;
+            /**
+             * Optional background image
+             */
+            backgroundImage?: (number | null) | Media;
+            /**
+             * Icon to display above the title
+             */
+            icon?: ('book-open' | 'library' | 'sparkles' | 'none') | null;
+            /**
+             * Call-to-action buttons (max 3)
+             */
+            ctaButtons?:
+              | {
+                  label: string;
+                  href: string;
+                  variant: 'default' | 'secondary' | 'outline';
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * Text alignment
+             */
+            alignment: 'left' | 'center' | 'right';
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'hero';
+          }
+        | {
+            /**
+             * Section heading
+             */
+            title: string;
+            /**
+             * Optional description text below heading
+             */
+            description?: string | null;
+            /**
+             * How to select books to display
+             */
+            displayMode: 'newest' | 'featured' | 'category' | 'subject' | 'manual';
+            /**
+             * Filter books by this category
+             */
+            category?: (number | null) | Category;
+            /**
+             * Filter books by this subject
+             */
+            subject?: (number | null) | Subject;
+            /**
+             * Manually select specific books
+             */
+            manualBooks?: (number | Book)[] | null;
+            /**
+             * Number of books to display
+             */
+            limit?: number | null;
+            /**
+             * Grid layout columns (desktop)
+             */
+            columns: '2' | '3' | '4';
+            /**
+             * Show "View All" link
+             */
+            showViewAllLink?: boolean | null;
+            /**
+             * Link destination for "View All" button
+             */
+            viewAllHref?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'bookShowcase';
+          }
+        | {
+            /**
+             * Number of columns in this content block
+             */
+            layout: 'oneColumn' | 'twoColumns' | 'threeColumns';
+            /**
+             * Add content columns (number should match layout)
+             */
+            columns?:
+              | {
+                  /**
+                   * Column content (supports headings, lists, links, etc.)
+                   */
+                  richText: {
+                    root: {
+                      type: string;
+                      children: {
+                        type: any;
+                        version: number;
+                        [k: string]: unknown;
+                      }[];
+                      direction: ('ltr' | 'rtl') | null;
+                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                      indent: number;
+                      version: number;
+                    };
+                    [k: string]: unknown;
+                  };
+                  align?: ('left' | 'center' | 'right') | null;
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * Background colour for this section
+             */
+            backgroundColor?: ('default' | 'muted' | 'primary') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'content';
+          }
+        | {
+            /**
+             * Icon to display
+             */
+            icon?: ('book-open' | 'tag' | 'grid-3x3' | 'calendar' | 'info' | 'custom') | null;
+            /**
+             * Upload a custom icon image
+             */
+            customIcon?: (number | null) | Media;
+            /**
+             * Main heading
+             */
+            title: string;
+            /**
+             * Description text
+             */
+            description: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            /**
+             * Call-to-action buttons (1-2 max)
+             */
+            buttons?:
+              | {
+                  label: string;
+                  href: string;
+                  variant: 'default' | 'outline';
+                  size: 'default' | 'lg';
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * Background style
+             */
+            backgroundColor: 'default' | 'muted' | 'gradient';
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'callToAction';
+          }
+        | {
+            /**
+             * Image or video to display
+             */
+            media: number | Media;
+            /**
+             * Optional caption below the media
+             */
+            caption?: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            } | null;
+            /**
+             * Display size of the media
+             */
+            size: 'small' | 'medium' | 'large' | 'fullWidth';
+            /**
+             * Aspect ratio (auto uses original dimensions)
+             */
+            aspectRatio?: ('auto' | '16:9' | '4:3' | '1:1') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'media';
+          }
+        | {
+            /**
+             * Optional section heading
+             */
+            title?: string | null;
+            /**
+             * Which collection to display
+             */
+            collection: 'books' | 'events';
+            /**
+             * Filter books by category
+             */
+            category?: (number | null) | Category;
+            /**
+             * Filter books by subject
+             */
+            subject?: (number | null) | Subject;
+            /**
+             * Date range for events
+             */
+            dateRange?: {
+              /**
+               * Filter events starting from this date
+               */
+              start?: string | null;
+              /**
+               * Filter events until this date
+               */
+              end?: string | null;
+            };
+            /**
+             * Display layout
+             */
+            layout: 'grid' | 'list';
+            /**
+             * Show search bar above archive
+             */
+            enableSearch?: boolean | null;
+            /**
+             * Show filter controls
+             */
+            enableFilters?: boolean | null;
+            /**
+             * Number of items per page
+             */
+            itemsPerPage: number;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'archive';
+          }
+        | {
+            /**
+             * Type of form to display
+             */
+            formType: 'contact';
+            /**
+             * Optional title override (defaults to form type name)
+             */
+            title?: string | null;
+            /**
+             * Optional description text above the form
+             */
+            description?: string | null;
+            /**
+             * Show contact info sidebar (email, address, social links)
+             */
+            showContactInfo?: boolean | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'formBlock';
+          }
+      )[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -707,6 +1351,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'inquiries';
         value: number | Inquiry;
+      } | null)
+    | ({
+        relationTo: 'pages';
+        value: number | Page;
+      } | null)
+    | ({
+        relationTo: 'posts';
+        value: number | Post;
       } | null)
     | ({
         relationTo: 'payload-kv';
@@ -787,6 +1439,7 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  book?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -988,6 +1641,265 @@ export interface InquiriesSelect<T extends boolean = true> {
   staffNotes?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  description?: T;
+  featuredImage?: T;
+  blocks?:
+    | T
+    | {
+        hero?:
+          | T
+          | {
+              variant?: T;
+              title?: T;
+              subtitle?: T;
+              backgroundImage?: T;
+              icon?: T;
+              ctaButtons?:
+                | T
+                | {
+                    label?: T;
+                    href?: T;
+                    variant?: T;
+                    id?: T;
+                  };
+              alignment?: T;
+              id?: T;
+              blockName?: T;
+            };
+        bookShowcase?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              displayMode?: T;
+              category?: T;
+              subject?: T;
+              manualBooks?: T;
+              limit?: T;
+              columns?: T;
+              showViewAllLink?: T;
+              viewAllHref?: T;
+              id?: T;
+              blockName?: T;
+            };
+        content?:
+          | T
+          | {
+              layout?: T;
+              columns?:
+                | T
+                | {
+                    richText?: T;
+                    align?: T;
+                    id?: T;
+                  };
+              backgroundColor?: T;
+              id?: T;
+              blockName?: T;
+            };
+        callToAction?:
+          | T
+          | {
+              icon?: T;
+              customIcon?: T;
+              title?: T;
+              description?: T;
+              buttons?:
+                | T
+                | {
+                    label?: T;
+                    href?: T;
+                    variant?: T;
+                    size?: T;
+                    id?: T;
+                  };
+              backgroundColor?: T;
+              id?: T;
+              blockName?: T;
+            };
+        media?:
+          | T
+          | {
+              media?: T;
+              caption?: T;
+              size?: T;
+              aspectRatio?: T;
+              id?: T;
+              blockName?: T;
+            };
+        archive?:
+          | T
+          | {
+              title?: T;
+              collection?: T;
+              category?: T;
+              subject?: T;
+              dateRange?:
+                | T
+                | {
+                    start?: T;
+                    end?: T;
+                  };
+              layout?: T;
+              enableSearch?: T;
+              enableFilters?: T;
+              itemsPerPage?: T;
+              id?: T;
+              blockName?: T;
+            };
+        formBlock?:
+          | T
+          | {
+              formType?: T;
+              title?: T;
+              description?: T;
+              showContactInfo?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts_select".
+ */
+export interface PostsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  publishedDate?: T;
+  author?: T;
+  featuredImage?: T;
+  excerpt?: T;
+  categories?: T;
+  blocks?:
+    | T
+    | {
+        hero?:
+          | T
+          | {
+              variant?: T;
+              title?: T;
+              subtitle?: T;
+              backgroundImage?: T;
+              icon?: T;
+              ctaButtons?:
+                | T
+                | {
+                    label?: T;
+                    href?: T;
+                    variant?: T;
+                    id?: T;
+                  };
+              alignment?: T;
+              id?: T;
+              blockName?: T;
+            };
+        bookShowcase?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              displayMode?: T;
+              category?: T;
+              subject?: T;
+              manualBooks?: T;
+              limit?: T;
+              columns?: T;
+              showViewAllLink?: T;
+              viewAllHref?: T;
+              id?: T;
+              blockName?: T;
+            };
+        content?:
+          | T
+          | {
+              layout?: T;
+              columns?:
+                | T
+                | {
+                    richText?: T;
+                    align?: T;
+                    id?: T;
+                  };
+              backgroundColor?: T;
+              id?: T;
+              blockName?: T;
+            };
+        callToAction?:
+          | T
+          | {
+              icon?: T;
+              customIcon?: T;
+              title?: T;
+              description?: T;
+              buttons?:
+                | T
+                | {
+                    label?: T;
+                    href?: T;
+                    variant?: T;
+                    size?: T;
+                    id?: T;
+                  };
+              backgroundColor?: T;
+              id?: T;
+              blockName?: T;
+            };
+        media?:
+          | T
+          | {
+              media?: T;
+              caption?: T;
+              size?: T;
+              aspectRatio?: T;
+              id?: T;
+              blockName?: T;
+            };
+        archive?:
+          | T
+          | {
+              title?: T;
+              collection?: T;
+              category?: T;
+              subject?: T;
+              dateRange?:
+                | T
+                | {
+                    start?: T;
+                    end?: T;
+                  };
+              layout?: T;
+              enableSearch?: T;
+              enableFilters?: T;
+              itemsPerPage?: T;
+              id?: T;
+              blockName?: T;
+            };
+        formBlock?:
+          | T
+          | {
+              formType?: T;
+              title?: T;
+              description?: T;
+              showContactInfo?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1314,274 +2226,6 @@ export interface Layout {
    * Copyright text
    */
   copyright?: string | null;
-  /**
-   * Build the homepage layout by adding, removing, and reordering blocks
-   */
-  blocks?:
-    | (
-        | {
-            /**
-             * Visual style of the hero section
-             */
-            variant: 'default' | 'minimal' | 'fullHeight';
-            /**
-             * Main heading
-             */
-            title: string;
-            /**
-             * Subtitle or description text
-             */
-            subtitle?: string | null;
-            /**
-             * Optional background image
-             */
-            backgroundImage?: (number | null) | Media;
-            /**
-             * Icon to display above the title
-             */
-            icon?: ('book-open' | 'library' | 'sparkles' | 'none') | null;
-            /**
-             * Call-to-action buttons (max 3)
-             */
-            ctaButtons?:
-              | {
-                  label: string;
-                  href: string;
-                  variant: 'default' | 'secondary' | 'outline';
-                  id?: string | null;
-                }[]
-              | null;
-            /**
-             * Text alignment
-             */
-            alignment: 'left' | 'center' | 'right';
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'hero';
-          }
-        | {
-            /**
-             * Section heading
-             */
-            title: string;
-            /**
-             * Optional description text below heading
-             */
-            description?: string | null;
-            /**
-             * How to select books to display
-             */
-            displayMode: 'newest' | 'featured' | 'category' | 'subject' | 'manual';
-            /**
-             * Filter books by this category
-             */
-            category?: (number | null) | Category;
-            /**
-             * Filter books by this subject
-             */
-            subject?: (number | null) | Subject;
-            /**
-             * Manually select specific books
-             */
-            manualBooks?: (number | Book)[] | null;
-            /**
-             * Number of books to display
-             */
-            limit?: number | null;
-            /**
-             * Grid layout columns (desktop)
-             */
-            columns: '2' | '3' | '4';
-            /**
-             * Show "View All" link
-             */
-            showViewAllLink?: boolean | null;
-            /**
-             * Link destination for "View All" button
-             */
-            viewAllHref?: string | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'bookShowcase';
-          }
-        | {
-            /**
-             * Number of columns in this content block
-             */
-            layout: 'oneColumn' | 'twoColumns' | 'threeColumns';
-            /**
-             * Add content columns (number should match layout)
-             */
-            columns?:
-              | {
-                  /**
-                   * Column content (supports headings, lists, links, etc.)
-                   */
-                  richText: {
-                    root: {
-                      type: string;
-                      children: {
-                        type: any;
-                        version: number;
-                        [k: string]: unknown;
-                      }[];
-                      direction: ('ltr' | 'rtl') | null;
-                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-                      indent: number;
-                      version: number;
-                    };
-                    [k: string]: unknown;
-                  };
-                  align?: ('left' | 'center' | 'right') | null;
-                  id?: string | null;
-                }[]
-              | null;
-            /**
-             * Background colour for this section
-             */
-            backgroundColor?: ('default' | 'muted' | 'primary') | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'content';
-          }
-        | {
-            /**
-             * Icon to display
-             */
-            icon?: ('book-open' | 'tag' | 'grid-3x3' | 'calendar' | 'info' | 'custom') | null;
-            /**
-             * Upload a custom icon image
-             */
-            customIcon?: (number | null) | Media;
-            /**
-             * Main heading
-             */
-            title: string;
-            /**
-             * Description text
-             */
-            description: {
-              root: {
-                type: string;
-                children: {
-                  type: any;
-                  version: number;
-                  [k: string]: unknown;
-                }[];
-                direction: ('ltr' | 'rtl') | null;
-                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-                indent: number;
-                version: number;
-              };
-              [k: string]: unknown;
-            };
-            /**
-             * Call-to-action buttons (1-2 max)
-             */
-            buttons?:
-              | {
-                  label: string;
-                  href: string;
-                  variant: 'default' | 'outline';
-                  size: 'default' | 'lg';
-                  id?: string | null;
-                }[]
-              | null;
-            /**
-             * Background style
-             */
-            backgroundColor: 'default' | 'muted' | 'gradient';
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'callToAction';
-          }
-        | {
-            /**
-             * Image or video to display
-             */
-            media: number | Media;
-            /**
-             * Optional caption below the media
-             */
-            caption?: {
-              root: {
-                type: string;
-                children: {
-                  type: any;
-                  version: number;
-                  [k: string]: unknown;
-                }[];
-                direction: ('ltr' | 'rtl') | null;
-                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-                indent: number;
-                version: number;
-              };
-              [k: string]: unknown;
-            } | null;
-            /**
-             * Display size of the media
-             */
-            size: 'small' | 'medium' | 'large' | 'fullWidth';
-            /**
-             * Aspect ratio (auto uses original dimensions)
-             */
-            aspectRatio?: ('auto' | '16:9' | '4:3' | '1:1') | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'media';
-          }
-        | {
-            /**
-             * Optional section heading
-             */
-            title?: string | null;
-            /**
-             * Which collection to display
-             */
-            collection: 'books' | 'events';
-            /**
-             * Filter books by category
-             */
-            category?: (number | null) | Category;
-            /**
-             * Filter books by subject
-             */
-            subject?: (number | null) | Subject;
-            /**
-             * Date range for events
-             */
-            dateRange?: {
-              /**
-               * Filter events starting from this date
-               */
-              start?: string | null;
-              /**
-               * Filter events until this date
-               */
-              end?: string | null;
-            };
-            /**
-             * Display layout
-             */
-            layout: 'grid' | 'list';
-            /**
-             * Show search bar above archive
-             */
-            enableSearch?: boolean | null;
-            /**
-             * Show filter controls
-             */
-            enableFilters?: boolean | null;
-            /**
-             * Number of items per page
-             */
-            itemsPerPage: number;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'archive';
-          }
-      )[]
-    | null;
   _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -1714,111 +2358,6 @@ export interface LayoutSelect<T extends boolean = true> {
         id?: T;
       };
   copyright?: T;
-  blocks?:
-    | T
-    | {
-        hero?:
-          | T
-          | {
-              variant?: T;
-              title?: T;
-              subtitle?: T;
-              backgroundImage?: T;
-              icon?: T;
-              ctaButtons?:
-                | T
-                | {
-                    label?: T;
-                    href?: T;
-                    variant?: T;
-                    id?: T;
-                  };
-              alignment?: T;
-              id?: T;
-              blockName?: T;
-            };
-        bookShowcase?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              displayMode?: T;
-              category?: T;
-              subject?: T;
-              manualBooks?: T;
-              limit?: T;
-              columns?: T;
-              showViewAllLink?: T;
-              viewAllHref?: T;
-              id?: T;
-              blockName?: T;
-            };
-        content?:
-          | T
-          | {
-              layout?: T;
-              columns?:
-                | T
-                | {
-                    richText?: T;
-                    align?: T;
-                    id?: T;
-                  };
-              backgroundColor?: T;
-              id?: T;
-              blockName?: T;
-            };
-        callToAction?:
-          | T
-          | {
-              icon?: T;
-              customIcon?: T;
-              title?: T;
-              description?: T;
-              buttons?:
-                | T
-                | {
-                    label?: T;
-                    href?: T;
-                    variant?: T;
-                    size?: T;
-                    id?: T;
-                  };
-              backgroundColor?: T;
-              id?: T;
-              blockName?: T;
-            };
-        media?:
-          | T
-          | {
-              media?: T;
-              caption?: T;
-              size?: T;
-              aspectRatio?: T;
-              id?: T;
-              blockName?: T;
-            };
-        archive?:
-          | T
-          | {
-              title?: T;
-              collection?: T;
-              category?: T;
-              subject?: T;
-              dateRange?:
-                | T
-                | {
-                    start?: T;
-                    end?: T;
-                  };
-              layout?: T;
-              enableSearch?: T;
-              enableFilters?: T;
-              itemsPerPage?: T;
-              id?: T;
-              blockName?: T;
-            };
-      };
   _status?: T;
   updatedAt?: T;
   createdAt?: T;

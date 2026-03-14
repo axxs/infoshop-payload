@@ -1,5 +1,4 @@
 import type { GlobalConfig } from 'payload'
-import { blocks } from '@/blocks'
 
 export const Layout: GlobalConfig = {
   slug: 'layout',
@@ -210,19 +209,6 @@ export const Layout: GlobalConfig = {
               defaultValue: '© 2025 Infoshop. All rights reserved.',
               admin: {
                 description: 'Copyright text',
-              },
-            },
-          ],
-        },
-        {
-          label: 'Homepage',
-          fields: [
-            {
-              name: 'blocks',
-              type: 'blocks',
-              blocks,
-              admin: {
-                description: 'Build the homepage layout by adding, removing, and reordering blocks',
               },
             },
           ],

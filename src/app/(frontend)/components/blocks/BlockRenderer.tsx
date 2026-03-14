@@ -5,6 +5,7 @@ import { Content } from './Content'
 import { CallToAction } from './CallToAction'
 import { Media } from './Media'
 import { Archive } from './Archive'
+import { FormBlock } from './FormBlock'
 
 type Block =
   | {
@@ -34,6 +35,11 @@ type Block =
     }
   | {
       blockType: 'archive'
+      id?: string | null
+      [key: string]: unknown
+    }
+  | {
+      blockType: 'formBlock'
       id?: string | null
       [key: string]: unknown
     }
@@ -80,6 +86,14 @@ export async function BlockRenderer({ blocks }: BlockRendererProps) {
 
           case 'archive':
             return <Archive key={key} {...(block as unknown as Parameters<typeof Archive>[0])} />
+
+          case 'formBlock':
+            return (
+              <FormBlock
+                key={key}
+                {...(block as unknown as Parameters<typeof FormBlock>[0])}
+              />
+            )
 
           default:
             return null

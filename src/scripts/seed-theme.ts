@@ -128,167 +128,183 @@ async function seedTheme() {
           },
         ],
         copyright: '\u00A9 2025 Infoshop. All rights reserved.',
-        // Homepage blocks
-        blocks: [
-          // Block 1: Hero Section
+      },
+    })
+    console.log('Layout Global seeded successfully')
+
+    // Seed homepage as a Pages document
+    const homepageBlocks = [
+      {
+        blockType: 'hero',
+        variant: 'fullHeight',
+        title: 'Welcome to Infoshop',
+        subtitle:
+          'Your community bookstore collective. Discover radical literature, independent publishing, and grassroots knowledge.',
+        icon: 'book-open',
+        alignment: 'center',
+        ctaButtons: [
           {
-            blockType: 'hero',
-            variant: 'fullHeight',
-            title: 'Welcome to Infoshop',
-            subtitle:
-              'Your community bookstore collective. Discover radical literature, independent publishing, and grassroots knowledge.',
-            icon: 'book-open',
-            alignment: 'center',
-            ctaButtons: [
-              {
-                label: 'Browse All Books',
-                href: '/shop',
-                variant: 'default',
-              },
-              {
-                label: 'Browse Categories',
-                href: '/shop/categories',
-                variant: 'outline',
-              },
-            ],
+            label: 'Browse All Books',
+            href: '/shop',
+            variant: 'default',
           },
-          // Block 2: Book Showcase (New Arrivals)
           {
-            blockType: 'bookShowcase',
-            title: 'New Arrivals',
-            description: 'Recently added to our collection',
-            displayMode: 'newest',
-            limit: 8,
-            columns: '4',
-            showViewAllLink: true,
-            viewAllHref: '/shop',
+            label: 'Browse Categories',
+            href: '/shop/categories',
+            variant: 'outline',
           },
-          // Block 3: Content Block (About)
+        ],
+      },
+      {
+        blockType: 'bookShowcase',
+        title: 'New Arrivals',
+        description: 'Recently added to our collection',
+        displayMode: 'newest',
+        limit: 8,
+        columns: '4',
+        showViewAllLink: true,
+        viewAllHref: '/shop',
+      },
+      {
+        blockType: 'content',
+        layout: 'twoColumns',
+        backgroundColor: 'muted',
+        columns: [
           {
-            blockType: 'content',
-            layout: 'twoColumns',
-            backgroundColor: 'muted',
-            columns: [
-              {
-                richText: {
-                  root: {
-                    type: 'root',
-                    children: [
-                      {
-                        type: 'heading',
-                        tag: 'h2',
-                        children: [
-                          {
-                            type: 'text',
-                            text: 'About Infoshop',
-                          },
-                        ],
-                      },
-                      {
-                        type: 'paragraph',
-                        children: [
-                          {
-                            type: 'text',
-                            text: 'Infoshop is a community-run bookstore collective dedicated to providing access to radical, independent, and grassroots literature. We believe in the power of knowledge as a tool for social change.',
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                },
-                align: 'left',
-              },
-              {
-                richText: {
-                  root: {
-                    type: 'root',
-                    children: [
-                      {
-                        type: 'heading',
-                        tag: 'h2',
-                        children: [
-                          {
-                            type: 'text',
-                            text: 'Our Mission',
-                          },
-                        ],
-                      },
-                      {
-                        type: 'paragraph',
-                        children: [
-                          {
-                            type: 'text',
-                            text: 'We support independent publishers, promote diverse voices, and create spaces for community engagement. Every purchase supports our mission of making knowledge accessible to all.',
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                },
-                align: 'left',
-              },
-            ],
-          },
-          // Block 4: Book Showcase (Featured)
-          {
-            blockType: 'bookShowcase',
-            title: 'Featured Books',
-            description: 'Staff picks and community favourites',
-            displayMode: 'featured',
-            limit: 8,
-            columns: '4',
-            showViewAllLink: true,
-            viewAllHref: '/shop',
-          },
-          // Block 5: Call to Action
-          {
-            blockType: 'callToAction',
-            icon: 'info',
-            title: 'Join Our Community',
-            description: {
+            richText: {
               root: {
                 type: 'root',
                 children: [
+                  {
+                    type: 'heading',
+                    tag: 'h2',
+                    children: [{ type: 'text', text: 'About Infoshop' }],
+                  },
                   {
                     type: 'paragraph',
                     children: [
                       {
                         type: 'text',
-                        text: 'Become a member and get discounts on all books, access to exclusive events, and support independent publishing.',
+                        text: 'Infoshop is a community-run bookstore collective dedicated to providing access to radical, independent, and grassroots literature. We believe in the power of knowledge as a tool for social change.',
                       },
                     ],
                   },
                 ],
               },
             },
-            backgroundColor: 'gradient',
-            buttons: [
-              {
-                label: 'Learn More',
-                href: '/membership',
-                variant: 'default',
-                size: 'lg',
-              },
-            ],
+            align: 'left',
           },
-          // Block 6: Archive (Upcoming Events)
           {
-            blockType: 'archive',
-            title: 'Upcoming Events',
-            collection: 'events',
-            dateRange: {
-              start: new Date().toISOString(),
-              end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+            richText: {
+              root: {
+                type: 'root',
+                children: [
+                  {
+                    type: 'heading',
+                    tag: 'h2',
+                    children: [{ type: 'text', text: 'Our Mission' }],
+                  },
+                  {
+                    type: 'paragraph',
+                    children: [
+                      {
+                        type: 'text',
+                        text: 'We support independent publishers, promote diverse voices, and create spaces for community engagement. Every purchase supports our mission of making knowledge accessible to all.',
+                      },
+                    ],
+                  },
+                ],
+              },
             },
-            layout: 'grid',
-            enableSearch: false,
-            enableFilters: false,
-            itemsPerPage: 6,
+            align: 'left',
           },
         ],
       },
+      {
+        blockType: 'bookShowcase',
+        title: 'Featured Books',
+        description: 'Staff picks and community favourites',
+        displayMode: 'featured',
+        limit: 8,
+        columns: '4',
+        showViewAllLink: true,
+        viewAllHref: '/shop',
+      },
+      {
+        blockType: 'callToAction',
+        icon: 'info',
+        title: 'Join Our Community',
+        description: {
+          root: {
+            type: 'root',
+            children: [
+              {
+                type: 'paragraph',
+                children: [
+                  {
+                    type: 'text',
+                    text: 'Become a member and get discounts on all books, access to exclusive events, and support independent publishing.',
+                  },
+                ],
+              },
+            ],
+          },
+        },
+        backgroundColor: 'gradient',
+        buttons: [
+          {
+            label: 'Learn More',
+            href: '/membership',
+            variant: 'default',
+            size: 'lg',
+          },
+        ],
+      },
+      {
+        blockType: 'archive',
+        title: 'Upcoming Events',
+        collection: 'events',
+        dateRange: {
+          start: new Date().toISOString(),
+          end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+        layout: 'grid',
+        enableSearch: false,
+        enableFilters: false,
+        itemsPerPage: 6,
+      },
+    ]
+
+    const { docs: existingHome } = await payload.find({
+      collection: 'pages',
+      where: { slug: { equals: 'home' } },
+      limit: 1,
     })
-    console.log('Layout Global seeded successfully')
+
+    if (existingHome.length > 0) {
+      await payload.update({
+        collection: 'pages',
+        id: existingHome[0].id,
+        data: {
+          title: 'Home',
+          blocks: homepageBlocks as never[],
+          _status: 'published',
+        },
+      })
+      console.log('Homepage page updated')
+    } else {
+      await payload.create({
+        collection: 'pages',
+        data: {
+          title: 'Home',
+          slug: 'home',
+          description: 'Welcome to Infoshop — your community bookstore collective',
+          blocks: homepageBlocks as never[],
+          _status: 'published',
+        },
+      })
+      console.log('Homepage page seeded successfully')
+    }
 
     console.log('\nTheme seed completed successfully!')
     console.log('\nNext steps:')
