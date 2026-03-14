@@ -17,17 +17,22 @@ interface PostPageProps {
 export const dynamicParams = true
 
 export async function generateStaticParams() {
-  const payload = await getPayload({ config })
-  const { docs } = await payload.find({
-    collection: 'posts',
-    where: { _status: { equals: 'published' } },
-    limit: 1000,
-    select: { slug: true },
-  })
+  try {
+    const payload = await getPayload({ config })
+    const { docs } = await payload.find({
+      collection: 'posts',
+      where: { _status: { equals: 'published' } },
+      limit: 1000,
+      select: { slug: true },
+    })
 
-  return docs
-    .filter((doc) => doc.slug)
-    .map((doc) => ({ slug: doc.slug as string }))
+    return docs
+      .filter((doc) => doc.slug)
+      .map((doc) => ({ slug: doc.slug as string }))
+  } catch {
+    // Table may not exist yet during initial build before migrations
+    return []
+  }
 }
 
 const getPost = cache(async (slug: string): Promise<Post | null> => {
