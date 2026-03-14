@@ -27,7 +27,8 @@ export async function POST(request: NextRequest) {
   if (!auth.authorized) return auth.response
 
   const { searchParams } = new URL(request.url)
-  const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10), MAX_LIMIT)
+  const raw = parseInt(searchParams.get('limit') || '50', 10)
+  const limit = Math.min(Math.max(Number.isNaN(raw) ? 50 : raw, 1), MAX_LIMIT)
   const onlyMissing = searchParams.get('onlyMissing') === 'true'
 
   try {

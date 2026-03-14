@@ -103,15 +103,27 @@ async function probeImageUrl(url: string, timeout: number = PROBE_TIMEOUT_MS): P
       redirect: 'follow',
     })
 
+    // Helper to release the response body and prevent socket leaks
+    const releaseBody = () => response.body?.cancel().catch(() => {})
+
     // Accept any 2xx (200 when Range ignored, 206 when Range honoured)
-    if (!response.ok) return false
+    if (!response.ok) {
+      releaseBody()
+      return false
+    }
 
     // Final URL after redirects must pass SSRF validation
-    if (response.url && !validateImageURL(response.url)) return false
+    if (response.url && !validateImageURL(response.url)) {
+      releaseBody()
+      return false
+    }
 
     // Must be an image content type
     const contentType = response.headers.get('content-type')
-    if (!contentType || !contentType.startsWith('image/')) return false
+    if (!contentType || !contentType.startsWith('image/')) {
+      releaseBody()
+      return false
+    }
 
     // --- Primary size check: Content-Range tells us the full file size ---
     // Format: "bytes 0-N/TOTAL" on 206 responses
@@ -120,7 +132,7 @@ async function probeImageUrl(url: string, timeout: number = PROBE_TIMEOUT_MS): P
       const match = /\/(\d+)$/.exec(contentRange)
       if (match) {
         const totalBytes = parseInt(match[1], 10)
-        // Content-Range present — definitive answer
+        releaseBody()
         return !isNaN(totalBytes) && totalBytes >= MIN_COVER_SIZE
       }
     }
@@ -129,7 +141,10 @@ async function probeImageUrl(url: string, timeout: number = PROBE_TIMEOUT_MS): P
     const contentLength = response.headers.get('content-length')
     if (contentLength) {
       const bytes = parseInt(contentLength, 10)
-      if (!isNaN(bytes)) return bytes >= MIN_COVER_SIZE
+      if (!isNaN(bytes)) {
+        releaseBody()
+        return bytes >= MIN_COVER_SIZE
+      }
     }
 
     // --- Fallback: read the body incrementally ---
