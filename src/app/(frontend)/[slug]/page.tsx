@@ -1,17 +1,22 @@
 import type { Metadata } from 'next'
+import { cache } from 'react'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { notFound } from 'next/navigation'
 import { BlockRenderer } from '../components/blocks/BlockRenderer'
+import type { Page } from '@/payload-types'
 
 interface PageProps {
   params: Promise<{ slug: string }>
 }
 
+export const dynamicParams = true
+
 export async function generateStaticParams() {
   const payload = await getPayload({ config })
   const { docs } = await payload.find({
     collection: 'pages',
+    where: { _status: { equals: 'published' } },
     limit: 1000,
     select: { slug: true },
   })
@@ -21,18 +26,21 @@ export async function generateStaticParams() {
     .map((doc) => ({ slug: doc.slug as string }))
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params
+const getPage = cache(async (slug: string): Promise<Page | null> => {
   const payload = await getPayload({ config })
-
   const { docs } = await payload.find({
     collection: 'pages',
     where: { slug: { equals: slug } },
     limit: 1,
-    depth: 1,
+    depth: 2,
   })
+  return (docs[0] as Page) ?? null
+})
 
-  const page = docs[0]
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params
+  const page = await getPage(slug)
+
   if (!page) return { title: 'Page Not Found' }
 
   const metadata: Metadata = {
@@ -40,10 +48,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   if (page.description) {
-    metadata.description = page.description as string
+    metadata.description = page.description
   }
 
-  if (page.featuredImage && typeof page.featuredImage === 'object' && page.featuredImage !== null) {
+  if (page.featuredImage && typeof page.featuredImage === 'object') {
     const img = page.featuredImage as { url?: string }
     if (img.url) {
       metadata.openGraph = {
@@ -57,16 +65,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function DynamicPage({ params }: PageProps) {
   const { slug } = await params
-  const payload = await getPayload({ config })
+  const page = await getPage(slug)
 
-  const { docs } = await payload.find({
-    collection: 'pages',
-    where: { slug: { equals: slug } },
-    limit: 1,
-    depth: 2,
-  })
-
-  const page = docs[0]
   if (!page) {
     notFound()
   }

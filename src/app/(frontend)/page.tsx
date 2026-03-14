@@ -55,7 +55,8 @@ export default async function HomePage() {
     }
 
     return <BlockRenderer blocks={blocks} />
-  } catch (_error) {
+  } catch (error) {
+    console.error('Failed to load homepage:', error)
     return (
       <div className="container mx-auto px-4 py-24 text-center">
         <h1 className="mb-4 text-4xl font-bold">Welcome to Infoshop</h1>

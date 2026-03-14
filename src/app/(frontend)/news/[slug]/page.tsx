@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { cache } from 'react'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { notFound } from 'next/navigation'
@@ -7,15 +8,19 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { Badge } from '../../components/ui/badge'
 import { formatDate } from '@/lib/dates'
+import type { Post } from '@/payload-types'
 
 interface PostPageProps {
   params: Promise<{ slug: string }>
 }
 
+export const dynamicParams = true
+
 export async function generateStaticParams() {
   const payload = await getPayload({ config })
   const { docs } = await payload.find({
     collection: 'posts',
+    where: { _status: { equals: 'published' } },
     limit: 1000,
     select: { slug: true },
   })
@@ -25,18 +30,21 @@ export async function generateStaticParams() {
     .map((doc) => ({ slug: doc.slug as string }))
 }
 
-export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
-  const { slug } = await params
+const getPost = cache(async (slug: string): Promise<Post | null> => {
   const payload = await getPayload({ config })
-
   const { docs } = await payload.find({
     collection: 'posts',
     where: { slug: { equals: slug } },
     limit: 1,
-    depth: 1,
+    depth: 2,
   })
+  return (docs[0] as Post) ?? null
+})
 
-  const post = docs[0]
+export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
+  const { slug } = await params
+  const post = await getPost(slug)
+
   if (!post) return { title: 'Post Not Found' }
 
   const metadata: Metadata = {
@@ -44,10 +52,10 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
   }
 
   if (post.excerpt) {
-    metadata.description = post.excerpt as string
+    metadata.description = post.excerpt
   }
 
-  if (post.featuredImage && typeof post.featuredImage === 'object' && post.featuredImage !== null) {
+  if (post.featuredImage && typeof post.featuredImage === 'object') {
     const img = post.featuredImage as { url?: string }
     if (img.url) {
       metadata.openGraph = {
@@ -61,16 +69,8 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
 
 export default async function PostPage({ params }: PostPageProps) {
   const { slug } = await params
-  const payload = await getPayload({ config })
+  const post = await getPost(slug)
 
-  const { docs } = await payload.find({
-    collection: 'posts',
-    where: { slug: { equals: slug } },
-    limit: 1,
-    depth: 2,
-  })
-
-  const post = docs[0]
   if (!post) {
     notFound()
   }
