@@ -154,46 +154,15 @@ When hooks report ANY issues (exit code 2), you MUST:
 4. **CONTINUE ORIGINAL TASK** - Return to what you were doing before the interrupt
 5. **NEVER IGNORE** - There are NO warnings, only requirements
 
-## .agent Documentation System
-
-**Before starting ANY feature, read the .agent documentation for context.**
-
-This project uses the `.agent/` documentation system to optimize context and reduce token consumption. The system provides focused, summarized documentation about the codebase.
-
-### Before Starting Features
-
-1. **Read `.agent/README.md`** - Documentation index and usage guide
-2. **Check relevant system docs**:
-   - `.agent/system/project-architecture.md` - Payload architecture patterns
-   - `.agent/system/database-schema.md` - Collections, Drizzle schemas
-   - `.agent/system/api-endpoints.md` - REST/GraphQL API contracts
-   - `.agent/system/key-components.md` - Collection configs, hooks, plugins
-3. **Look for similar implementations** in `.agent/task/`
-4. **Review relevant SOPs** in `.agent/SOPs/`
-
-### After Completing Features
-
-1. **Update documentation**: Run `/update-doc` to refresh system docs
-2. **Save implementation**: Run `/update-doc task <feature-name>` to document your approach
-3. **Create SOPs**: Run `/update-doc sop <process-name>` for repeatable processes
-
-### Benefits
-
-- **Token Savings**: 30-50% reduction for similar features
-- **Faster Context**: Find patterns without grepping entire codebase
-- **Cumulative Knowledge**: Each feature makes future work easier
-
 ## CRITICAL WORKFLOW - ALWAYS FOLLOW THIS!
 
 ### Research → Plan → Implement
 
 **NEVER JUMP STRAIGHT TO CODING!** Always follow this sequence:
 
-1. **Research**: Read `.agent/` docs, explore codebase, understand existing patterns
+1. **Research**: Explore codebase, understand existing patterns
 2. **Plan**: Create a detailed implementation plan and verify it with user
 3. **Implement**: Execute the plan with validation checkpoints
-
-When asked to implement any feature, first say: "Let me research the codebase and create a plan before implementing."
 
 ### USE MULTIPLE AGENTS!
 
