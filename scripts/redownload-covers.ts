@@ -104,6 +104,7 @@ async function main() {
             existingCoverUrl,
             bookTitle: title,
             alt: `Cover of ${title}`,
+            bookId: book.id,
           })
         } else if (externalUrl) {
           // No ISBN — try the stored external URL directly

@@ -15,6 +15,14 @@ export const Media: CollectionConfig = {
       type: 'text',
       required: true,
     },
+    {
+      name: 'book',
+      type: 'relationship',
+      relationTo: 'books',
+      admin: {
+        description: 'Book this image is a cover for (set automatically)',
+      },
+    },
   ],
   upload: true,
 }

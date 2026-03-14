@@ -29,6 +29,8 @@ export interface DownloadImageOptions {
   alt?: string
   /** Book title for generating filename */
   bookTitle?: string
+  /** Book ID to link the media record back to */
+  bookId?: number
 }
 
 /**
@@ -199,7 +201,7 @@ export async function downloadCoverImage(
   imageUrl: string,
   options: DownloadImageOptions = {},
 ): Promise<DownloadImageResult> {
-  const { timeout = 30000, alt, bookTitle } = options
+  const { timeout = 30000, alt, bookTitle, bookId } = options
 
   try {
     // Validate URL
@@ -253,6 +255,7 @@ export async function downloadCoverImage(
       collection: 'media',
       data: {
         alt: alt || (bookTitle ? `Cover of ${bookTitle}` : 'Book cover'),
+        ...(bookId ? { book: bookId } : {}),
       },
       file: {
         data: imageBuffer,

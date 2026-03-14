@@ -120,6 +120,7 @@ async function main() {
           existingCoverUrl,
           bookTitle: title,
           alt: `Cover of ${title}`,
+          bookId: book.id,
         })
 
         if (mediaId) {
